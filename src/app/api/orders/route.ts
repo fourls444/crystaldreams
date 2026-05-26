@@ -3,11 +3,11 @@ import { getSupabaseAdmin } from "@/utils/supabase";
 
 export async function POST(req: Request) {
   try {
-    const { product_id, quantity, customer_name, customer_tel } = await req.json();
+    const { product_id, quantity } = await req.json();
 
-    if (!product_id || !quantity || !customer_name || !customer_tel) {
+    if (!product_id || !quantity) {
       return NextResponse.json(
-        { error: "กรุณากรอกข้อมูลให้ครบถ้วน" },
+        { error: "กรุณาระบุสินค้าและจำนวน" },
         { status: 400 }
       );
     }
@@ -46,8 +46,6 @@ export async function POST(req: Request) {
         product_id,
         quantity,
         total_amount,
-        customer_name,
-        customer_tel,
         status: "pending",
       })
       .select("id")

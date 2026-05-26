@@ -92,183 +92,98 @@ app/
 │
 ├── admin/
 │   ├── login/page.tsx           → หน้า Login backoffice
-│   ├── dashboard/page.tsx       → จัดการสินค้า (แก้ชื่อ/ราคา/สต็อก/รูป)
-│   └── orders/page.tsx          → ดูออเดอร์ + manual verify สลิป
-│
-└── api/
-    ├── orders/route.ts          → สร้าง order
-    ├── orders/[id]/verify/route.ts → verify สลิป (EasySlip + manual)
-    ├── notify/route.ts          → ส่งแจ้งเตือน LINE OA
-    └── upload/route.ts          → upload รูปสลิปไป Supabase Storage
-```
-
----
-
-## 🗺️ User Flow
-
-### 🛍️ Customer Flow
-```
-[หน้าหลัก]
-  → เลือกจำนวนหมอน (1-N ชิ้น ไม่เกิน stock)
-  → ใส่ชื่อ + เบอร์โทรติดต่อ
-  → กด "ชำระเงิน"
-      ↓
-[หน้า QR Code]
-  → แสดง PromptPay QR ตามยอด (จำนวน × 1,890)
-  → แสดงยอดรวมชัดเจน
-  → กด "อัพโหลดสลิป & กรอกที่อยู่" หลังโอนเสร็จ
-      ↓
-[หน้าอัพโหลดสลิป & ที่อยู่]
-  → เลือกรูปสลิปจากโทรศัพท์
-  → กรอกข้อมูลจัดส่ง: ชื่อ-นามสกุล, เบอร์โทร, และที่อยู่จัดส่งโดยละเอียด
-  → กด "ยืนยันการชำระเงิน"
-      ↓
-[ระบบ Backend]
-  → Upload สลิปไป Supabase Storage
-  → บันทึกที่อยู่จัดส่งลง Database ในออเดอร์นั้น
-  → ส่งไป EasySlip API ตรวจสอบ
-  → ถ้าผ่าน Auto → Update order status → แจ้ง LINE OA
-  → ถ้าไม่ผ่าน Auto → เข้า Manual queue → แจ้ง LINE OA ให้ admin ตรวจ
-      ↓
-[หน้า Success]
-  → "ขอบคุณ! คำสั่งซื้อของคุณอยู่ระหว่างการยืนยัน"
-  → แสดงรายละเอียดที่อยู่จัดส่งและ Order ID ให้ลูกค้าเก็บไว้
-```
-
-### 👨‍💼 Admin Flow
-```
-[Login] → Supabase Auth (email/password)
-    ↓
-[Dashboard]
-  ├── แก้ไขชื่อสินค้า
-  ├── แก้ไขราคา
-  ├── เพิ่ม/ลด Stock
-  └── เปลี่ยนรูปสินค้า
-    ↓
-[Orders]
-  ├── ดูรายการออเดอร์ทั้งหมด
-  ├── ดูสถานะ (pending / slip_uploaded / verified / rejected)
-  ├── คลิกดูรูปสลิปแต่ละออเดอร์
-  └── กด "ยืนยัน" หรือ "ปฏิเสธ" (manual verify)
-```
-
 ---
 
 ## 📅 แผนการพัฒนา (Development Phases)
 
-### Phase 1: Setup & Infrastructure (1-2 วัน)
+### Phase 1: Setup & Infrastructure (1-2 วัน) [สำเร็จแล้ว ✅]
 
-- [ ] สร้าง Next.js 14 project (`npx create-next-app@latest`)
-- [ ] สร้าง Supabase project
-  - [ ] สร้าง tables: `products`, `orders`
-  - [ ] ตั้งค่า Storage bucket: `slips` (public read, auth write)
-  - [ ] สร้าง admin user ผ่าน Supabase Auth
-  - [ ] ตั้ง Row Level Security (RLS) policies
-- [ ] เชื่อม Next.js กับ Supabase (`@supabase/ssr`)
-- [ ] Push โค้ดขึ้น GitHub
-- [ ] Deploy บน Vercel + ตั้ง Environment Variables
+- [x] สร้าง Next.js 14 project (npx create-next-app@latest)
+- [x] สร้าง Supabase project
+  - [x] สร้าง tables: `products`, `orders` (สำเร็จแล้ว ผ่าน schema.sql)
+  - [x] ตั้งค่า Storage bucket: `slips` (สำเร็จแล้ว)
+  - [x] สร้าง admin user ผ่าน Supabase Auth
+  - [x] ตั้ง Row Level Security (RLS) policies (สำเร็จแล้ว ผ่าน schema.sql)
+- [x] เชื่อม Next.js กับ Supabase (`@supabase/ssr` สำเร็จแล้ว)
+- [x] Push โค้ดขึ้น GitHub
+- [/] Deploy บน Vercel + ตั้ง Environment Variables (อยู่ระหว่างดำเนินการ)
 
-**Environment Variables ที่ต้องการ:**
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-EASYSLIP_API_KEY=
-LINE_CHANNEL_ACCESS_TOKEN=
-LINE_ADMIN_USER_ID=
-NEXT_PUBLIC_PROMPTPAY_NUMBER=  # เบอร์/เลขบัญชี PromptPay
-```
-
----
-
-### Phase 2: Customer Frontend (2-3 วัน)
-
-- [ ] **หน้าหลัก** (`/`)
-  - [ ] Header: Logo + ชื่อร้าน
-  - [ ] Product Card: รูปหมอน, ชื่อ, ราคา 1,890 บาท, จำนวนสต็อก
-  - [ ] Quantity selector (+/-) พร้อม validate ไม่เกิน stock
-  - [ ] ปุ่ม "ชำระเงิน"
-  - [ ] Footer: ข้อมูลร้าน, ช่องทางติดต่อ
-
-- [ ] **หน้า QR** (`/payment`)
-  - [ ] Generate PromptPay QR จาก `promptpay-qr` + `qrcode`
-  - [ ] แสดงยอดชำระรวม
-  - [ ] ปุ่มดาวน์โหลด QR
-  - [ ] ปุ่ม "แนบสลิป & กรอกที่อยู่จัดส่ง"
-
-- [ ] **หน้าอัพโหลดสลิป & ที่อยู่** (`/payment/slip`)
-  - [ ] Form: ชื่อ-นามสกุล, เบอร์โทรผู้รับ, ที่อยู่สำหรับจัดส่ง (ถนน, อำเภอ, เขต, จังหวัด, รหัสไปรษณีย์)
-  - [ ] Image upload component (drag & drop + click) สำหรับแนบรูปสลิป
-  - [ ] Preview รูปสลิปก่อน submit
-  - [ ] ปุ่ม "ยืนยันการชำระเงิน"
-
-- [ ] **หน้า Success** (`/success`)
-  - [ ] แสดงข้อความขอบคุณ
-  - [ ] แสดง Order ID และสรุปที่อยู่สำหรับจัดส่งที่กรอกไว้
-  - [ ] แจ้งว่ารอยืนยัน 1-2 ชั่วโมง
+**Environment Variables Status:**
+- `NEXT_PUBLIC_SUPABASE_URL` : ตั้งค่าแล้ว ✅
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` : ตั้งค่าแล้ว ✅
+- `SUPABASE_SERVICE_ROLE_KEY` : ตั้งค่าแล้ว ✅
+- `EASYSLIP_API_KEY` : ตั้งค่าแล้ว ✅
+- `EASYSLIP_SANDBOX=true` : ตั้งค่าเปิดใช้งานแล้ว เพื่อจำลองการสแกนสลิปฟรี ✅
+- `LINE_CHANNEL_ACCESS_TOKEN` : **⏳ รอข้อมูลและ Token จากลูกค้าเพื่อเชื่อมต่อ LINE OA**
+- `LINE_ADMIN_USER_ID` : **⏳ รอข้อมูล ID ของแอดมินเพื่อใช้รับการแจ้งเตือน**
+- `NEXT_PUBLIC_PROMPTPAY_NUMBER` : **⏳ รอเบอร์/เลขบัญชีพร้อมเพย์จริงจากลูกค้า** (ปัจจุบันใช้ dummy test)
 
 ---
 
-### Phase 3: Backend API (2-3 วัน)
+### Phase 2: Customer Frontend (2-3 วัน) [สำเร็จแล้ว ✅]
 
-- [ ] **POST `/api/orders`** — สร้าง order ใหม่ (สถานะ pending)
-  - รับ: `product_id`, `quantity`
-  - คืน: `order_id`, `total_amount`
-
-- [ ] **POST `/api/upload`** — อัพโหลดสลิป & อัพเดตที่อยู่
-  - รับ: `order_id`, `customer_name`, `customer_tel`, `customer_address`, `image file`
-  - อัพโหลดสลิปไป Supabase Storage
-  - อัพเดตข้อมูลชื่อ, เบอร์โทร, ที่อยู่จัดส่ง และ `slip_url` ใน order
-  - เปลี่ยนสถานะ order → `slip_uploaded`
-  - คืน: สถานะความสำเร็จ
-
-- [ ] **POST `/api/orders/[id]/verify`** — ตรวจสลิป (EasySlip)
-  - ส่งรูปสลิปใน storage ไปยัง EasySlip API
-  - ตรวจเช็คความถูกต้อง (ราคาตรง 1,890 x จำนวน หรือไม่)
-  - ถ้าผ่าน Auto → อัพเดทสถานะเป็น `verified`, ลด stock
-  - ถ้าไม่ผ่าน → เข้า manual queue เพื่อให้ Admin ตรวจสอบเอง
-  - เรียก `/api/notify` ส่งข้อมูลคำสั่งซื้อและที่อยู่จัดส่งไปยัง LINE OA
-
-- [ ] **POST `/api/notify`** — แจ้ง LINE OA
-  - ส่ง push message หา admin
-  - ข้อความประกอบด้วย: ชื่อลูกค้า, เบอร์โทร, ที่อยู่จัดส่ง, จำนวนสินค้า, ยอดโอนเงิน, และรูปสลิป
-  - ถ้า EasySlip ตรวจไม่ผ่าน → แนบลิงก์สำหรับกดตรวจสอบสลิปแบบ Manual ใน backoffice
+- [x] **หน้าหลัก** (`/`)
+  - [x] Header: Logo + ชื่อร้าน (CDM + กลับหน้าหลักเมื่อคลิก)
+  - [x] Product Card: รูปหมอน (ขยายขนาดเท่าเนื้อหา), ชื่อ (แสดงบรรทัดเดียว), ราคา (ไม่มีเครื่องหมาย ฿ ใช้หน่วย "บาท"), สต็อกคงเหลือ
+  - [x] Quantity selector (+/-) พร้อมตรวจสอบไม่ให้เกินสต็อกที่มี
+  - [x] ปุ่ม "ชำระเงิน"
+  - [x] Footer: ข้อมูลร้านค้าและสิทธิ์การคุ้มครองข้อมูล
+- [x] **หน้า QR Code Payment** (เปลี่ยนมาใช้ Popup Modal เพื่อให้กระบวนการลื่นไหล)
+  - [x] สร้าง PromptPay QR dynamic ตามจำนวนเงินจริง
+  - [x] แสดงยอดเงินรวมชำระ
+  - [x] ปุ่มดาวน์โหลดภาพ QR Code
+  - [x] ปุ่ม "ฉันโอนเงินเรียบร้อยแล้ว ไปแนบสลิป"
+  - [x] ปุ่ม "ยกเลิกชำระเงิน" (เพื่อยกเลิกการจองสิทธิ์และปิด Modal)
+- [x] **หน้าส่งสลิป & กรอกที่อยู่** (`/payment/slip`)
+  - [x] แบบฟอร์มกรอก ชื่อ-นามสกุล, เบอร์โทรศัพท์, ที่อยู่จัดส่ง
+  - [x] ส่วนอัปโหลดรูปภาพสลิป (Drag & Drop + Preview ก่อนส่ง)
+  - [x] ป้องกันการเปลี่ยนหน้าแบบกะทันหัน และ validation ความถูกต้องของข้อมูล
+- [x] **หน้ายืนยันความสำเร็จ** (`/success`)
+  - [x] แสดงหน้าขอบคุณพร้อม Checkmark
+  - [x] แสดงรายละเอียดออเดอร์ (Order ID, รายการ, ยอดเงิน) และที่อยู่จัดส่ง
+  - [x] กล่องข้อความแจ้งเตือนระยะเวลารอตรวจสลิป (5-15 นาที)
 
 ---
 
-### Phase 4: Backoffice (2-3 วัน)
+### Phase 3: Backend API (2-3 วัน) [อยู่ระหว่างดำเนินการ ⚙️]
 
-- [ ] **หน้า Login** (`/admin/login`)
-  - [ ] Email/Password form
-  - [ ] ใช้ Supabase Auth
-  - [ ] Redirect ไป dashboard หลัง login สำเร็จ
-
-- [ ] **Middleware** — protect `/admin/*` routes ทั้งหมด
-
-- [ ] **หน้า Dashboard** (`/admin/dashboard`)
-  - [ ] แสดงข้อมูลสินค้าปัจจุบัน
-  - [ ] แก้ไขชื่อสินค้า
-  - [ ] แก้ไขราคา
-  - [ ] เพิ่ม/ลด stock (input + ปุ่ม)
-  - [ ] เปลี่ยนรูปสินค้า
-
-- [ ] **หน้า Orders** (`/admin/orders`)
-  - [ ] ตาราง order ทั้งหมด พร้อม filter สถานะ
-  - [ ] แสดงรายละเอียดที่อยู่จัดส่ง เบอร์โทร และชื่อผู้รับของแต่ละออเดอร์
-  - [ ] คลิกดูรูปสลิปโอนเงิน (modal/lightbox)
-  - [ ] ปุ่ม "✅ ยืนยันสลิป (ลดสต็อกและอนุมัติออเดอร์)" / "❌ ปฏิเสธสลิป"
-  - [ ] แสดงป้ายบอก (EasySlip Verified Auto หรือ รอตรวจสอบ Manual)
+- [x] **POST `/api/orders`** — สร้างรายการสั่งซื้อใหม่ (สถานะ `pending`)
+- [x] **POST `/api/upload`** — อัปโหลดไฟล์สลิปไป Supabase Storage และบันทึกข้อมูลจัดส่ง
+- [x] **POST `/api/orders/[id]/verify`** — ตรวจสอบสลิปผ่าน EasySlip API
+  - [x] ระบบจำลอง Sandbox Mode ทำงานอัตโนมัติหาก `EASYSLIP_SANDBOX=true` (เพื่อประหยัดโควต้าการทดสอบ)
+  - [x] ดึงรูปสลิปจาก Storage ไปตรวจความถูกต้องของธนาคาร ยอดเงิน และชื่อผู้รับ
+  - [x] ป้องกันการใช้สลิปโอนเงินซ้ำ (Anti-Fraud Slip Reuse Check)
+  - [x] อัปเดตสถานะเป็น `verified` และทำการลดจำนวนสต็อกสินค้าในฐานข้อมูลอัตโนมัติ
+- [ ] **POST `/api/notify`** — แจ้งเตือนแอดมินทาง LINE OA / Email **[⏳ รอข้อมูลชุดเชื่อมต่อ / Access Token เพิ่มเติม]**
 
 ---
 
-### Phase 5: Polish & Testing (1-2 วัน)
+### Phase 4: Backoffice (2-3 วัน) [ยังไม่ได้ทำ ❌]
 
-- [ ] Responsive design (mobile-first)
-- [ ] Error handling ทุก API
-- [ ] Loading states ทุก action
-- [ ] Test full flow ตั้งแต่เลือกสินค้า → ชำระ → แจ้ง LINE
-- [ ] Test backoffice: login, แก้สินค้า, verify สลิป
-- [ ] ตั้ง Custom Domain (ถ้ามี)
+- [ ] **หน้าล็อกอินแอดมิน** (`/admin/login`)
+  - [ ] ออกแบบ UI ล็อกอินด้วย Email & Password
+  - [ ] เชื่อมต่อกับระบบ Supabase Auth
+- [ ] **Middleware Route Guard**
+  - [ ] ปกป้องทุกเส้นทางใต้ `/admin/*` ไม่ให้ผู้ไม่ได้รับสิทธิ์เข้าถึง (Server-side Protection)
+- [ ] **หน้าจัดการสต็อก** (`/admin/dashboard`)
+  - [ ] แสดงรายละเอียดสินค้าปัจจุบัน
+  - [ ] ฟอร์มแก้ไขชื่อสินค้า, ราคา, และจำนวนสต็อก (CRUD)
+- [ ] **หน้าจัดการออเดอร์** (`/admin/orders`)
+  - [ ] ตารางแสดงออเดอร์พร้อม Filter สถานะ (Pending / Slip Uploaded / Verified / Rejected)
+  - [ ] แสดงสลิปที่ลูกค้าแนบ และข้อมูลที่อยู่จัดส่ง
+  - [ ] ปุ่มสำหรับแอดมินกดยืนยันออเดอร์แบบ Manual (ในกรณีที่ระบบ Auto Verify ล้มเหลวหรือเกิดยอดโอนไม่ตรง)
+  - [ ] ปุ่มปฏิเสธออเดอร์พร้อมระบุเหตุผล
+
+---
+
+### Phase 5: Polish & Testing (1-2 วัน) [อยู่ระหว่างดำเนินการ ⚙️]
+
+- [x] ออกแบบ Mobile-First Responsive รองรับอุปกรณ์ทุกขนาดจอ
+- [x] อัปเกรด Font และ Animation สไลด์หน้าเว็บให้สวยงามพรีเมียม (Geist Font + Slide-up)
+- [x] จัดการล้าง TypeScript Types Warning & ESLint Sync State Warning ทั้งหมด 100%
+- [ ] ทดสอบ Flow ลูกค้าสั่งซื้อจนสำเร็จครบวงจร (End-to-End Test)
+- [ ] ทดสอบระบบหลังบ้านและการเข้าสู่ระบบของแอดมิน
+- [ ] เชื่อมต่อ Custom Domain และเปิดใช้งาน Live Mode บน Production (เปลี่ยน `EASYSLIP_SANDBOX` เป็น `false`)
 
 ---
 
