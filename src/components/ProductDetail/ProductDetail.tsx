@@ -100,6 +100,7 @@ export default function ProductDetail() {
             },
             body: JSON.stringify({
               amount: orderData.total_amount,
+              orderId: orderIdParam,
             }),
           });
 
@@ -166,6 +167,7 @@ export default function ProductDetail() {
         },
         body: JSON.stringify({
           amount: data.totalAmount,
+          orderId: data.orderId,
         }),
       });
 

@@ -105,6 +105,7 @@ function SlipContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: order.total_amount,
+            orderId: order.id,
             // ส่งค่าว่างเพื่อให้ API ใช้ค่าจาก NEXT_PUBLIC_PROMPTPAY_NUMBER ใน env.local เอง
           }),
         });

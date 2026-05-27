@@ -1,24 +1,20 @@
 import { NextResponse } from "next/server";
-import generatePayload from "promptpay-qr";
+import { anyId, billPayment } from "promptparse/generate";
 import qrcode from "qrcode";
 
 /**
  * POST /api/payment/qr
  *
- * สร้าง Thai QR Payment (EMV Merchant-Presented Mode) สำหรับ K-SHOP
- *
- * Thai QR Payment มาตรฐาน BOT/EMVCo รองรับ ID 3 รูปแบบผ่าน promptpay-qr:
- *   ≤ 12 digits → BOT_ID_MERCHANT_PHONE_NUMBER  (เบอร์โทร - ไม่ใช้)
- *   13 digits   → BOT_ID_MERCHANT_TAX_ID        (เลขบัตร - ไม่ใช้)
- *   ≥ 15 digits → BOT_ID_MERCHANT_EWALLET_ID    (Biller ID 15 หลัก → K-SHOP) ✅
- *
- * Biller ID 15 หลักจาก K-SHOP จะถูก embed ใน QR และเมื่อลูกค้าสแกน
- * ด้วยแอปธนาคารใดก็ได้ เงินจะวิ่งเข้าบัญชี K-SHOP ของร้านโดยตรง
+ * สร้าง Thai QR Payment (EMV Merchant-Presented Mode)
+ * รองรับการสร้าง QR Code 3 รูปแบบอัตโนมัติอ้างอิงตามความยาวของ ID:
+ *   - 15 หลัก → PromptPay Bill Payment (Tag 30) สำหรับ Biller ID / K-SHOP ✅
+ *   - 13 หลัก → PromptPay AnyID (Tag 29) สำหรับเลขประจำตัวผู้เสียภาษี / เลขบัตรประชาชน (NATID)
+ *   - 10 หลัก → PromptPay AnyID (Tag 29) สำหรับเบอร์โทรศัพท์ (MSISDN)
  */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { amount, billerId } = body;
+    const { amount, billerId, orderId, ref1: bodyRef1 } = body;
 
     // --- Validate amount ---
     if (!amount || isNaN(amount) || amount <= 0) {
@@ -28,7 +24,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // --- Determine Biller ID to use ---
+    // --- Determine PromptPay / Biller ID to use ---
     // Priority: billerId from request > NEXT_PUBLIC_PROMPTPAY_NUMBER env (fallback)
     let targetId: string;
 
@@ -38,28 +34,66 @@ export async function POST(req: Request) {
       const envId = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER;
       if (!envId) {
         return NextResponse.json(
-          { error: "ยังไม่ได้ตั้งค่า Biller ID กรุณาตั้งค่าในหน้าชำระเงิน" },
+          { error: "ยังไม่ได้ตั้งค่าหมายเลขพร้อมเพย์/Biller ID กรุณาตั้งค่าใน .env.local" },
           { status: 500 }
         );
       }
       targetId = envId;
     }
 
-    // --- Validate Biller ID: ต้องเป็นตัวเลข 15 หลักเท่านั้น ---
+    // --- Clean and validate ID ---
     const cleanId = targetId.replace(/[^0-9]/g, "");
-    if (cleanId.length !== 15) {
+
+    // --- Prepare Ref 1 and Ref 2 for Bill Payment (Tag 30) ---
+    // Bill Payment (Tag 30) ต้องมี Reference 1 เสมอ (ความยาวสูงสุด 20 ตัวอักษร)
+    let ref1 = process.env.NEXT_PUBLIC_PROMPTPAY_REF1 || bodyRef1 || orderId || "";
+    let ref2 = process.env.NEXT_PUBLIC_PROMPTPAY_REF2 || body.ref2 || "";
+
+    if (ref1) {
+      // ลบสัญลักษณ์พิเศษ (เช่น เครื่องหมายย่อหน้าของ UUID) และจำกัดที่ 20 ตัวอักษรพิมพ์ใหญ่
+      ref1 = String(ref1).replace(/[^a-zA-Z0-9]/g, "").substring(0, 20).toUpperCase();
+    } else {
+      // หากไม่มี ให้สร้างเป็นค่าสุ่มที่ไม่ซ้ำกัน
+      ref1 = `REF${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 1000)}`;
+    }
+
+    if (ref2) {
+      ref2 = String(ref2).replace(/[^a-zA-Z0-9]/g, "").substring(0, 20).toUpperCase();
+    }
+
+    // --- Generate Thai QR Payment Payload ---
+    let payload: string;
+
+    if (cleanId.length === 15) {
+      // 1. กรณีเป็น Biller ID 15 หลัก (K-SHOP/Bill Payment) -> ใช้ Tag 30
+      payload = billPayment({
+        billerId: cleanId,
+        amount,
+        ref1,
+        ref2: ref2 || undefined,
+      });
+    } else if (cleanId.length === 13) {
+      // 2. กรณีเป็นเลขบัตรประชาชน/เลขประจำตัวผู้เสียภาษี 13 หลัก (Standard Transfer) -> ใช้ Tag 29 NATID
+      payload = anyId({
+        type: "NATID",
+        target: cleanId,
+        amount,
+      });
+    } else if (cleanId.length === 10 && cleanId.startsWith("0")) {
+      // 3. กรณีเป็นเบอร์โทรศัพท์มือถือ 10 หลัก (Standard Transfer) -> ใช้ Tag 29 MSISDN
+      payload = anyId({
+        type: "MSISDN",
+        target: cleanId,
+        amount,
+      });
+    } else {
       return NextResponse.json(
         {
-          error: `Biller ID ต้องเป็นตัวเลข 15 หลัก (ได้รับ ${cleanId.length} หลัก) — ใช้ Biller ID จาก K-SHOP ไม่ใช่ Merchant ID ที่ขึ้นต้นด้วย EXT`,
+          error: `รูปแบบหมายเลขพร้อมเพย์/Biller ID ไม่ถูกต้อง (มีความยาว ${cleanId.length} หลัก) — ต้องเป็น Biller ID 15 หลัก, เลขผู้เสียภาษี 13 หลัก, หรือเบอร์โทรศัพท์ 10 หลัก`,
         },
         { status: 400 }
       );
     }
-
-    // --- Generate Thai QR Payment Payload ---
-    // promptpay-qr จะเลือก BOT_ID_MERCHANT_EWALLET_ID โดยอัตโนมัติเมื่อ ID ≥ 15 หลัก
-    // ซึ่งตรงกับ Biller ID มาตรฐาน EMVCo/BOT สำหรับ K-SHOP
-    const payload = generatePayload(cleanId, { amount });
 
     // --- Render QR Code as Base64 PNG ---
     const qrDataUrl = await qrcode.toDataURL(payload, {
@@ -75,11 +109,12 @@ export async function POST(req: Request) {
       success: true,
       qrDataUrl,
       billerId: cleanId,
+      ref1: cleanId.length === 15 ? ref1 : undefined,
     });
   } catch (error: unknown) {
     console.error("Thai QR Payment generation error:", error);
     return NextResponse.json(
-      { error: "ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบ Biller ID" },
+      { error: "ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการตั้งค่าบัญชีปลายทาง" },
       { status: 500 }
     );
   }
