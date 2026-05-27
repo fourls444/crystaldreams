@@ -5,13 +5,25 @@ CREATE TABLE products (
     price NUMERIC NOT NULL DEFAULT 1890,
     stock INTEGER NOT NULL DEFAULT 0,
     image_url TEXT,
+    description TEXT,
+    detail TEXT,
+    image_urls TEXT[],
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Insert Default Product
-INSERT INTO products (name, price, stock)
-VALUES ('หมอนเพื่อสุขภาพ Crystal Dreams', 1890, 50);
+INSERT INTO products (name, price, stock, description, detail)
+VALUES (
+    'หมอนยางพารา + วัสดุ TPE',
+    1890,
+    50,
+    '📐 ขนาด: 60*40*10 cm
+(🔥 ส่งฟรี!) 📦 สินค้าพรีออเดอร์: รอของ 14-20 วัน',
+    '💤 ไอเทมลับของคนหลับยาก! หมอนยางพารา ท็อป TPE ตาราง 3 เหลี่ยม นุ่ม ซัพพอร์ตคอดีมากก
+
+ใครปวดคอ ขี้ร้อนตอนนอน แนะนำใบนี้เลย! โครงสร้างตารางช่วยกระจายน้ำหนักและระบายอากาศขั้นสุด เย็นสบายตลอดคืน ❄️'
+);
 
 -- 2. Create Orders Table
 CREATE TABLE orders (

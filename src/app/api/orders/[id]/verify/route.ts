@@ -137,6 +137,16 @@ export async function POST(
           })
           .eq("id", orderId);
 
+        // Return stock back
+        const currentStock = order.products?.stock ?? 0;
+        await supabaseAdmin
+          .from("products")
+          .update({
+            stock: currentStock + order.quantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", order.product_id);
+
         return NextResponse.json(
           { error: "สลิปนี้เคยถูกใช้ชำระเงินในรายการคำสั่งซื้ออื่นสำเร็จไปแล้ว" },
           { status: 400 }
@@ -166,28 +176,7 @@ export async function POST(
       verifiedBy = `auto:${transRef}`;
     }
 
-    // 3. Check and update Product Stock
-    const currentStock = order.products?.stock ?? 0;
-    const requestedQty = order.quantity;
-
-    if (currentStock < requestedQty) {
-      // Out of stock
-      await supabaseAdmin
-        .from("orders")
-        .update({
-          status: "slip_uploaded",
-          verified_by: "pending_manual_out_of_stock",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", orderId);
-
-      return NextResponse.json(
-        { error: "ขออภัย สต็อกสินค้าหมดแล้วในขณะทำรายการชำระเงิน กรุณาติดต่อแอดมินเพื่อคืนเงิน" },
-        { status: 400 }
-      );
-    }
-
-    // 4. Write verified state and reduce stock
+    // 3. Write verified state
     const { error: updateOrderError } = await supabaseAdmin
       .from("orders")
       .update({
@@ -200,20 +189,6 @@ export async function POST(
 
     if (updateOrderError) {
       throw new Error(`Failed to update order state: ${updateOrderError.message}`);
-    }
-
-    // Reduce stock
-    const { error: updateStockError } = await supabaseAdmin
-      .from("products")
-      .update({
-        stock: currentStock - requestedQty,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.product_id);
-
-    if (updateStockError) {
-      console.error("Stock reduction error:", updateStockError);
-      // We don't fail the verification process since order is paid, but log it for manual sync.
     }
 
     // 5. Trigger Line OA Notification in the background

@@ -19,10 +19,10 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // 1. Check if order exists
+    // 1. Check if order exists and fetch quantity & product details
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id")
+      .select("id, product_id, quantity")
       .eq("id", order_id)
       .single();
 
@@ -60,6 +60,43 @@ export async function POST(req: Request) {
       .storage
       .from("slips")
       .getPublicUrl(filename);
+
+    // 3.5 Validate Stock and Deduct Stock
+    const { data: product, error: productError } = await supabaseAdmin
+      .from("products")
+      .select("stock")
+      .eq("id", order.product_id)
+      .single();
+
+    if (productError || !product) {
+      return NextResponse.json(
+        { error: "ไม่พบข้อมูลสินค้าสัมพันธ์ในระบบ" },
+        { status: 404 }
+      );
+    }
+
+    if (product.stock < order.quantity) {
+      return NextResponse.json(
+        { error: "ขออภัย สต็อกสินค้าไม่เพียงพอสำหรับการสั่งซื้อนี้" },
+        { status: 400 }
+      );
+    }
+
+    const { error: updateStockError } = await supabaseAdmin
+      .from("products")
+      .update({
+        stock: product.stock - order.quantity,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", order.product_id);
+
+    if (updateStockError) {
+      console.error("Failed to update stock:", updateStockError);
+      return NextResponse.json(
+        { error: "ไม่สามารถอัปเดตสต็อกสินค้าได้" },
+        { status: 500 }
+      );
+    }
 
     // 4. Update Order details and status
     const { error: updateError } = await supabaseAdmin

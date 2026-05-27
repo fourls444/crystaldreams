@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       orderId: order.id,
       totalAmount: total_amount,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Order creation API error:", error);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดภายในระบบ" },
