@@ -138,6 +138,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+  padding-right: 0.5rem;
 }
 
 .productName {
@@ -151,6 +152,9 @@
 @media (min-width: 768px) {
   .productName {
     font-size: 2.25rem;
+  }
+  .detailColumn {
+    padding-right: 2rem;
   }
 }
 
@@ -205,7 +209,7 @@
   font-size: 0.9rem;
   color: #475569;
   line-height: 1.6;
-  white-space: normal;
+  white-space: pre-wrap;
 }
 
 .detailSection {
@@ -216,7 +220,7 @@
   font-size: 0.9rem;
   color: #475569;
   line-height: 1.6;
-  white-space: normal;
+  white-space: pre-wrap;
 }
 
 .errorAlert {

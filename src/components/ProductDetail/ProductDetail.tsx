@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/utils/supabase";
 import Swal from "sweetalert2";
 import styles from "./ProductDetail.module.css";
-import { AlertTriangle, ArrowRight, Share2 } from "lucide-react";
+import { AlertTriangle, Share2 } from "lucide-react";
 import ProductImageGallery from "./ProductImageGallery";
 import ProductFeatures from "./ProductFeatures";
 import PaymentQrModal from "./PaymentQrModal";
@@ -330,6 +330,15 @@ export default function ProductDetail() {
             description={product?.description || "📐 ขนาด: 60*40*10 cm\n(🔥 ส่งฟรี!) 📦 สินค้าพรีออเดอร์: รอของ 14-20 วัน"}
           />
 
+          {/* รายละเอียดเพิ่มเติมจากหลังบ้าน */}
+          {product?.detail && (
+            <div className={styles.detailSection}>
+              <p className={styles.detailText}>
+                {product.detail}
+              </p>
+            </div>
+          )}
+
           {error && (
             <div className={styles.errorAlert}>
               {error}
@@ -387,16 +396,11 @@ export default function ProductDetail() {
               </button>
             </div>
 
-            {/* Share and Details links */}
+            {/* Share link */}
             <div className={styles.linkGroup}>
               <button type="button" className={styles.shareLink} onClick={handleShare} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
                 <Share2 size={16} />
                 <span>Share</span>
-              </button>
-              
-              <button type="button" className={styles.detailsLink} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-                <span>View full details</span>
-                <ArrowRight size={14} className={styles.arrowIcon} />
               </button>
             </div>
           </div>

@@ -174,6 +174,7 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={styles.input}
+          placeholder="ใส่ชื่อสินค้า (เช่น หมอนเพื่อสุขภาพ)"
         />
       </div>
 
@@ -213,7 +214,7 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className={styles.textarea}
-          placeholder="📐 ขนาด: 60*40*10 cm&#10;(🔥 ส่งฟรี!) 📦 สินค้าพรีออเดอร์: รอของ 14-20 วัน"
+          placeholder={"ใส่คุณสมบัติหรือข้อมูลหลักของสินค้าแบบสั้น (เช่น ขนาด, สี, ข้อมูลการจัดส่ง)"}
         />
       </div>
 
@@ -225,7 +226,7 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
           value={detail}
           onChange={(e) => setDetail(e.target.value)}
           className={styles.textarea}
-          placeholder="💤 ไอเทมลับของคนหลับยาก! หมอนยางพารา ท็อป TPE ตาราง 3 เหลี่ยม นุ่ม ซัพพอร์ตคอดีมากก&#10;&#10;ใครปวดคอ ขี้ร้อนตอนนอน แนะนำใบนี้เลย! โครงสร้างตารางช่วยกระจายน้ำหนักและระบายอากาศขั้นสุด เย็นสบายตลอดคืน ❄️"
+          placeholder={"ใส่รายละเอียดสินค้าเพิ่มเติมเชิงลึก (เช่น จุดเด่น, เทคโนโลยี, สรรพคุณประโยชน์ต่อสุขภาพ)"}
         />
       </div>
 

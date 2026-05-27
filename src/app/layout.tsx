@@ -16,9 +16,6 @@ const notoSansThai = Noto_Sans_Thai({
 export const metadata: Metadata = {
   title: "Crystal Dreams",
   description: "",
-  icons: {
-    icon: "/images/icon.png",
-  },
 };
 
 export default function RootLayout({
