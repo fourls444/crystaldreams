@@ -35,11 +35,11 @@ export default function ProductDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Modal States for QR Code
-  const [showQrModal, setShowQrModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(showQrParam === "true" && !!orderIdParam);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
-  const [createdOrderId, setCreatedOrderId] = useState("");
+  const [createdOrderId, setCreatedOrderId] = useState(orderIdParam || "");
   const [totalAmount, setTotalAmount] = useState(0);
-  const [loadingQr, setLoadingQr] = useState(false);
+  const [loadingQr, setLoadingQr] = useState(showQrParam === "true" && !!orderIdParam);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -70,12 +70,9 @@ export default function ProductDetail() {
   // Restore QR modal state from URL parameters
   useEffect(() => {
     if (showQrParam === "true" && orderIdParam) {
-      setCreatedOrderId(orderIdParam);
-      setShowQrModal(true);
-      setLoadingQr(true);
-
       const fetchOrderDetails = async () => {
         try {
+          setLoadingQr(true);
           const { data: orderData, error: fetchErr } = await supabase
             .from("orders")
             .select("quantity, total_amount")
@@ -415,7 +412,6 @@ export default function ProductDetail() {
         loadingQr={loadingQr}
         qrCodeDataUrl={qrCodeDataUrl}
         totalAmount={totalAmount}
-        quantity={quantity}
         createdOrderId={createdOrderId}
         onProceed={proceedToUploadSlip}
         onCancel={handleCancelOrder}

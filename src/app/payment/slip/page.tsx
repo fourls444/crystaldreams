@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, Suspense, useCallback } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { supabase } from "@/utils/supabase";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
@@ -46,10 +45,6 @@ function SlipContent() {
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string>("");
 
-  // ---- K-SHOP QR Code States ----
-  const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrError, setQrError] = useState("");
 
   // ดึงข้อมูลคำสั่งซื้อ
   useEffect(() => {
@@ -83,46 +78,8 @@ function SlipContent() {
     fetchOrder();
   }, [orderId]);
 
-  // สร้าง QR อัตโนมัติเมื่อโหลดออเดอร์สำเร็จ
-  useEffect(() => {
-    if (order) {
-      handleGenerateQr();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order]);
 
-  // ---- สร้าง QR Code ----
-  const handleGenerateQr = useCallback(
-    async () => {
-      if (!order) return;
-      setQrLoading(true);
-      setQrError("");
-      setQrDataUrl("");
 
-      try {
-        const res = await fetch("/api/payment/qr", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: order.total_amount,
-            orderId: order.id,
-            // ส่งค่าว่างเพื่อให้ API ใช้ค่าจาก NEXT_PUBLIC_PROMPTPAY_NUMBER ใน env.local เอง
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setQrError(data.error || "ไม่สามารถสร้าง QR Code ได้");
-        } else {
-          setQrDataUrl(data.qrDataUrl);
-        }
-      } catch {
-        setQrError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-      } finally {
-        setQrLoading(false);
-      }
-    },
-    [order]
-  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

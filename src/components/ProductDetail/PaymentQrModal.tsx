@@ -9,7 +9,6 @@ interface PaymentQrModalProps {
   loadingQr: boolean;
   qrCodeDataUrl: string;
   totalAmount: number;
-  quantity: number;
   createdOrderId: string;
   onProceed: () => void;
   onCancel: () => void;
@@ -20,7 +19,6 @@ export default function PaymentQrModal({
   loadingQr,
   qrCodeDataUrl,
   totalAmount,
-  quantity,
   createdOrderId,
   onProceed,
   onCancel,
@@ -30,21 +28,6 @@ export default function PaymentQrModal({
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalCard}>
-        {/* Header / Brand */}
-        <div className={styles.modalHeader}>
-          <div className={styles.modalBrand}>CRYSTAL DREAMS</div>
-          <p className={styles.modalSub}>กรุณาสแกนคิวอาร์โค้ดเพื่อชำระเงิน</p>
-        </div>
-
-        {/* Total Amount Box */}
-        <div className={styles.modalAmountBox}>
-          <span className={styles.amountLabel}>ยอดชำระเงินรวมทั้งสิ้น</span>
-          <span className={styles.amountValue}>
-            {totalAmount.toLocaleString()} บาท
-          </span>
-          <span className={styles.amountQty}>จำนวน {quantity} ชิ้น</span>
-        </div>
-
         {/* QR Code display */}
         <div className={styles.qrWrapper}>
           {loadingQr ? (
@@ -64,6 +47,14 @@ export default function PaymentQrModal({
                 <span className={styles.promptpayBadge}>PROMPTPAY</span>
               </div>
 
+              {/* Total Amount Box */}
+              <div className={styles.modalAmountBox} style={{ marginBottom: "0.75rem" }}>
+                <span className={styles.amountLabel}>ยอดชำระเงินรวมทั้งสิ้น</span>
+                <span className={styles.amountValue}>
+                  {totalAmount.toLocaleString()} บาท
+                </span>
+              </div>
+
               <div className={styles.qrImageContainer}>
                 <Image
                   src={qrCodeDataUrl}
@@ -75,9 +66,14 @@ export default function PaymentQrModal({
                 />
               </div>
 
-              <p className={styles.qrInstruction}>
-                สแกน QR เพื่อโอนเงินเข้าพร้อมเพย์ของร้านค้า
-              </p>
+              <a
+                href={qrCodeDataUrl}
+                download={`crystaldreams-qr-${createdOrderId.slice(0, 8)}.png`}
+                className={styles.qrDownloadIconBtn}
+                title="ดาวน์โหลด QR Code"
+              >
+                <Download size={18} />
+              </a>
             </>
           ) : (
             <div className={styles.qrError}>
@@ -88,23 +84,6 @@ export default function PaymentQrModal({
 
         {/* Action buttons */}
         <div className={styles.modalActions}>
-          {qrCodeDataUrl && (
-            <a
-              href={qrCodeDataUrl}
-              download={`crystaldreams-qr-${createdOrderId.slice(0, 8)}.png`}
-              className={styles.downloadBtn}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.35rem",
-              }}
-            >
-              <Download size={16} />
-              <span>ดาวน์โหลดรูปภาพ QR Code</span>
-            </a>
-          )}
-
           <button
             onClick={onProceed}
             className={styles.payBtn}
@@ -115,7 +94,7 @@ export default function PaymentQrModal({
               gap: "0.35rem",
             }}
           >
-            <span>ฉันโอนเงินเรียบร้อยแล้ว ไปแนบสลิป</span>
+            <span>ไปกรอกข้อมูลและแนบสลิป</span>
             <ArrowRight size={16} />
           </button>
 
