@@ -17,16 +17,18 @@ interface Product {
 }
 
 interface Props {
-  initialProduct: Product;
+  initialProduct?: Product | null;
+  onSaveSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export default function AdminProductForm({ initialProduct }: Props) {
-  const [name, setName] = useState(initialProduct.name);
-  const [price, setPrice] = useState(initialProduct.price);
-  const [stock, setStock] = useState(initialProduct.stock);
-  const [description, setDescription] = useState(initialProduct.description || "");
-  const [detail, setDetail] = useState(initialProduct.detail || "");
-  const [imageUrls, setImageUrls] = useState<string[]>(initialProduct.image_urls || []);
+export default function AdminProductForm({ initialProduct, onSaveSuccess, onCancel }: Props) {
+  const [name, setName] = useState(initialProduct?.name || "");
+  const [price, setPrice] = useState(initialProduct?.price || 0);
+  const [stock, setStock] = useState(initialProduct?.stock || 0);
+  const [description, setDescription] = useState(initialProduct?.description || "");
+  const [detail, setDetail] = useState(initialProduct?.detail || "");
+  const [imageUrls, setImageUrls] = useState<string[]>(initialProduct?.image_urls || []);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleDragStart = (index: number) => {
@@ -109,7 +111,7 @@ export default function AdminProductForm({ initialProduct }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: initialProduct.id,
+          id: initialProduct?.id || null,
           name,
           price: Number(price),
           stock: Number(stock),
@@ -131,6 +133,7 @@ export default function AdminProductForm({ initialProduct }: Props) {
           timerProgressBar: true,
           showConfirmButton: false,
         });
+        if (onSaveSuccess) onSaveSuccess();
       } else {
         Swal.fire({
           icon: "error",
@@ -283,9 +286,20 @@ export default function AdminProductForm({ initialProduct }: Props) {
         </div>
       </div>
 
-      <button type="submit" disabled={submitting || uploading} className={styles.saveBtn}>
-        {submitting ? "กำลังบันทึก..." : "บันทึกรายละเอียดสินค้า"}
-      </button>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1.5rem" }}>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className={styles.cancelFormBtn}
+          >
+            ยกเลิก
+          </button>
+        )}
+        <button type="submit" disabled={submitting || uploading} className={styles.saveBtn}>
+          {submitting ? "กำลังบันทึก..." : "บันทึกรายละเอียดสินค้า"}
+        </button>
+      </div>
     </form>
   );
 }

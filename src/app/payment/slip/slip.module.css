@@ -1,3 +1,7 @@
+/* ==========================================
+   Loading & Error States
+   ========================================== */
+
 .loadingContainer {
   display: flex;
   min-height: 100vh;
@@ -86,6 +90,10 @@
   background-color: #1d4ed8;
 }
 
+/* ==========================================
+   Page Layout
+   ========================================== */
+
 .pageContainer {
   min-height: 100vh;
   background-color: rgba(248, 250, 252, 0.5);
@@ -95,6 +103,7 @@
   justify-content: space-between;
   font-family: inherit;
 }
+
 .main {
   flex-grow: 1;
   max-width: 896px;
@@ -128,6 +137,21 @@
     grid-column: span 4 / span 4;
   }
 }
+
+.formColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .formColumn {
+    grid-column: span 8 / span 8;
+  }
+}
+
+/* ==========================================
+   Order Summary Card
+   ========================================== */
 
 .summaryCard {
   background-color: #ffffff;
@@ -191,16 +215,283 @@
   line-height: 1.625;
 }
 
-.formColumn {
+/* ==========================================
+   K-SHOP QR Code Card
+   ========================================== */
+
+.qrCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
 }
 
-@media (min-width: 768px) {
-  .formColumn {
-    grid-column: span 8 / span 8;
-  }
+/* Card Header */
+.qrCardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
+
+.kshopBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, rgba(30,58,138,0.08), rgba(30,64,175,0.06));
+  border: 1px solid rgba(30,58,138,0.15);
+  color: #1e3a8a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.qrCardTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 0.25rem;
+}
+
+.qrCardSubtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+/* Biller ID Section */
+.billerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.billerLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.billerLabelNote {
+  font-weight: 400;
+  color: #94a3b8;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.billerInputRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.inputError {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.fieldError {
+  font-size: 0.7rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* Generate QR Button */
+.generateQrBtn {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+}
+
+.generateQrBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e40af, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.generateQrBtn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.generateQrBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.generateQrBtnSaved {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25) !important;
+}
+
+/* Biller Hint Box */
+.billerHintBox {
+  background-color: rgba(241, 245, 249, 0.7);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.875rem;
+}
+
+.billerHintText {
+  font-size: 0.71rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.billerHintText strong {
+  color: #1e293b;
+}
+
+/* QR Display Area */
+.qrDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  background-color: #f8fafc;
+  border: 1.5px dashed #e2e8f0;
+  border-radius: 1.25rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.qrDisplayHasCode {
+  border-style: solid;
+  border-color: rgba(30, 58, 138, 0.12);
+  background-color: #ffffff;
+}
+
+.qrImageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.25rem 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.qrImage {
+  border-radius: 0.875rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.qrAmountTag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.qrAmountLabel {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.qrAmountValue {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.qrScanHint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: center;
+  background-color: #f1f5f9;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+}
+
+.qrPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem;
+}
+
+.qrPlaceholderIcon {
+  font-size: 2.5rem;
+  opacity: 0.3;
+}
+
+.qrPlaceholderText {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.6;
+  max-width: 180px;
+}
+
+/* QR Error State */
+.qrErrorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+}
+
+.qrErrorIcon {
+  font-size: 1.5rem;
+}
+
+.qrErrorText {
+  font-size: 0.75rem;
+  color: #b91c1c;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.qrRetryBtn {
+  padding: 0.4rem 1rem;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qrRetryBtn:hover {
+  background-color: #fee2e2;
+}
+
+.lsSavedNote {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+/* ==========================================
+   Form Card (Right Column)
+   ========================================== */
 
 .formCard {
   background-color: #ffffff;
@@ -326,25 +617,30 @@
   background-color: #ffffff;
 }
 
+/* ==========================================
+   Slip Upload
+   ========================================== */
+
 .uploadWrapper {
   position: relative;
-  border: 2px dashed #e2e8f0;
-  background-color: #f8fafc;
-  border-radius: 1rem;
-  padding: 1rem;
-  transition: all 0.2s ease;
+  border: 1px dashed rgba(30, 41, 59, 0.25);
+  background-color: #ffffff;
+  border-radius: 1.25rem;
+  padding: 2rem 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 11.25rem;
+  min-height: 12.5rem;
   cursor: pointer;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.02), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
 .uploadWrapper:hover {
-  border-color: rgba(30, 58, 138, 0.4);
-  background-color: rgba(248, 250, 252, 0.8);
+  border-color: #1e3a8a;
+  background-color: rgba(30, 58, 138, 0.02);
+  box-shadow: 0 10px 20px -4px rgba(30, 58, 138, 0.05);
 }
 
 .previewContainer {
@@ -391,26 +687,39 @@
   background-color: #0f172a;
 }
 
-.uploadIcon {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  color: #94a3b8;
-  transition: transform 0.3s ease;
+.uploadIconContainer {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: #64748b;
+  transition: all 0.3s ease;
 }
 
-.uploadWrapper:hover .uploadIcon {
+.uploadWrapper:hover .uploadIconContainer {
+  background-color: rgba(30, 58, 138, 0.08);
+  color: #1e3a8a;
   transform: scale(1.05);
 }
 
+.uploadIconSvg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 .uploadText {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #334155;
   text-align: center;
 }
 
 .uploadSubtext {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #94a3b8;
   margin-top: 0.25rem;
 }
@@ -423,6 +732,10 @@
   opacity: 0;
   cursor: pointer;
 }
+
+/* ==========================================
+   Submit Button
+   ========================================== */
 
 .submitBtn {
   width: 100%;
@@ -451,6 +764,10 @@
   cursor: not-allowed;
 }
 
+/* ==========================================
+   Navigation
+   ========================================== */
+
 .backHeader {
   display: flex;
   margin-bottom: 1.25rem;
@@ -474,6 +791,10 @@
   color: #1e3a8a;
 }
 
+/* ==========================================
+   Spinner & Loader
+   ========================================== */
+
 .spinnerSmall {
   height: 1.25rem;
   width: 1.25rem;
@@ -489,17 +810,79 @@
   justify-content: center;
   gap: 0.5rem;
 }
+
+/* ==========================================
+   Animations
+   ========================================== */
+
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ==========================================
+   Skeleton Screen Loader Styles
+   ========================================== */
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  border-radius: 0.5rem;
+  display: inline-block;
+  width: 100%;
+}
+
+.skeletonText {
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeletonTitle {
+  height: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.skeletonImage {
+  height: 200px;
+  width: 200px;
+  border-radius: 0.875rem;
+}
+
+.skeletonCard {
+  border-color: #f1f5f9;
+}
+

@@ -72,3 +72,51 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "กรุณาระบุหมายเลขคำสั่งซื้อ" }, { status: 400 });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+
+    // Fetch the order status first to ensure it's "pending"
+    const { data: order, error: fetchError } = await supabaseAdmin
+      .from("orders")
+      .select("status")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !order) {
+      return NextResponse.json({ error: "ไม่พบคำสั่งซื้อ" }, { status: 404 });
+    }
+
+    if (order.status !== "pending") {
+      return NextResponse.json(
+        { error: "ไม่สามารถยกเลิกคำสั่งซื้อนี้ได้เนื่องจากอยู่ระหว่างการดำเนินการ" },
+        { status: 400 }
+      );
+    }
+
+    // Delete the pending order
+    const { error: deleteError } = await supabaseAdmin
+      .from("orders")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("Error deleting order:", deleteError);
+      return NextResponse.json({ error: "ไม่สามารถยกเลิกคำสั่งซื้อได้" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: "ยกเลิกคำสั่งซื้อสำเร็จ" });
+  } catch (error) {
+    console.error("DELETE order API error:", error);
+    return NextResponse.json({ error: "เกิดข้อผิดพลาดภายในระบบ" }, { status: 500 });
+  }
+}
+

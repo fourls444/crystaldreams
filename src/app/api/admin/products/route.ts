@@ -14,32 +14,92 @@ export async function POST(request: Request) {
 
     const { id, name, price, stock, image_url, description, detail, image_urls } = await request.json();
 
-    if (!id || !name || price === undefined || stock === undefined) {
+    if (!name || price === undefined || stock === undefined) {
       return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
     }
 
     const supabaseAdmin = getSupabaseAdmin();
-    const { data, error } = await supabaseAdmin
+    
+    if (id) {
+      // Update
+      const { data, error } = await supabaseAdmin
+        .from("products")
+        .update({
+          name,
+          price,
+          stock,
+          image_url: image_url || (image_urls && image_urls.length > 0 ? image_urls[0] : null),
+          description,
+          detail,
+          image_urls,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select();
+
+      if (error) {
+        console.error(error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, data });
+    } else {
+      // Insert
+      const { data, error } = await supabaseAdmin
+        .from("products")
+        .insert({
+          name,
+          price,
+          stock,
+          image_url: image_url || (image_urls && image_urls.length > 0 ? image_urls[0] : null),
+          description,
+          detail,
+          image_urls,
+        })
+        .select();
+
+      if (error) {
+        console.error(error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, data });
+    }
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("admin_session");
+
+    // Secure checking
+    if (!session || session.value !== "authenticated") {
+      return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "กรุณาระบุ ID สินค้าที่ต้องการลบ" }, { status: 400 });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { error } = await supabaseAdmin
       .from("products")
-      .update({
-        name,
-        price,
-        stock,
-        image_url,
-        description,
-        detail,
-        image_urls,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select();
+      .delete()
+      .eq("id", id);
 
     if (error) {
       console.error(error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" }, { status: 500 });

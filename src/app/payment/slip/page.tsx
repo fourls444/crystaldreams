@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,6 +8,12 @@ import { supabase } from "@/utils/supabase";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import styles from "./slip.module.css";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
+import OrderSummaryCard from "./OrderSummaryCard";
+import ShippingForm from "./ShippingForm";
+import SlipUploadZone from "./SlipUploadZone";
+
+
 
 interface Order {
   id: string;
@@ -40,6 +46,12 @@ function SlipContent() {
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string>("");
 
+  // ---- K-SHOP QR Code States ----
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [qrLoading, setQrLoading] = useState(false);
+  const [qrError, setQrError] = useState("");
+
+  // ดึงข้อมูลคำสั่งซื้อ
   useEffect(() => {
     if (!orderId) return;
 
@@ -70,6 +82,46 @@ function SlipContent() {
 
     fetchOrder();
   }, [orderId]);
+
+  // สร้าง QR อัตโนมัติเมื่อโหลดออเดอร์สำเร็จ
+  useEffect(() => {
+    if (order) {
+      handleGenerateQr();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order]);
+
+  // ---- สร้าง QR Code ----
+  const handleGenerateQr = useCallback(
+    async () => {
+      if (!order) return;
+      setQrLoading(true);
+      setQrError("");
+      setQrDataUrl("");
+
+      try {
+        const res = await fetch("/api/payment/qr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: order.total_amount,
+            // ส่งค่าว่างเพื่อให้ API ใช้ค่าจาก NEXT_PUBLIC_PROMPTPAY_NUMBER ใน env.local เอง
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setQrError(data.error || "ไม่สามารถสร้าง QR Code ได้");
+        } else {
+          setQrDataUrl(data.qrDataUrl);
+        }
+      } catch {
+        setQrError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      } finally {
+        setQrLoading(false);
+      }
+    },
+    [order]
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -103,7 +155,6 @@ function SlipContent() {
       formData.append("customer_address", address);
       formData.append("slip", slipFile);
 
-      // Call upload API endpoint
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -115,27 +166,22 @@ function SlipContent() {
         throw new Error(resData.error || "เกิดข้อผิดพลาดในการอัปโหลดหลักฐาน");
       }
 
-      // Trigger verify API in the background (Async execution)
+      // Verify สลิปใน background (async)
       fetch(`/api/orders/${orderId}/verify`, { method: "POST" }).catch(console.error);
 
-      // Redirect to Success Page
       router.push(`/success?orderId=${orderId}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
+      const message =
+        err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
       setError(message);
       setSubmitting(false);
     }
   };
 
+
+
   if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingWrapper}>
-          <div className={styles.spinner}></div>
-          <p className={styles.itemValue}>กำลังเตรียมหน้าส่งหลักฐาน...</p>
-        </div>
-      </div>
-    );
+    return <SlipSkeleton />;
   }
 
   if (error && !order) {
@@ -143,7 +189,7 @@ function SlipContent() {
       <div className={styles.errorOverlay}>
         <div className={styles.errorCard}>
           <div className={styles.errorIcon}>
-            <span style={{ fontSize: '1.75rem' }}>⚠️</span>
+            <AlertTriangle size={28} />
           </div>
           <h2 className={styles.errorTitle}>เกิดข้อผิดพลาด</h2>
           <p className={styles.errorText}>{error}</p>
@@ -157,63 +203,34 @@ function SlipContent() {
 
   return (
     <div className={styles.pageContainer}>
-      
-      {/* Header */}
       <Header />
 
-      {/* Main Content */}
       <main className={styles.main}>
         <div className={styles.backHeader}>
-          <Link href="/" className={styles.backLinkBtn}>
-            ← ย้อนกลับสู่หน้าแรก
-          </Link>
+          <button
+            onClick={() => router.push(`/?orderId=${orderId}&showQr=true`)}
+            className={styles.backLinkBtn}
+            style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
+          >
+            <ArrowLeft size={16} />
+            <span>ย้อนกลับ</span>
+          </button>
         </div>
-        
+
         <div className={styles.grid}>
-          
-          {/* Order Info Column */}
+          {/* ===== คอลัมน์ซ้าย: สรุปออเดอร์ ===== */}
           <div className={styles.summaryColumn}>
-            
-            <div className={styles.summaryCard}>
-              <h2 className={styles.summaryTitle}>
-                สรุปรายการคำสั่งซื้อ
-              </h2>
-              
-              <div className={styles.summaryItems}>
-                <div>
-                  <span className={styles.itemLabel}>Order ID</span>
-                  <span className={styles.itemValue} style={{ fontFamily: 'monospace' }}>#{orderId}</span>
-                </div>
-                
-                <div>
-                  <span className={styles.itemLabel}>สินค้าที่สั่งซื้อ</span>
-                  <span className={styles.itemValue}>{order?.products?.name}</span>
-                </div>
-                
-                <div className={styles.totalRow}>
-                  <div>
-                    <span className={styles.itemLabel}>จำนวน</span>
-                    <span className={styles.itemValue}>{order?.quantity} ใบ</span>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span className={styles.itemLabel}>ยอดรวมทั้งสิ้น</span>
-                    <span className={styles.totalValue}>
-                      {order?.total_amount?.toLocaleString()} บาท
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.promptInfo}>
-                📢 <strong>ยืนยันสลิปรวดเร็ว:</strong> ระบบจะใช้ AI ในการตรวจสอบสลิปโอนเงินทันทีที่กดยืนยัน หากถูกต้องสต็อกสินค้าจะถูกตัดและจัดเตรียมแพ็คสินค้าส่งให้ทันที
-              </div>
-            </div>
+            <OrderSummaryCard
+              orderId={orderId}
+              productName={order?.products?.name}
+              quantity={order?.quantity}
+              totalAmount={order?.total_amount}
+            />
           </div>
 
-          {/* Form & Upload Column */}
+          {/* ===== คอลัมน์ขวา: ฟอร์มที่อยู่ + อัปโหลดสลิป ===== */}
           <div className={styles.formColumn}>
             <div className={styles.formCard}>
-              
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>
                   กรอกที่อยู่จัดส่งและแนบสลิป
@@ -223,111 +240,29 @@ function SlipContent() {
                 </p>
               </div>
 
-              {error && (
-                <div className={styles.errorPanel}>
-                  {error}
-                </div>
-              )}
+              {error && <div className={styles.errorPanel}>{error}</div>}
 
               <form onSubmit={handleSubmit} className={styles.form}>
-                
-                {/* 1. Recipient details */}
-                <div className={styles.recipientRow}>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>
-                      ชื่อ-นามสกุล ผู้รับของ <span className={styles.inputLabelSpan}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="เช่น สมชาย ใจดี"
-                      className={styles.inputField}
-                      required
-                    />
-                  </div>
+                <ShippingForm
+                  name={name}
+                  onNameChange={setName}
+                  tel={tel}
+                  onTelChange={setTel}
+                  address={address}
+                  onAddressChange={setAddress}
+                />
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>
-                      เบอร์โทรศัพท์ผู้รับ <span className={styles.inputLabelSpan}>*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={tel}
-                      onChange={(e) => setTel(e.target.value)}
-                      placeholder="เช่น 0891234567"
-                      className={styles.inputField}
-                      required
-                    />
-                  </div>
-                </div>
+                <SlipUploadZone
+                  slipFile={slipFile}
+                  slipPreview={slipPreview}
+                  onFileChange={handleFileChange}
+                  onClearFile={() => {
+                    setSlipFile(null);
+                    setSlipPreview("");
+                  }}
+                />
 
-                {/* 2. Detailed Address */}
-                <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>
-                    ที่อยู่สำหรับการจัดส่งโดยละเอียด <span className={styles.inputLabelSpan}>*</span>
-                  </label>
-                  <textarea
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="บ้านเลขที่, หมู่บ้าน/อาคาร, ถนน, ซอย, ตำบล/แขวง, อำเภอ/เขต, จังหวัด, รหัสไปรษณีย์"
-                    rows={4}
-                    className={styles.textareaField}
-                    required
-                  />
-                </div>
-
-                {/* 3. Image Upload */}
-                <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>
-                    อัปโหลดรูปภาพสลิปโอนเงิน (สลิปโอนเงินสำเร็จ) <span className={styles.inputLabelSpan}>*</span>
-                  </label>
-                  
-                  <div className={styles.uploadWrapper}>
-                    {slipPreview ? (
-                      <div className={styles.previewContainer}>
-                        <Image 
-                          src={slipPreview} 
-                          alt="Receipt Preview" 
-                          width={256}
-                          height={256}
-                          unoptimized
-                          className={styles.previewImage}
-                        />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSlipFile(null);
-                            setSlipPreview("");
-                          }}
-                          className={styles.removeBtn}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <span className={styles.uploadIcon}>📸</span>
-                        <p className={styles.uploadText}>
-                          คลิกเลือก หรือ ลากรูปภาพสลิปมาวางที่นี่
-                        </p>
-                        <p className={styles.uploadSubtext}>
-                          รองรับเฉพาะไฟล์รูปภาพ JPG, JPEG, PNG
-                        </p>
-                      </>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className={styles.fileInput}
-                      required={!slipFile}
-                    />
-                  </div>
-                </div>
-
-                {/* Submit Action Button */}
+                {/* Submit */}
                 <button
                   type="submit"
                   disabled={submitting}
@@ -342,16 +277,87 @@ function SlipContent() {
                     "ยืนยันการชำระเงินและคำสั่งซื้อ"
                   )}
                 </button>
-
               </form>
-
             </div>
           </div>
-
         </div>
       </main>
 
-      {/* Footer */}
+      <Footer />
+    </div>
+  );
+}
+
+function SlipSkeleton() {
+  return (
+    <div className={styles.pageContainer}>
+      <Header />
+      <main className={styles.main}>
+        <div className={styles.backHeader}>
+          <span className={styles.backLinkBtn} style={{ opacity: 0.5 }}>
+            ← ย้อนกลับ
+          </span>
+        </div>
+        <div className={styles.grid}>
+          {/* ===== คอลัมน์ซ้าย: สรุปออเดอร์ ===== */}
+          <div className={styles.summaryColumn}>
+            <div className={`${styles.summaryCard} ${styles.skeletonCard}`}>
+              <h2 className={styles.summaryTitle}>สรุปรายการคำสั่งซื้อ</h2>
+              <div className={styles.summaryItems}>
+                <div>
+                  <span className={styles.itemLabel}>Order ID</span>
+                  <span className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: "120px" }}></span>
+                </div>
+                <div>
+                  <span className={styles.itemLabel}>สินค้าที่สั่งซื้อ</span>
+                  <span className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: "180px" }}></span>
+                </div>
+                <div className={styles.totalRow}>
+                  <div>
+                    <span className={styles.itemLabel}>จำนวน</span>
+                    <span className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: "50px" }}></span>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span className={styles.itemLabel}>ยอดรวมทั้งสิ้น</span>
+                    <span className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: "80px", height: "1.25rem" }}></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ===== คอลัมน์ขวา: ฟอร์มที่อยู่ ===== */}
+          <div className={styles.formColumn}>
+            <div className={styles.formCard}>
+              <div className={styles.formHeader}>
+                <div className={`${styles.skeleton}`} style={{ width: "60%", height: "1.5rem" }}></div>
+                <div className={`${styles.skeleton}`} style={{ width: "40%", height: "0.875rem", marginTop: "0.5rem" }}></div>
+              </div>
+              <div className={styles.form}>
+                <div className={styles.recipientRow}>
+                  <div className={styles.inputGroup}>
+                    <div className={`${styles.skeleton}`} style={{ width: "80px", height: "0.75rem", marginBottom: "0.375rem" }}></div>
+                    <div className={`${styles.skeleton}`} style={{ width: "100%", height: "2.5rem" }}></div>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <div className={`${styles.skeleton}`} style={{ width: "80px", height: "0.75rem", marginBottom: "0.375rem" }}></div>
+                    <div className={`${styles.skeleton}`} style={{ width: "100%", height: "2.5rem" }}></div>
+                  </div>
+                </div>
+                <div className={styles.inputGroup}>
+                  <div className={`${styles.skeleton}`} style={{ width: "120px", height: "0.75rem", marginBottom: "0.375rem" }}></div>
+                  <div className={`${styles.skeleton}`} style={{ width: "100%", height: "6rem" }}></div>
+                </div>
+                <div className={styles.inputGroup}>
+                  <div className={`${styles.skeleton}`} style={{ width: "120px", height: "0.75rem", marginBottom: "0.375rem" }}></div>
+                  <div className={`${styles.skeleton}`} style={{ width: "100%", height: "11.25rem" }}></div>
+                </div>
+                <div className={`${styles.skeleton}`} style={{ width: "100%", height: "3rem" }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
       <Footer />
     </div>
   );
@@ -359,14 +365,7 @@ function SlipContent() {
 
 export default function SlipPage() {
   return (
-    <Suspense fallback={
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingWrapper}>
-          <div className={styles.spinner}></div>
-          <p className={styles.itemLabel} style={{ fontWeight: 500 }}>กำลังเตรียมข้อมูลแบบฟอร์ม...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<SlipSkeleton />}>
       <SlipContent />
     </Suspense>
   );

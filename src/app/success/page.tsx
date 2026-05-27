@@ -53,14 +53,7 @@ function SuccessContent() {
   }, [orderId]);
 
   if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingWrapper}>
-          <div className={styles.spinner}></div>
-          <p className={styles.infoValueBold}>กำลังโหลดข้อมูลความสำเร็จ...</p>
-        </div>
-      </div>
-    );
+    return <SuccessSkeleton />;
   }
 
   return (
@@ -151,16 +144,55 @@ function SuccessContent() {
   );
 }
 
+function SuccessSkeleton() {
+  return (
+    <div className={styles.pageContainer}>
+      <Header />
+      <main className={styles.main}>
+        <div className={styles.card}>
+          <div className={`${styles.successIconWrapper} ${styles.skeleton}`} style={{ backgroundColor: "transparent", border: "none" }}></div>
+          <div className={styles.titleBlock}>
+            <div className={`${styles.skeleton} ${styles.skeletonTitle}`} style={{ width: "60%", height: "1.75rem", margin: "0 auto" }}></div>
+            <div className={`${styles.skeleton}`} style={{ width: "80%", height: "1rem", margin: "0.5rem auto 0 auto" }}></div>
+            <div className={`${styles.skeleton}`} style={{ width: "70%", height: "1rem", margin: "0.25rem auto 0 auto" }}></div>
+          </div>
+          <div className={styles.orderDetailsBox}>
+            <div className={styles.detailsHeader}>
+              <div className={`${styles.skeleton}`} style={{ width: "80px", height: "0.875rem" }}></div>
+              <div className={`${styles.skeleton}`} style={{ width: "60px", height: "1.25rem", borderRadius: "0.25rem" }}></div>
+            </div>
+            <div className={styles.infoList}>
+              <div className={styles.infoRow}>
+                <div className={`${styles.skeleton}`} style={{ width: "60px", height: "0.75rem" }}></div>
+                <div className={`${styles.skeleton}`} style={{ width: "120px", height: "0.75rem" }}></div>
+              </div>
+              <div className={styles.infoRow}>
+                <div className={`${styles.skeleton}`} style={{ width: "40px", height: "0.75rem" }}></div>
+                <div className={`${styles.skeleton}`} style={{ width: "100px", height: "0.75rem" }}></div>
+              </div>
+              <div className={styles.infoRow}>
+                <div className={`${styles.skeleton}`} style={{ width: "50px", height: "0.75rem" }}></div>
+                <div className={`${styles.skeleton}`} style={{ width: "80px", height: "0.75rem" }}></div>
+              </div>
+            </div>
+            <div className={styles.shippingBlock}>
+              <div className={`${styles.skeleton}`} style={{ width: "100px", height: "0.75rem", marginBottom: "0.375rem" }}></div>
+              <div className={`${styles.skeleton}`} style={{ width: "150px", height: "0.75rem", marginBottom: "0.375rem" }}></div>
+              <div className={`${styles.skeleton}`} style={{ width: "120px", height: "0.75rem", marginBottom: "0.375rem" }}></div>
+              <div className={`${styles.skeleton}`} style={{ width: "200px", height: "1.5rem" }}></div>
+            </div>
+          </div>
+          <div className={`${styles.skeleton}`} style={{ width: "100%", height: "3.5rem", borderRadius: "1rem" }}></div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 export default function SuccessPage() {
   return (
-    <Suspense fallback={
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingWrapper}>
-          <div className={styles.spinner}></div>
-          <p className={styles.infoLabel} style={{ fontWeight: 500 }}>กำลังเตรียมข้อมูลหน้าร้านค้า...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<SuccessSkeleton />}>
       <SuccessContent />
     </Suspense>
   );
