@@ -14,6 +14,7 @@ interface Product {
   description?: string | null;
   detail?: string | null;
   image_urls?: string[] | null;
+  is_visible?: boolean;
 }
 
 interface Props {
@@ -24,12 +25,13 @@ interface Props {
 
 export default function AdminProductForm({ initialProduct, onSaveSuccess, onCancel }: Props) {
   const [name, setName] = useState(initialProduct?.name || "");
-  const [price, setPrice] = useState(initialProduct?.price || 0);
-  const [stock, setStock] = useState(initialProduct?.stock || 0);
+  const [price, setPrice] = useState<number | "">(initialProduct?.price !== undefined ? initialProduct.price : "");
+  const [stock, setStock] = useState<number | "">(initialProduct?.stock !== undefined ? initialProduct.stock : "");
   const [description, setDescription] = useState(initialProduct?.description || "");
   const [detail, setDetail] = useState(initialProduct?.detail || "");
   const [imageUrls, setImageUrls] = useState<string[]>(initialProduct?.image_urls || []);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState(initialProduct ? (initialProduct.is_visible !== false) : true);
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
@@ -119,6 +121,7 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
           description,
           detail,
           image_urls: imageUrls,
+          is_visible: isVisible,
         }),
       });
 
@@ -187,8 +190,9 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
             required
             min="0"
             value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
+            onChange={(e) => setPrice(e.target.value === "" ? "" : Number(e.target.value))}
             className={styles.input}
+            placeholder="ใส่ราคาขาย เช่น 100"
           />
         </div>
 
@@ -200,9 +204,27 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
             required
             min="0"
             value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
+            onChange={(e) => setStock(e.target.value === "" ? "" : Number(e.target.value))}
             className={styles.input}
+            placeholder="ใส่จำนวนสินค้าคงเหลือในสต็อก เช่น 10"
           />
+        </div>
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label>การแสดงผลบนหน้าร้าน</label>
+        <div className={styles.toggleContainer}>
+          <label className={styles.switch}>
+            <input
+              type="checkbox"
+              checked={isVisible}
+              onChange={(e) => setIsVisible(e.target.checked)}
+            />
+            <span className={styles.slider}></span>
+          </label>
+          <span className={styles.toggleLabel} onClick={() => setIsVisible(!isVisible)}>
+            {isVisible ? "แสดงสินค้าบนเว็บไซต์ (Visible)" : "ซ่อนสินค้าจากหน้าเว็บ (Hidden)"}
+          </span>
         </div>
       </div>
 

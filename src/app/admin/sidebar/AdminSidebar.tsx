@@ -42,7 +42,11 @@ export default function AdminSidebar({
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}>
       <div className={styles.sidebarHeader}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-          <div>
+          <div 
+            onClick={() => router.push("/")} 
+            style={{ cursor: "pointer" }}
+            title="กลับไปหน้าหลัก"
+          >
             <h1 className={styles.sidebarLogo}>CRYSTAL DREAMS</h1>
             <div className={styles.sidebarSubtitle}>ระบบหลังบ้าน Backoffice</div>
           </div>

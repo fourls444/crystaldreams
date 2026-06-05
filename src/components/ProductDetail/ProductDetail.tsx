@@ -19,6 +19,7 @@ interface Product {
   description?: string | null;
   detail?: string | null;
   image_urls?: string[] | null;
+  is_visible?: boolean;
 }
 
 export default function ProductDetail() {
@@ -27,7 +28,8 @@ export default function ProductDetail() {
   const orderIdParam = searchParams.get("orderId");
   const showQrParam = searchParams.get("showQr");
 
-  const [product, setProduct] = useState<Product | null>(null);
+  const [productsList, setProductsList] = useState<Product[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -41,20 +43,21 @@ export default function ProductDetail() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [loadingQr, setLoadingQr] = useState(showQrParam === "true" && !!orderIdParam);
 
+  const product = productsList.find((p) => p.id === selectedProductId) || productsList[0] || null;
+
   useEffect(() => {
-    async function fetchProduct() {
+    async function fetchProducts() {
       try {
         const { data, error } = await supabase
           .from("products")
           .select("*")
-          .limit(1)
-          .single();
+          .order("sort_order", { ascending: true });
 
         if (error) {
-          console.error("Error fetching product:", error);
+          console.error("Error fetching products:", error);
           setError("ไม่สามารถดึงข้อมูลสินค้าได้ กรุณาลองใหม่อีกครั้ง");
         } else if (data) {
-          setProduct(data);
+          setProductsList(data);
         }
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -64,7 +67,7 @@ export default function ProductDetail() {
       }
     }
 
-    fetchProduct();
+    fetchProducts();
   }, []);
 
   // Restore QR modal state from URL parameters
@@ -252,8 +255,62 @@ export default function ProductDetail() {
     }
   };
 
+  const hasNoProducts = !loading && productsList.length === 0 && !error;
+
   if (loading) {
     return <ProductDetailSkeleton />;
+  }
+
+  if (hasNoProducts) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.grid}>
+          {/* Product Image Section */}
+          <div className={styles.imageColumn}>
+            <div className={styles.imageCard}>
+              <div className={`${styles.imageWrapper} ${styles.skeletonStatic}`} style={{ width: "100%", height: "440px", aspectRatio: "1 / 1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: "4rem", opacity: 0.15 }}>📦</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Detail Section */}
+          <div className={styles.detailColumn}>
+            <div>
+              <h1 className={styles.productName} style={{ color: "#94a3b8" }}>
+                ยังไม่มีสินค้าในขณะนี้
+              </h1>
+              <div className={styles.priceContainer} style={{ marginTop: "1rem" }}>
+                <div className={`${styles.skeletonStatic}`} style={{ width: "120px", height: "2rem" }}></div>
+                <div className={`${styles.skeletonStatic}`} style={{ width: "80px", height: "1.5rem" }}></div>
+              </div>
+              <div className={`${styles.skeletonStatic}`} style={{ width: "100px", height: "0.75rem", marginTop: "0.5rem" }}></div>
+            </div>
+
+            <div className={styles.descriptionSection}>
+              <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: "1.6" }}>
+                ขณะนี้ร้านค้ายังไม่มีรายการสินค้าสำหรับจัดจำหน่าย หรือสินค้าทั้งหมดถูกซ่อนอยู่ กรุณากลับมาตรวจสอบใหม่อีกครั้งในภายหลัง
+              </p>
+              <div className={`${styles.skeletonStatic}`} style={{ width: "90%", height: "1rem", marginTop: "1rem", marginBottom: "0.5rem" }}></div>
+              <div className={`${styles.skeletonStatic}`} style={{ width: "60%", height: "1rem" }}></div>
+            </div>
+
+            <div className={styles.actionContainer}>
+              <div className={styles.buttonGroup}>
+                <button
+                  type="button"
+                  disabled
+                  className={`${styles.btn} ${styles.btnBuyNowDisabled}`}
+                  style={{ height: "3rem" }}
+                >
+                  ไม่พร้อมจำหน่าย
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   if (error && !product) {
@@ -405,6 +462,37 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Other Products Section */}
+      {productsList.length > 1 && (
+        <div className={styles.otherProductsSection}>
+          <h3 className={styles.otherProductsTitle}>เลือกชมสินค้าชิ้นอื่น</h3>
+          <div className={styles.otherProductsGrid}>
+            {productsList.map((p) => {
+              const isSelected = p.id === product?.id;
+              return (
+                <div
+                  key={p.id}
+                  className={`${styles.otherProductCard} ${isSelected ? styles.otherProductCardActive : ""}`}
+                  onClick={() => {
+                    setSelectedProductId(p.id);
+                    setCurrentImageIndex(0); // reset gallery image index when switching products
+                  }}
+                >
+                  <div className={styles.otherProductImageWrapper}>
+                    <img
+                      src={p.image_url || defaultImage}
+                      alt={p.name}
+                      className={styles.otherProductImage}
+                    />
+                  </div>
+                  <span className={styles.otherProductName}>{p.name}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* QR Code Modal (Popup) */}
       <PaymentQrModal

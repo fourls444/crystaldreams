@@ -8,6 +8,8 @@ CREATE TABLE products (
     description TEXT,
     detail TEXT,
     image_urls TEXT[],
+    is_visible BOOLEAN NOT NULL DEFAULT TRUE, -- Added column
+    sort_order INTEGER NOT NULL DEFAULT 0, -- Added column for drag-and-drop sorting
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -46,9 +48,9 @@ CREATE TABLE orders (
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
--- Create Policies for products (Anyone can read, Admin can manage)
+-- Create Policies for products (Anyone can read visible products, Admin can manage all)
 CREATE POLICY "Allow public read on products" ON products
-    FOR SELECT USING (true);
+    FOR SELECT USING (is_visible = true);
 
 CREATE POLICY "Allow admins to manage products" ON products
     FOR ALL USING (auth.role() = 'authenticated');
@@ -62,3 +64,12 @@ CREATE POLICY "Allow public select orders by id" ON orders
 
 CREATE POLICY "Allow admins to manage orders" ON orders
     FOR ALL USING (auth.role() = 'authenticated');
+
+-- --- DATABASE MIGRATION FOR EXISTING TABLES ---
+-- Run this SQL in your Supabase SQL Editor:
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS is_visible BOOLEAN NOT NULL DEFAULT TRUE;
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
+-- DROP POLICY IF EXISTS "Allow public read on products" ON products;
+-- CREATE POLICY "Allow public read on products" ON products FOR SELECT USING (is_visible = true);
+
+

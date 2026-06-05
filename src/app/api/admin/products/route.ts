@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 
-    const { id, name, price, stock, image_url, description, detail, image_urls } = await request.json();
+    const { id, name, price, stock, image_url, description, detail, image_urls, is_visible } = await request.json();
 
     if (!name || price === undefined || stock === undefined) {
       return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
@@ -32,6 +32,7 @@ export async function POST(request: Request) {
           description,
           detail,
           image_urls,
+          is_visible: is_visible !== false,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
           description,
           detail,
           image_urls,
+          is_visible: is_visible !== false,
         })
         .select();
 
@@ -105,3 +107,42 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("admin_session");
+
+    // Secure checking
+    if (!session || session.value !== "authenticated") {
+      return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
+    }
+
+    const { orderedIds } = await request.json();
+
+    if (!orderedIds || !Array.isArray(orderedIds)) {
+      return NextResponse.json({ error: "ข้อมูลไม่ถูกต้อง" }, { status: 400 });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+
+    // Update sort_order for each product
+    for (let i = 0; i < orderedIds.length; i++) {
+      const { error } = await supabaseAdmin
+        .from("products")
+        .update({ sort_order: i })
+        .eq("id", orderedIds[i]);
+
+      if (error) {
+        console.error(`Error updating sort_order for ${orderedIds[i]}:`, error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" }, { status: 500 });
+  }
+}
+

@@ -19,7 +19,7 @@ export default async function AdminDashboard() {
   const { data: products } = await supabaseAdmin
     .from("products")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("sort_order", { ascending: true });
 
   // 2. Fetch all orders
   const { data: orders } = await supabaseAdmin

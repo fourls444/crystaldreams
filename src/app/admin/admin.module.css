@@ -1397,3 +1397,127 @@
   }
 }
 
+/* Visibility Toggle */
+.toggleContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  background-color: #f8fafc;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: .3s;
+  border-radius: 9999px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1.15rem;
+  width: 1.15rem;
+  left: 0.175rem;
+  bottom: 0.175rem;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.switch input:checked + .slider {
+  background-color: #1e3a8a;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(1.25rem);
+}
+
+/* Visibility badges in Inventory List */
+.visibilityBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.visibleBadge {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.hiddenBadge {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Drag and Drop Visual Feedback */
+.productListItemDragHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 700;
+  user-select: none;
+  cursor: grab;
+}
+
+.productListItemDragHeader:active {
+  cursor: grabbing;
+}
+
+.productListItem.dragged {
+  opacity: 0.3;
+  transform: scale(0.96);
+  border: 1px dashed #cbd5e1;
+}
+
+.productListItem.dragOver {
+  border: 2px dashed #1e3a8a !important;
+  background-color: rgba(30, 58, 138, 0.03);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 10px 15px -3px rgba(30, 58, 138, 0.15);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+

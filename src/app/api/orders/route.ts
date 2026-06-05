@@ -17,13 +17,13 @@ export async function POST(req: Request) {
     // 1. Get Product Price and Stock
     const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("price, stock")
+      .select("price, stock, is_visible")
       .eq("id", product_id)
       .single();
 
-    if (productError || !product) {
+    if (productError || !product || !product.is_visible) {
       return NextResponse.json(
-        { error: "ไม่พบสินค้าในระบบ" },
+        { error: "ไม่พบสินค้าในระบบหรือไม่พร้อมจำหน่ายในขณะนี้" },
         { status: 404 }
       );
     }

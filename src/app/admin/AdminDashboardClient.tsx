@@ -21,6 +21,7 @@ interface Product {
   description?: string | null;
   detail?: string | null;
   image_urls?: string[] | null;
+  is_visible?: boolean;
 }
 
 interface Order {
@@ -65,6 +66,10 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
 
   const handleTabChange = (tab: "dashboard" | "orders" | "products") => {
     setActiveTab(tab);
+    if (tab === "products") {
+      setShowProductModal(false);
+      setEditingProduct(null);
+    }
     router.push(`/admin?view=${tab}`);
     setIsSidebarOpen(false);
   };
@@ -441,7 +446,14 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
         >
           <Menu size={24} />
         </button>
-        <span className={styles.mobileNavbarTitle}>CRYSTAL DREAMS</span>
+        <span 
+          className={styles.mobileNavbarTitle}
+          onClick={() => router.push("/")}
+          style={{ cursor: "pointer" }}
+          title="กลับไปหน้าหลัก"
+        >
+          CRYSTAL DREAMS
+        </span>
         <div style={{ position: "relative", width: "24px", height: "24px" }}>
           {pendingSlipsCount > 0 && (
             <span className={styles.mobileBadge}>{pendingSlipsCount}</span>
