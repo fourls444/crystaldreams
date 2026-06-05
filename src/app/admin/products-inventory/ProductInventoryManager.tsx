@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import AdminProductForm from "./AdminProductForm";
@@ -39,13 +39,15 @@ export default function ProductInventoryManager({
   onSaveSuccess,
   onCancel,
 }: ProductInventoryManagerProps) {
+  const [prevProducts, setPrevProducts] = useState<Product[]>(initialProducts);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  useEffect(() => {
+  if (initialProducts !== prevProducts) {
+    setPrevProducts(initialProducts);
     setProducts(initialProducts);
-  }, [initialProducts]);
+  }
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
@@ -220,7 +222,7 @@ export default function ProductInventoryManager({
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateIcon}>📦</div>
                   <div className={styles.emptyStateTitle}>ไม่มีสินค้าในระบบ</div>
-                  <div className={styles.emptyStateDesc}>คลิกปุ่ม "เพิ่มสินค้าใหม่" เพื่อลงสินค้าแรกเข้าระบบคลังสินค้า</div>
+                  <div className={styles.emptyStateDesc}>คลิกปุ่ม &quot;เพิ่มสินค้าใหม่&quot; เพื่อลงสินค้าแรกเข้าระบบคลังสินค้า</div>
                 </div>
               </div>
             )}

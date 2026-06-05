@@ -776,6 +776,7 @@
 .orderPrice {
   font-weight: 700;
   color: #1e3a8a;
+  text-align: center;
 }
 
 .orderDate {
@@ -1518,6 +1519,130 @@
   transform: translateY(-4px) scale(1.01);
   box-shadow: 0 10px 15px -3px rgba(30, 58, 138, 0.15);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Lightbox styles for Backoffice */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 10005;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+  backdrop-filter: blur(8px);
+}
+
+.lightboxContent {
+  position: relative;
+  width: 90%;
+  max-width: 900px;
+  height: 80%;
+  max-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightboxImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightboxImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  animation: scaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lightboxCloseBtn {
+  position: absolute;
+  top: -2.5rem;
+  right: 0;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.lightboxCloseBtn:hover {
+  transform: scale(1.1);
+}
+
+.lightboxPrevBtn, .lightboxNextBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: #ffffff;
+  z-index: 10006;
+  user-select: none;
+}
+
+.lightboxPrevBtn:hover, .lightboxNextBtn:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.lightboxPrevBtn:active, .lightboxNextBtn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.lightboxPrevBtn {
+  left: -4rem;
+}
+
+.lightboxNextBtn {
+  right: -4rem;
+}
+
+@media (max-width: 1024px) {
+  .lightboxPrevBtn {
+    left: 1rem;
+    width: 3rem;
+    height: 3rem;
+    font-size: 2rem;
+  }
+  .lightboxNextBtn {
+    right: 1rem;
+    width: 3rem;
+    height: 3rem;
+    font-size: 2rem;
+  }
+  .lightboxCloseBtn {
+    top: 1rem;
+    right: 1rem;
+    z-index: 10007;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 }
 
 

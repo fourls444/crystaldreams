@@ -1,14 +1,11 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/utils/supabase";
+import { isAdminAuthenticated } from "@/utils/auth";
 
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("admin_session");
-
     // Secure checking
-    if (!session || session.value !== "authenticated") {
+    if (!(await isAdminAuthenticated())) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 
@@ -34,10 +31,8 @@ export async function POST(req: Request) {
       console.error("Failed to check/create bucket:", e);
     }
 
-    // 2. Upload each file and get public URLs
-    const urls: string[] = [];
-
-    for (const file of files) {
+    // 2. Upload files in parallel and get public URLs
+    const uploadPromises = files.map(async (file) => {
       const fileExtension = file.name.split(".").pop() || "png";
       const filename = `product_${Date.now()}_${Math.random().toString(36).substring(2, 11)}.${fileExtension}`;
       const fileBuffer = Buffer.from(await file.arrayBuffer());
@@ -51,22 +46,26 @@ export async function POST(req: Request) {
 
       if (uploadError) {
         console.error("Storage upload error for file:", file.name, uploadError);
-        return NextResponse.json({ error: `ไม่สามารถอัปโหลดไฟล์ ${file.name} ได้` }, { status: 500 });
+        throw new Error(`ไม่สามารถอัปโหลดไฟล์ ${file.name} ได้`);
       }
 
       const { data: { publicUrl } } = supabaseAdmin.storage
         .from("product-images")
         .getPublicUrl(filename);
 
-      urls.push(publicUrl);
-    }
+      return publicUrl;
+    });
+
+    const urls = await Promise.all(uploadPromises);
 
     return NextResponse.json({ success: true, urls });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ";
     console.error("Upload images API error:", error);
-    return NextResponse.json({ error: "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ" }, { status: 500 });
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 }
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+

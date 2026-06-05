@@ -113,7 +113,7 @@ export default function OrdersAndSlipsManager({
               <tr>
                 <th>Order ID</th>
                 <th style={{ textAlign: "center" }}>รายละเอียดออเดอร์</th>
-                <th>ยอดชำระ</th>
+                <th style={{ textAlign: "center" }}>ยอดชำระ</th>
                 <th style={{ textAlign: "center" }}>สถานะ</th>
                 <th style={{ textAlign: "center" }}>การจัดการ</th>
               </tr>
@@ -135,7 +135,7 @@ export default function OrdersAndSlipsManager({
                       ดูรายละเอียด
                     </button>
                   </td>
-                  <td className={styles.orderPrice}>{order.total_amount.toLocaleString()} ฿</td>
+                  <td className={styles.orderPrice} style={{ textAlign: "center" }}>{order.total_amount.toLocaleString()} ฿</td>
                   <td style={{ textAlign: "center" }}>
                     <span className={`${styles.statusBadge} ${getStatusBadgeClass(order.status)}`}>
                       {getStatusText(order.status)}

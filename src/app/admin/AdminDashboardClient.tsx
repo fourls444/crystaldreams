@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { Menu } from "lucide-react";
@@ -51,21 +51,16 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Navigation tab state
+  // Navigation tab state derived from search params
   const viewParam = searchParams.get("view");
-  const [activeTab, setActiveTab] = useState<"dashboard" | "orders" | "products">("dashboard");
+  const activeTab = (viewParam === "orders" || viewParam === "products" || viewParam === "dashboard")
+    ? viewParam
+    : "dashboard";
 
   // Sidebar state for mobile drawer
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (viewParam === "orders" || viewParam === "products" || viewParam === "dashboard") {
-      setActiveTab(viewParam);
-    }
-  }, [viewParam]);
-
   const handleTabChange = (tab: "dashboard" | "orders" | "products") => {
-    setActiveTab(tab);
     if (tab === "products") {
       setShowProductModal(false);
       setEditingProduct(null);
@@ -310,7 +305,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
         hour: "2-digit",
         minute: "2-digit",
       }) + " น.";
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   };
@@ -539,6 +534,8 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
         onAutoVerify={handleAutoVerify}
         onManualApprove={handleManualApprove}
         onRejectOrder={handleRejectOrder}
+        ordersList={filteredOrders.filter((o) => o.slip_url)}
+        onSelectOrder={setSelectedOrder}
       />
 
       {/* CUSTOMER ADDRESS DETAILS MODAL */}

@@ -124,9 +124,6 @@ function SlipContent() {
         throw new Error(resData.error || "เกิดข้อผิดพลาดในการอัปโหลดหลักฐาน");
       }
 
-      // Verify สลิปใน background (async)
-      fetch(`/api/orders/${orderId}/verify`, { method: "POST" }).catch(console.error);
-
       router.push(`/success?orderId=${orderId}`);
     } catch (err: unknown) {
       const message =

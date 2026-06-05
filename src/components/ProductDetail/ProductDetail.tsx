@@ -466,7 +466,7 @@ export default function ProductDetail() {
       {/* Other Products Section */}
       {productsList.length > 1 && (
         <div className={styles.otherProductsSection}>
-          <h3 className={styles.otherProductsTitle}>เลือกชมสินค้าชิ้นอื่น</h3>
+          <h3 className={styles.otherProductsTitle}>สินค้าเพิ่มเติม</h3>
           <div className={styles.otherProductsGrid}>
             {productsList.map((p) => {
               const isSelected = p.id === product?.id;

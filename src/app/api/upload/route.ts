@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/utils/supabase";
+import { verifyOrderSlip } from "@/utils/verify";
 
 export async function POST(req: Request) {
   try {
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
     const filename = `${order_id}_${Date.now()}.${fileExtension}`;
     const fileBuffer = Buffer.from(await slipFile.arrayBuffer());
 
-    const { data: uploadData, error: uploadError } = await supabaseAdmin
+    const { error: uploadError } = await supabaseAdmin
       .storage
       .from("slips")
       .upload(filename, fileBuffer, {
@@ -119,11 +120,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // 5. Trigger auto slip verification synchronously on the server side
+    console.log(`[Upload API] Initiating auto-verification on server for Order ID: ${order_id}`);
+    const verifyResult = await verifyOrderSlip(order_id);
+    
     return NextResponse.json({
       success: true,
-      message: "อัปโหลดข้อมูลจัดส่งและสลิปเงินเรียบร้อยแล้ว",
+      message: verifyResult.verified 
+        ? "ยืนยันการชำระเงินและบันทึกที่อยู่จัดส่งเรียบร้อยแล้ว" 
+        : `บันทึกที่อยู่สำเร็จ: ${verifyResult.message}`,
+      verified: verifyResult.verified,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Upload API main error:", error);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" },

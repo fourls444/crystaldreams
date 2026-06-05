@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import styles from "../admin.module.css";
@@ -30,8 +30,44 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
   const [description, setDescription] = useState(initialProduct?.description || "");
   const [detail, setDetail] = useState(initialProduct?.detail || "");
   const [imageUrls, setImageUrls] = useState<string[]>(initialProduct?.image_urls || []);
+  const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isVisible, setIsVisible] = useState(initialProduct ? (initialProduct.is_visible !== false) : true);
+
+  // Lightbox for reviewing uploaded images in form
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxImageIndex, setLightboxImageIndex] = useState(0);
+
+  // Disable scroll when lightbox is active
+  useEffect(() => {
+    if (isLightboxOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isLightboxOpen]);
+
+  // Handle keyboard arrow events and Escape keys in Form Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isLightboxOpen) return;
+
+      if (e.key === "Escape") {
+        setIsLightboxOpen(false);
+      } else if (e.key === "ArrowLeft") {
+        setLightboxImageIndex((prev) => (prev > 0 ? prev - 1 : imageUrls.length - 1));
+      } else if (e.key === "ArrowRight") {
+        setLightboxImageIndex((prev) => (prev < imageUrls.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isLightboxOpen, imageUrls]);
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
@@ -67,37 +103,67 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
     setUploading(true);
     setMessage(null);
 
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append("images", files[i]);
-    }
+    const uploadedUrls: string[] = [];
+    const filesArray = Array.from(files);
 
     try {
-      const res = await fetch("/api/admin/upload-images", {
-        method: "POST",
-        body: formData,
-      });
+      // อัปโหลดทีละไฟล์แบบ Sequential เพื่อป้องกันปัญหา Browser Connection Limit และ Database/Rate Limit จากการยิงขนานพร้อมกัน
+      for (let i = 0; i < filesArray.length; i++) {
+        const file = filesArray[i];
+        
+        // อัปเดตสถานะในกล่องข้อความเพื่อแจ้งเตือนแอดมินระหว่างการทำงาน
+        setMessage({
+          text: `กำลังอัปโหลดรูปที่ ${i + 1} จากทั้งหมด ${filesArray.length} รูป (${file.name})...`,
+          type: "success"
+        });
 
-      const data = await res.json();
+        const formData = new FormData();
+        formData.append("images", file);
 
-      if (res.ok && data.urls) {
-        setImageUrls((prev) => [...prev, ...data.urls]);
-        setMessage({ text: `อัปโหลดรูปภาพสำเร็จ ${data.urls.length} รูป`, type: "success" });
-      } else {
-        setMessage({ text: data.error || "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", type: "error" });
+        const res = await fetch("/api/admin/upload-images", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || `ไม่สามารถอัปโหลดไฟล์ ${file.name} ได้`);
+        }
+
+        if (data.urls && data.urls.length > 0) {
+          uploadedUrls.push(data.urls[0]);
+        } else {
+          throw new Error(`ไม่พบลิงก์ผลลัพธ์ของไฟล์ ${file.name}`);
+        }
       }
-    } catch (err) {
+
+      setImageUrls((prev) => [...prev, ...uploadedUrls]);
+      setMessage({ text: `อัปโหลดรูปภาพสำเร็จทั้งหมด ${uploadedUrls.length} รูป`, type: "success" });
+    } catch (err: unknown) {
       console.error(err);
-      setMessage({ text: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ในการอัปโหลดได้", type: "error" });
+      const errMsg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ";
+      
+      // อัปโหลดไฟล์ส่วนที่สำเร็จเข้าไปก่อนเพื่อให้ข้อมูลไม่หายทั้งหมด
+      if (uploadedUrls.length > 0) {
+        setImageUrls((prev) => [...prev, ...uploadedUrls]);
+        setMessage({
+          text: `อัปโหลดสำเร็จบางส่วน ${uploadedUrls.length} รูป แต่เกิดข้อผิดพลาด: ${errMsg}`,
+          type: "error"
+        });
+      } else {
+        setMessage({ text: errMsg, type: "error" });
+      }
     } finally {
       setUploading(false);
-      // Reset input value so same files can be re-uploaded if deleted
+      // รีเซ็ตค่า input เพื่อให้สามารถเลือกไฟล์เดิมซ้ำได้หลังจากลบออก
       e.target.value = "";
     }
   };
 
   const removeImage = (indexToRemove: number) => {
+    const urlToRemove = imageUrls[indexToRemove];
     setImageUrls((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setDeletedImageUrls((prev) => [...prev, urlToRemove]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,6 +194,15 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
       const data = await res.json();
 
       if (res.ok) {
+        // Clean up removed images from Supabase Storage
+        if (deletedImageUrls.length > 0) {
+          fetch("/api/admin/delete-images", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ urls: deletedImageUrls }),
+          }).catch((err) => console.error("Failed to clean up storage images:", err));
+        }
+
         Swal.fire({
           icon: "success",
           title: "บันทึกสำเร็จ!",
@@ -161,7 +236,8 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <>
+      <form onSubmit={handleSubmit} className={styles.form}>
       {message && (
         <div className={message.type === "success" ? styles.successAlert : styles.errorAlert}>
           {message.text}
@@ -283,6 +359,11 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
                   fill
                   sizes="100px"
                   className={styles.thumbnailImage}
+                  style={{ cursor: "zoom-in" }}
+                  onClick={() => {
+                    setLightboxImageIndex(index);
+                    setIsLightboxOpen(true);
+                  }}
                 />
                 {index === 0 && (
                   <span className={styles.mainBadge}>รูปหลัก</span>
@@ -299,7 +380,15 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
             </div>
           ))}
           
-          <label htmlFor="image-upload" className={`${styles.imageAddButton} ${uploading ? styles.disabled : ""}`}>
+          <label
+            htmlFor="image-upload"
+            className={`${styles.imageAddButton} ${uploading ? styles.disabled : ""}`}
+            onClick={(e) => {
+              if (uploading) {
+                e.preventDefault();
+              }
+            }}
+          >
             {uploading ? (
               <span className={styles.uploadSpinner}></span>
             ) : (
@@ -325,5 +414,57 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
         </button>
       </div>
     </form>
+
+    {/* Lightbox Modal for Product Images in Backoffice Form */}
+    {isLightboxOpen && imageUrls.length > 0 && (
+      <div 
+        className={styles.lightboxOverlay}
+        onClick={() => setIsLightboxOpen(false)}
+      >
+        <div 
+          className={styles.lightboxContent}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button 
+            type="button" 
+            className={styles.lightboxCloseBtn}
+            onClick={() => setIsLightboxOpen(false)}
+            aria-label="ปิดรูปภาพเต็ม"
+          >
+            ✕
+          </button>
+
+          {imageUrls.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setLightboxImageIndex((prev) => (prev > 0 ? prev - 1 : imageUrls.length - 1))}
+                className={styles.lightboxPrevBtn}
+                aria-label="รูปก่อนหน้า"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={() => setLightboxImageIndex((prev) => (prev < imageUrls.length - 1 ? prev + 1 : 0))}
+                className={styles.lightboxNextBtn}
+                aria-label="รูปถัดไป"
+              >
+                ›
+              </button>
+            </>
+          )}
+
+          <div className={styles.lightboxImageWrapper}>
+            <img
+              src={imageUrls[lightboxImageIndex]}
+              alt={`Product image view ${lightboxImageIndex + 1}`}
+              className={styles.lightboxImage}
+            />
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

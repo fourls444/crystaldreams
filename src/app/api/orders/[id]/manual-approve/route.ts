@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getSupabaseAdmin } from "@/utils/supabase";
+import { isAdminAuthenticated } from "@/utils/auth";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("admin_session");
-
     // Secure checking
-    if (!session || session.value !== "authenticated") {
+    if (!(await isAdminAuthenticated())) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 

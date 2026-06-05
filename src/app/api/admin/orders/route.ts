@@ -1,14 +1,11 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/utils/supabase";
+import { isAdminAuthenticated } from "@/utils/auth";
 
 export async function DELETE(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("admin_session");
-
     // Secure checking
-    if (!session || session.value !== "authenticated") {
+    if (!(await isAdminAuthenticated())) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 

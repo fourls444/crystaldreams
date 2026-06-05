@@ -1,14 +1,11 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/utils/supabase";
+import { isAdminAuthenticated } from "@/utils/auth";
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("admin_session");
-
     // Secure checking
-    if (!session || session.value !== "authenticated") {
+    if (!(await isAdminAuthenticated())) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 
@@ -75,11 +72,8 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("admin_session");
-
     // Secure checking
-    if (!session || session.value !== "authenticated") {
+    if (!(await isAdminAuthenticated())) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 
@@ -91,6 +85,15 @@ export async function DELETE(request: Request) {
     }
 
     const supabaseAdmin = getSupabaseAdmin();
+
+    // 1. Fetch product first to get its image urls for storage cleanup
+    const { data: product } = await supabaseAdmin
+      .from("products")
+      .select("image_urls")
+      .eq("id", id)
+      .single();
+
+    // 2. Delete product from database
     const { error } = await supabaseAdmin
       .from("products")
       .delete()
@@ -101,8 +104,25 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // 3. Clean up storage files if the product had images
+    if (product && product.image_urls && product.image_urls.length > 0) {
+      const filenames = product.image_urls
+        .map((url: string) => {
+          const parts = url.split("/product-images/");
+          return parts.length > 1 ? parts[1] : url.split("/").pop();
+        })
+        .filter(Boolean) as string[];
+
+      if (filenames.length > 0) {
+        supabaseAdmin.storage
+          .from("product-images")
+          .remove(filenames)
+          .catch((err) => console.error("Failed to clean up storage images on product delete:", err));
+      }
+    }
+
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     return NextResponse.json({ error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" }, { status: 500 });
   }
@@ -110,11 +130,8 @@ export async function DELETE(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("admin_session");
-
     // Secure checking
-    if (!session || session.value !== "authenticated") {
+    if (!(await isAdminAuthenticated())) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 
