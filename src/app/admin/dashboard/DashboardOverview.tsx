@@ -99,7 +99,7 @@ export default function DashboardOverview({
             <thead>
               <tr>
                 <th>Order ID</th>
-                <th>ยอดชำระ</th>
+                <th style={{ textAlign: "center" }}>ยอดชำระ</th>
                 <th style={{ textAlign: "center" }}>สถานะ</th>
                 <th style={{ textAlign: "center" }}>รายละเอียด</th>
               </tr>
@@ -113,7 +113,7 @@ export default function DashboardOverview({
                       {formatThaiDate(order.created_at)}
                     </div>
                   </td>
-                  <td className={styles.orderPrice}>{order.total_amount.toLocaleString()} ฿</td>
+                  <td className={styles.orderPrice} style={{ textAlign: "center" }}>{order.total_amount.toLocaleString()} ฿</td>
                   <td style={{ textAlign: "center" }}>
                     <span className={`${styles.statusBadge} ${getStatusBadgeClass(order.status)}`}>
                       {getStatusText(order.status)}
