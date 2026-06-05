@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
+import { Menu } from "lucide-react";
 import styles from "./admin.module.css";
-import AdminSidebar from "./AdminSidebar";
-import DashboardOverview from "./DashboardOverview";
-import OrdersAndSlipsManager from "./OrdersAndSlipsManager";
-import ProductInventoryManager from "./ProductInventoryManager";
-import OrderSlipVerificationModal from "./OrderSlipVerificationModal";
-import CustomerAddressDetailsModal from "./CustomerAddressDetailsModal";
+import AdminSidebar from "./sidebar/AdminSidebar";
+import DashboardOverview from "./dashboard/DashboardOverview";
+import OrdersAndSlipsManager from "./orders-slips/OrdersAndSlipsManager";
+import ProductInventoryManager from "./products-inventory/ProductInventoryManager";
+import OrderSlipVerificationModal from "./orders-slips/OrderSlipVerificationModal";
+import CustomerAddressDetailsModal from "./orders-slips/CustomerAddressDetailsModal";
 
 interface Product {
   id: string;
@@ -53,6 +54,9 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   const viewParam = searchParams.get("view");
   const [activeTab, setActiveTab] = useState<"dashboard" | "orders" | "products">("dashboard");
 
+  // Sidebar state for mobile drawer
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   useEffect(() => {
     if (viewParam === "orders" || viewParam === "products" || viewParam === "dashboard") {
       setActiveTab(viewParam);
@@ -62,6 +66,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   const handleTabChange = (tab: "dashboard" | "orders" | "products") => {
     setActiveTab(tab);
     router.push(`/admin?view=${tab}`);
+    setIsSidebarOpen(false);
   };
 
   // Product CRUD states
@@ -411,11 +416,38 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
 
   return (
     <div className={styles.dashboardLayout}>
+      {/* Sidebar Overlay for mobile screen */}
+      {isSidebarOpen && (
+        <div
+          className={styles.sidebarOverlay}
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <AdminSidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
         pendingSlipsCount={pendingSlipsCount}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
+
+      {/* Mobile Top Navbar */}
+      <div className={styles.mobileNavbar}>
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className={styles.menuToggleBtn}
+          title="เปิดเมนู"
+        >
+          <Menu size={24} />
+        </button>
+        <span className={styles.mobileNavbarTitle}>CRYSTAL DREAMS</span>
+        <div style={{ position: "relative", width: "24px", height: "24px" }}>
+          {pendingSlipsCount > 0 && (
+            <span className={styles.mobileBadge}>{pendingSlipsCount}</span>
+          )}
+        </div>
+      </div>
 
       {/* Right Main Content Panel */}
       <main className={styles.contentPanel}>

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { X, Search, Check } from "lucide-react";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
 interface Order {
   id: string;
@@ -147,13 +147,13 @@ export default function OrderSlipVerificationModal({
           </button>
 
           {selectedOrder.status === "slip_uploaded" && (
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div className={styles.modalActionGroup}>
               <button
                 type="button"
                 onClick={() => onAutoVerify(selectedOrder.id)}
                 disabled={actionLoading !== null}
                 className={styles.verifyActionBtn}
-                style={{ backgroundColor: "#2563eb", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                style={{ backgroundColor: "#2563eb", display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
               >
                 <Search size={14} />
                 <span>ตรวจออโต้ (EasySlip)</span>
@@ -164,7 +164,7 @@ export default function OrderSlipVerificationModal({
                 onClick={() => onManualApprove(selectedOrder.id)}
                 disabled={actionLoading !== null}
                 className={styles.verifyActionBtn}
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
               >
                 <Check size={14} />
                 <span>อนุมัติสลิปแมนนวล</span>

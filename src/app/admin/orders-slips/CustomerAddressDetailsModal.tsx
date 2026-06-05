@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
 interface Order {
   id: string;

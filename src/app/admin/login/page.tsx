@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import styles from "./login.module.css";
 
 export default function AdminLogin() {
@@ -10,6 +11,24 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  const handleUsernameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      passwordRef.current?.focus();
+    }
+  };
+
+  const handlePasswordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      usernameRef.current?.focus();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,11 +71,13 @@ export default function AdminLogin() {
             <label htmlFor="username">ชื่อผู้ใช้งาน (ID)</label>
             <input
               id="username"
+              ref={usernameRef}
               type="text"
               required
               autoComplete="new-username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              onKeyDown={handleUsernameKeyDown}
               className={styles.input}
               placeholder="Username"
             />
@@ -64,16 +85,28 @@ export default function AdminLogin() {
 
           <div className={styles.inputGroup}>
             <label htmlFor="password">รหัสผ่าน (Password)</label>
-            <input
-              id="password"
-              type="password"
-              required
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
-              placeholder="Password"
-            />
+            <div className={styles.passwordContainer}>
+              <input
+                id="password"
+                ref={passwordRef}
+                type={showPassword ? "text" : "password"}
+                required
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handlePasswordKeyDown}
+                className={styles.input}
+                placeholder="Password"
+              />
+              <button
+                type="button"
+                className={styles.passwordToggle}
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" disabled={loading} className={styles.button}>

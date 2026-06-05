@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
 interface Product {
   id: string;
@@ -287,17 +287,18 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1.5rem" }}>
+      <div className={styles.formActions}>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
             className={styles.cancelFormBtn}
+            style={{ marginTop: 0 }}
           >
             ยกเลิก
           </button>
         )}
-        <button type="submit" disabled={submitting || uploading} className={styles.saveBtn}>
+        <button type="submit" disabled={submitting || uploading} className={styles.saveBtn} style={{ marginTop: 0 }}>
           {submitting ? "กำลังบันทึก..." : "บันทึกรายละเอียดสินค้า"}
         </button>
       </div>

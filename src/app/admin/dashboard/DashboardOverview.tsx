@@ -1,7 +1,7 @@
 "use client";
 
 import { DollarSign, CheckCircle2, FileText } from "lucide-react";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
 interface Order {
   id: string;
@@ -48,7 +48,7 @@ export default function DashboardOverview({
     <div>
       <header className={styles.panelHeader}>
         <div>
-          <h2 className={styles.panelTitle}>หน้าแรก (Dashboard)</h2>
+          <h2 className={styles.panelTitle}>หน้าแรก ( Dashboard )</h2>
           <p className={styles.panelSubtitle}>ภาพรวมของยอดขาย ออเดอร์ล่าสุด และสถานะคลังสินค้า</p>
         </div>
       </header>
@@ -89,7 +89,7 @@ export default function DashboardOverview({
       {/* Recent Orders Section */}
       <div className={styles.tableCard}>
         <div className={styles.cardHeader}>
-          <h3 className={styles.cardTitle}>รายการคำสั่งซื้อล่าสุด (Recent Orders)</h3>
+          <h3 className={styles.cardTitle}>รายการคำสั่งซื้อล่าสุด ( Recent Orders )</h3>
           <button onClick={onViewAllOrders} className={styles.viewSlipBtn}>
             ดูออเดอร์ทั้งหมด →
           </button>

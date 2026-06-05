@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Plus, Trash2 } from "lucide-react";
 import AdminProductForm from "./AdminProductForm";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
 interface Product {
   id: string;
@@ -43,7 +43,7 @@ export default function ProductInventoryManager({
     <div>
       <header className={styles.panelHeader}>
         <div>
-          <h2 className={styles.panelTitle}>คลังสินค้าและรายการสินค้า ({totalProducts})</h2>
+          <h2 className={styles.panelTitle}>คลังสินค้าและรายการสินค้า ( {totalProducts} )</h2>
           <p className={styles.panelSubtitle}>เพิ่มรายการสินค้าใหม่ ปรับปรุงแก้ไข หรือลบสินค้าออกจากหน้าร้าน</p>
         </div>
         <div className={styles.headerActions}>
@@ -62,7 +62,7 @@ export default function ProductInventoryManager({
       </header>
 
       {showProductModal ? (
-        <div className={styles.tableCard} style={{ padding: "2rem" }}>
+        <div className={`${styles.tableCard} ${styles.productFormCard}`}>
           <h3 className={styles.sectionTitle}>
             {editingProduct ? "แก้ไขรายละเอียดสินค้า" : "เพิ่มสินค้าใหม่เข้าร้านค้า"}
           </h3>
@@ -83,7 +83,7 @@ export default function ProductInventoryManager({
               <div key={p.id} className={styles.productListItem}>
                 <div className={styles.productListItemImage}>
                   <Image
-                    src={p.image_url || "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&q=80&w=800"}
+                     src={p.image_url || "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&q=80&w=800"}
                     alt={p.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"

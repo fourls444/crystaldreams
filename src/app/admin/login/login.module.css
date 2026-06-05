@@ -102,3 +102,38 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.passwordContainer .input {
+  padding-right: 2.75rem;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: color 0.2s ease;
+}
+
+.passwordToggle:hover {
+  color: #334155;
+}
+
+.passwordToggle:focus {
+  outline: none;
+  color: #1e3a8a;
+}

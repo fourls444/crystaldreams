@@ -1,7 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
 interface Order {
   id: string;
@@ -68,31 +68,31 @@ export default function OrdersAndSlipsManager({
             onClick={() => onSetOrderFilter("all")}
             className={`${styles.filterBtn} ${orderFilter === "all" ? styles.filterBtnActive : ""}`}
           >
-            ทั้งหมด ({initialOrders.length})
+            ทั้งหมด ( {initialOrders.length} )
           </button>
           <button
             onClick={() => onSetOrderFilter("slip_uploaded")}
             className={`${styles.filterBtn} ${orderFilter === "slip_uploaded" ? styles.filterBtnActive : ""}`}
           >
-            รอตรวจสลิป ({initialOrders.filter((o) => o.status === "slip_uploaded").length})
+            รอตรวจสลิป ( {initialOrders.filter((o) => o.status === "slip_uploaded").length} )
           </button>
           <button
             onClick={() => onSetOrderFilter("verified")}
             className={`${styles.filterBtn} ${orderFilter === "verified" ? styles.filterBtnActive : ""}`}
           >
-            ชำระเงินสำเร็จ ({initialOrders.filter((o) => o.status === "verified").length})
+            ชำระเงินสำเร็จ ( {initialOrders.filter((o) => o.status === "verified").length} )
           </button>
           <button
             onClick={() => onSetOrderFilter("rejected")}
             className={`${styles.filterBtn} ${orderFilter === "rejected" ? styles.filterBtnActive : ""}`}
           >
-            ปฏิเสธ/ยกเลิก ({initialOrders.filter((o) => o.status === "rejected").length})
+            ปฏิเสธ/ยกเลิก ( {initialOrders.filter((o) => o.status === "rejected").length} )
           </button>
           <button
             onClick={() => onSetOrderFilter("pending")}
             className={`${styles.filterBtn} ${orderFilter === "pending" ? styles.filterBtnActive : ""}`}
           >
-            รอชำระเงิน ({initialOrders.filter((o) => o.status === "pending").length})
+            รอชำระเงิน ( {initialOrders.filter((o) => o.status === "pending").length} )
           </button>
         </div>
 
@@ -103,7 +103,7 @@ export default function OrdersAndSlipsManager({
             value={searchQuery}
             onChange={(e) => onSetSearchQuery(e.target.value)}
             className={styles.input}
-            style={{ maxWidth: "450px" }}
+            style={{ width: "100%", maxWidth: "450px" }}
           />
         </div>
 

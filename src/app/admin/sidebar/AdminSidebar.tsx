@@ -1,19 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { BarChart3, FileText, Package } from "lucide-react";
-import styles from "./admin.module.css";
+import { BarChart3, FileText, Package, X } from "lucide-react";
+import styles from "../admin.module.css";
 
 interface AdminSidebarProps {
   activeTab: "dashboard" | "orders" | "products";
   onTabChange: (tab: "dashboard" | "orders" | "products") => void;
   pendingSlipsCount: number;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export default function AdminSidebar({
   activeTab,
   onTabChange,
   pendingSlipsCount,
+  isOpen = false,
+  onClose,
 }: AdminSidebarProps) {
   const router = useRouter();
 
@@ -35,10 +39,25 @@ export default function AdminSidebar({
   };
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}>
       <div className={styles.sidebarHeader}>
-        <h1 className={styles.sidebarLogo}>CRYSTAL DREAMS</h1>
-        <div className={styles.sidebarSubtitle}>ระบบหลังบ้าน Backoffice</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+          <div>
+            <h1 className={styles.sidebarLogo}>CRYSTAL DREAMS</h1>
+            <div className={styles.sidebarSubtitle}>ระบบหลังบ้าน Backoffice</div>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className={styles.sidebarCloseBtn}
+              aria-label="ปิดเมนู"
+              title="ปิดเมนู"
+              type="button"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
       </div>
 
       <nav className={styles.sidebarMenu}>
