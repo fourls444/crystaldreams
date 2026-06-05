@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { Menu } from "lucide-react";
@@ -40,6 +40,7 @@ interface Order {
   products?: {
     name: string;
   } | null;
+  items?: any;
 }
 
 interface Props {
@@ -84,15 +85,21 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   // Loading States for API buttons
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Sidebar count of pending slips (status = 'slip_uploaded')
-  const pendingSlipsCount = initialOrders.filter((o) => o.status === "slip_uploaded").length;
+  // Sidebar count of pending slips (status = 'slip_uploaded') - Memoized to prevent recalculation on every render
+  const pendingSlipsCount = useMemo(() => {
+    return initialOrders.filter((o) => o.status === "slip_uploaded").length;
+  }, [initialOrders]);
 
-  // Dashboard Stats Calculations
-  const totalSales = initialOrders
-    .filter((o) => o.status === "verified")
-    .reduce((sum, o) => sum + Number(o.total_amount), 0);
+  // Dashboard Stats Calculations - Memoized to prevent recalculation on every render
+  const totalSales = useMemo(() => {
+    return initialOrders
+      .filter((o) => o.status === "verified")
+      .reduce((sum, o) => sum + Number(o.total_amount), 0);
+  }, [initialOrders]);
 
-  const verifiedOrdersCount = initialOrders.filter((o) => o.status === "verified").length;
+  const verifiedOrdersCount = useMemo(() => {
+    return initialOrders.filter((o) => o.status === "verified").length;
+  }, [initialOrders]);
 
   // Order Verification Actions
   const handleAutoVerify = async (orderId: string) => {
@@ -361,27 +368,33 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
     }
   };
 
-  // Filter and Search Orders
-  const filteredOrders = initialOrders
-    .filter((order) => {
-      // 1. Tab Status Filter
-      if (orderFilter === "slip_uploaded" && order.status !== "slip_uploaded") return false;
-      if (orderFilter === "verified" && order.status !== "verified") return false;
-      if (orderFilter === "rejected" && order.status !== "rejected") return false;
-      if (orderFilter === "pending" && order.status !== "pending") return false;
-      return true;
-    })
-    .filter((order) => {
-      // 2. Search Box Query (Customer details or orderId)
-      if (!searchQuery) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        order.id.toLowerCase().includes(q) ||
-        (order.customer_name && order.customer_name.toLowerCase().includes(q)) ||
-        (order.customer_tel && order.customer_tel.includes(q)) ||
-        (order.customer_address && order.customer_address.toLowerCase().includes(q))
-      );
-    });
+  // Use React 18 Deferred Value for search query to prevent input lag/delay.
+  // This defers the expensive filtering and re-rendering of the orders table list.
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  // Filter and Search Orders - Memoized and deferred to prevent render blocking on keypress
+  const filteredOrders = useMemo(() => {
+    return initialOrders
+      .filter((order) => {
+        // 1. Tab Status Filter
+        if (orderFilter === "slip_uploaded" && order.status !== "slip_uploaded") return false;
+        if (orderFilter === "verified" && order.status !== "verified") return false;
+        if (orderFilter === "rejected" && order.status !== "rejected") return false;
+        if (orderFilter === "pending" && order.status !== "pending") return false;
+        return true;
+      })
+      .filter((order) => {
+        // 2. Search Box Query (Customer details or orderId)
+        if (!deferredSearchQuery) return true;
+        const q = deferredSearchQuery.toLowerCase();
+        return (
+          order.id.toLowerCase().includes(q) ||
+          (order.customer_name && order.customer_name.toLowerCase().includes(q)) ||
+          (order.customer_tel && order.customer_tel.includes(q)) ||
+          (order.customer_address && order.customer_address.toLowerCase().includes(q))
+        );
+      });
+  }, [initialOrders, orderFilter, deferredSearchQuery]);
 
   // Display status in Thai
   const getStatusText = (status: string) => {

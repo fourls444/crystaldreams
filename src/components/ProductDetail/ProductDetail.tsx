@@ -9,6 +9,8 @@ import { AlertTriangle, Share2 } from "lucide-react";
 import ProductImageGallery from "./ProductImageGallery";
 import ProductFeatures from "./ProductFeatures";
 import PaymentQrModal from "./PaymentQrModal";
+import CartDrawer from "../Cart/CartDrawer";
+import { useCart } from "@/context/CartContext";
 
 interface Product {
   id: string;
@@ -27,6 +29,8 @@ export default function ProductDetail() {
   const searchParams = useSearchParams();
   const orderIdParam = searchParams.get("orderId");
   const showQrParam = searchParams.get("showQr");
+
+  const { addToCart, clearCart } = useCart();
 
   const [productsList, setProductsList] = useState<Product[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -191,6 +195,7 @@ export default function ProductDetail() {
   const proceedToUploadSlip = () => {
     setShowQrModal(false);
     if (createdOrderId) {
+      clearCart();
       router.push(`/payment/slip?orderId=${createdOrderId}`);
     }
   };
@@ -432,7 +437,29 @@ export default function ProductDetail() {
 
             {/* Buttons Area */}
             <div className={styles.buttonGroup}>
-              {/* Action button */}
+              {/* Add to Cart button */}
+              {!isSoldOut && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (product) {
+                      addToCart({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        stock: product.stock,
+                        image_url: product.image_url,
+                      }, quantity);
+                    }
+                  }}
+                  disabled={submitting}
+                  className={`${styles.btn} ${styles.btnAddToCart}`}
+                >
+                  ใส่ตะกร้า (Add to Cart)
+                </button>
+              )}
+
+              {/* Buy Now button */}
               <button
                 type="button"
                 onClick={handlePayment}
@@ -445,9 +472,9 @@ export default function ProductDetail() {
                     <span>กำลังสร้างรายการคำสั่งซื้อ...</span>
                   </div>
                 ) : isSoldOut ? (
-                  "Sold out"
+                  "สินค้าหมด (Sold out)"
                 ) : (
-                  "Buy it now"
+                  "ซื้อเลย (Buy it now)"
                 )}
               </button>
             </div>
@@ -504,6 +531,7 @@ export default function ProductDetail() {
         onProceed={proceedToUploadSlip}
         onCancel={handleCancelOrder}
       />
+      <CartDrawer />
     </main>
   );
 }

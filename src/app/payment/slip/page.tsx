@@ -24,6 +24,13 @@ interface Order {
   products?: {
     name: string;
   } | null;
+  items?: Array<{
+    product_id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image_url: string | null;
+  }> | null;
 }
 
 function SlipContent() {
@@ -180,6 +187,7 @@ function SlipContent() {
               productName={order?.products?.name}
               quantity={order?.quantity}
               totalAmount={order?.total_amount}
+              items={order?.items}
             />
           </div>
 

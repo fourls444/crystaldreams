@@ -3,9 +3,16 @@ import { getSupabaseAdmin } from "@/utils/supabase";
 
 export async function POST(req: Request) {
   try {
-    const { product_id, quantity } = await req.json();
+    const body = await req.json();
+    let cartItems: Array<{ product_id: string; quantity: number }> = [];
 
-    if (!product_id || !quantity) {
+    if (body.items && Array.isArray(body.items)) {
+      cartItems = body.items;
+    } else if (body.product_id && body.quantity) {
+      cartItems = [{ product_id: body.product_id, quantity: body.quantity }];
+    }
+
+    if (cartItems.length === 0) {
       return NextResponse.json(
         { error: "กรุณาระบุสินค้าและจำนวน" },
         { status: 400 }
@@ -14,39 +21,56 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // 1. Get Product Price and Stock
-    const { data: product, error: productError } = await supabaseAdmin
-      .from("products")
-      .select("price, stock, is_visible")
-      .eq("id", product_id)
-      .single();
+    // 1. Fetch details and validate all products in the cart
+    let total_amount = 0;
+    const itemsWithDetails = [];
 
-    if (productError || !product || !product.is_visible) {
-      return NextResponse.json(
-        { error: "ไม่พบสินค้าในระบบหรือไม่พร้อมจำหน่ายในขณะนี้" },
-        { status: 404 }
-      );
+    for (const item of cartItems) {
+      const { data: product, error: productError } = await supabaseAdmin
+        .from("products")
+        .select("id, name, price, stock, is_visible, image_url")
+        .eq("id", item.product_id)
+        .single();
+
+      if (productError || !product || !product.is_visible) {
+        return NextResponse.json(
+          { error: "ไม่พบสินค้าบางรายการในระบบหรือไม่พร้อมจำหน่ายในขณะนี้" },
+          { status: 404 }
+        );
+      }
+
+      // Validate stock availability
+      if (product.stock < item.quantity) {
+        return NextResponse.json(
+          { error: `สินค้า "${product.name}" มีสต็อกไม่เพียงพอ (คงเหลือ ${product.stock} ชิ้น)` },
+          { status: 400 }
+        );
+      }
+
+      const itemTotal = Number(product.price) * item.quantity;
+      total_amount += itemTotal;
+
+      itemsWithDetails.push({
+        product_id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        quantity: item.quantity,
+        image_url: product.image_url,
+      });
     }
 
-    // 2. Validate Stock Availability
-    if (product.stock < quantity) {
-      return NextResponse.json(
-        { error: "ขออภัย สต็อกสินค้าไม่เพียงพอ" },
-        { status: 400 }
-      );
-    }
+    // 2. Create Order
+    // For backward compatibility, reference the first item at the root of orders
+    const firstItem = itemsWithDetails[0];
 
-    // 3. Compute total amount
-    const total_amount = product.price * quantity;
-
-    // 4. Create Order
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
-        product_id,
-        quantity,
+        product_id: firstItem.product_id,
+        quantity: firstItem.quantity,
         total_amount,
         status: "pending",
+        items: itemsWithDetails,
       })
       .select("id")
       .single();

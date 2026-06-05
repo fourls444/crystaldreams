@@ -19,6 +19,13 @@ interface Order {
   products?: {
     name: string;
   } | null;
+  items?: Array<{
+    product_id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image_url: string | null;
+  }> | null;
 }
 
 interface CustomerAddressDetailsModalProps {
@@ -66,14 +73,32 @@ export default function CustomerAddressDetailsModal({
 
             <div className={styles.slipInfoBlock}>
               <h5 className={styles.slipInfoTitle}>รายละเอียดสินค้าที่ต้องแพ็ค</h5>
-              <div className={styles.slipInfoRow}>
-                <label>สินค้า:</label>
-                <span style={{ fontWeight: 600 }}>{selectedAddressOrder.products?.name || "ไม่พบข้อมูลสินค้า"}</span>
-              </div>
-              <div className={styles.slipInfoRow}>
-                <label>จำนวน:</label>
-                <span style={{ fontWeight: 600 }}>{selectedAddressOrder.quantity} ใบ</span>
-              </div>
+              {selectedAddressOrder.items && Array.isArray(selectedAddressOrder.items) && selectedAddressOrder.items.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                  {(selectedAddressOrder.items as Array<{ product_id: string; name: string; price: number; quantity: number }>)
+                    .map((item, idx) => (
+                      <div key={item.product_id || idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontSize: "0.85rem", borderBottom: "1px dashed #f1f5f9", paddingBottom: "0.35rem" }}>
+                        <div style={{ maxWidth: "70%", fontWeight: 550, color: "#0f172a" }}>
+                          {item.name}
+                        </div>
+                        <div style={{ color: "#475569", fontWeight: 600 }}>
+                          {item.quantity} ชิ้น × {item.price.toLocaleString()} ฿
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <>
+                  <div className={styles.slipInfoRow}>
+                    <label>สินค้า:</label>
+                    <span style={{ fontWeight: 600 }}>{selectedAddressOrder.products?.name || "ไม่พบข้อมูลสินค้า"}</span>
+                  </div>
+                  <div className={styles.slipInfoRow}>
+                    <label>จำนวน:</label>
+                    <span style={{ fontWeight: 600 }}>{selectedAddressOrder.quantity} ใบ</span>
+                  </div>
+                </>
+              )}
               <div className={styles.slipInfoRow} style={{ borderTop: "1px solid #e2e8f0", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                 <label>ยอดรวมชำระเงิน:</label>
                 <span className={styles.slipInfoRowValueBold}>{selectedAddressOrder.total_amount.toLocaleString()} ฿</span>

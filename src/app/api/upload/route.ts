@@ -20,10 +20,10 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // 1. Check if order exists and fetch quantity & product details
+    // 1. Check if order exists and fetch items, quantity & product details
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id, product_id, quantity")
+      .select("id, product_id, quantity, items")
       .eq("id", order_id)
       .single();
 
@@ -63,40 +63,95 @@ export async function POST(req: Request) {
       .getPublicUrl(filename);
 
     // 3.5 Validate Stock and Deduct Stock
-    const { data: product, error: productError } = await supabaseAdmin
-      .from("products")
-      .select("stock")
-      .eq("id", order.product_id)
-      .single();
+    if (order.items && Array.isArray(order.items)) {
+      const cartItems = order.items as Array<{ product_id: string; name: string; quantity: number }>;
 
-    if (productError || !product) {
-      return NextResponse.json(
-        { error: "ไม่พบข้อมูลสินค้าสัมพันธ์ในระบบ" },
-        { status: 404 }
-      );
-    }
+      // First pass: Validate stock for all items
+      for (const item of cartItems) {
+        const { data: product, error: productError } = await supabaseAdmin
+          .from("products")
+          .select("name, stock")
+          .eq("id", item.product_id)
+          .single();
 
-    if (product.stock < order.quantity) {
-      return NextResponse.json(
-        { error: "ขออภัย สต็อกสินค้าไม่เพียงพอสำหรับการสั่งซื้อนี้" },
-        { status: 400 }
-      );
-    }
+        if (productError || !product) {
+          return NextResponse.json(
+            { error: `ไม่พบข้อมูลสินค้า "${item.name}" ในระบบ` },
+            { status: 404 }
+          );
+        }
 
-    const { error: updateStockError } = await supabaseAdmin
-      .from("products")
-      .update({
-        stock: product.stock - order.quantity,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.product_id);
+        if (product.stock < item.quantity) {
+          return NextResponse.json(
+            { error: `ขออภัย สต็อกสินค้า "${item.name}" ไม่เพียงพอ (คงเหลือ ${product.stock} ชิ้น)` },
+            { status: 400 }
+          );
+        }
+      }
 
-    if (updateStockError) {
-      console.error("Failed to update stock:", updateStockError);
-      return NextResponse.json(
-        { error: "ไม่สามารถอัปเดตสต็อกสินค้าได้" },
-        { status: 500 }
-      );
+      // Second pass: Deduct stock for all items
+      for (const item of cartItems) {
+        const { data: product } = await supabaseAdmin
+          .from("products")
+          .select("stock")
+          .eq("id", item.product_id)
+          .single();
+
+        if (product) {
+          const { error: updateStockError } = await supabaseAdmin
+            .from("products")
+            .update({
+              stock: product.stock - item.quantity,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", item.product_id);
+
+          if (updateStockError) {
+            console.error(`Failed to update stock for product ${item.product_id}:`, updateStockError);
+            return NextResponse.json(
+              { error: "ไม่สามารถอัปเดตสต็อกสินค้าบางรายการได้" },
+              { status: 500 }
+            );
+          }
+        }
+      }
+    } else {
+      // Fallback: Validate Stock and Deduct Stock for old single product order
+      const { data: product, error: productError } = await supabaseAdmin
+        .from("products")
+        .select("stock")
+        .eq("id", order.product_id)
+        .single();
+
+      if (productError || !product) {
+        return NextResponse.json(
+          { error: "ไม่พบข้อมูลสินค้าสัมพันธ์ในระบบ" },
+          { status: 404 }
+        );
+      }
+
+      if (product.stock < order.quantity) {
+        return NextResponse.json(
+          { error: "ขออภัย สต็อกสินค้าไม่เพียงพอสำหรับการสั่งซื้อนี้" },
+          { status: 400 }
+        );
+      }
+
+      const { error: updateStockError } = await supabaseAdmin
+        .from("products")
+        .update({
+          stock: product.stock - order.quantity,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.product_id);
+
+      if (updateStockError) {
+        console.error("Failed to update stock:", updateStockError);
+        return NextResponse.json(
+          { error: "ไม่สามารถอัปเดตสต็อกสินค้าได้" },
+          { status: 500 }
+        );
+      }
     }
 
     // 4. Update Order details and status

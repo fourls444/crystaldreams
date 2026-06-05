@@ -19,6 +19,7 @@ interface Order {
   products?: {
     name: string;
   } | null;
+  items?: any;
 }
 
 interface DashboardOverviewProps {

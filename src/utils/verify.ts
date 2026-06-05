@@ -162,14 +162,34 @@ export async function verifyOrderSlip(orderId: string): Promise<VerifySlipResult
           .eq("id", orderId);
 
         // Return stock back
-        const currentStock = order.products?.stock ?? 0;
-        await supabaseAdmin
-          .from("products")
-          .update({
-            stock: currentStock + order.quantity,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", order.product_id);
+        if (order.items && Array.isArray(order.items)) {
+          const cartItems = order.items as Array<{ product_id: string; quantity: number }>;
+          for (const item of cartItems) {
+            const { data: prod } = await supabaseAdmin
+              .from("products")
+              .select("stock")
+              .eq("id", item.product_id)
+              .single();
+            if (prod) {
+              await supabaseAdmin
+                .from("products")
+                .update({
+                  stock: prod.stock + item.quantity,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", item.product_id);
+            }
+          }
+        } else {
+          const currentStock = order.products?.stock ?? 0;
+          await supabaseAdmin
+            .from("products")
+            .update({
+              stock: currentStock + order.quantity,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", order.product_id);
+        }
 
         // Notify admin about the fraud alert
         await sendAdminNotification({

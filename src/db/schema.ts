@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, numeric, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, numeric, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 
 // 1. Products Table Definition
 export const products = pgTable("products", {
@@ -29,6 +29,7 @@ export const orders = pgTable("orders", {
   slip_url: text("slip_url"),
   slip_verified: boolean("slip_verified").default(false),
   verified_by: text("verified_by"),
+  items: jsonb("items"),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

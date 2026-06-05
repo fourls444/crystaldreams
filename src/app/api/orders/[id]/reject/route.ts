@@ -55,17 +55,40 @@ export async function POST(
 
     // 3. Restore Stock (only if previous status was 'slip_uploaded' or 'verified' where stock was deducted)
     if (previousStatus === "slip_uploaded" || previousStatus === "verified") {
-      const currentStock = order.products?.stock ?? 0;
-      const { error: stockErr } = await supabaseAdmin
-        .from("products")
-        .update({
-          stock: currentStock + order.quantity,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", order.product_id);
+      if (order.items && Array.isArray(order.items)) {
+        const cartItems = order.items as Array<{ product_id: string; quantity: number }>;
+        for (const item of cartItems) {
+          const { data: prod } = await supabaseAdmin
+            .from("products")
+            .select("stock")
+            .eq("id", item.product_id)
+            .single();
+          if (prod) {
+            const { error: stockErr } = await supabaseAdmin
+              .from("products")
+              .update({
+                stock: prod.stock + item.quantity,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", item.product_id);
+            if (stockErr) {
+              console.error(`Failed to restore stock for product ${item.product_id} on reject:`, stockErr);
+            }
+          }
+        }
+      } else {
+        const currentStock = order.products?.stock ?? 0;
+        const { error: stockErr } = await supabaseAdmin
+          .from("products")
+          .update({
+            stock: currentStock + order.quantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", order.product_id);
 
-      if (stockErr) {
-        console.error("Failed to restore stock on reject:", stockErr);
+        if (stockErr) {
+          console.error("Failed to restore stock on reject:", stockErr);
+        }
       }
     }
 

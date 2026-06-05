@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import AdminProductForm from "./AdminProductForm";
@@ -39,15 +39,14 @@ export default function ProductInventoryManager({
   onSaveSuccess,
   onCancel,
 }: ProductInventoryManagerProps) {
-  const [prevProducts, setPrevProducts] = useState<Product[]>(initialProducts);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  if (initialProducts !== prevProducts) {
-    setPrevProducts(initialProducts);
+  // Sync state with props using useEffect to prevent double rendering in render pass
+  useEffect(() => {
     setProducts(initialProducts);
-  }
+  }, [initialProducts]);
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
@@ -167,10 +166,6 @@ export default function ProductInventoryManager({
                   style={{ cursor: "grab" }}
                   title="ลากเพื่อจัดเรียงลำดับการแสดงผล"
                 >
-                  <div className={styles.productListItemDragHeader}>
-                    <GripVertical size={14} />
-                    <span>ลากเพื่อจัดเรียงลำดับ</span>
-                  </div>
                   <div className={styles.productListItemImage}>
                     <Image
                       src={p.image_url || "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&q=80&w=800"}
@@ -195,6 +190,27 @@ export default function ProductInventoryManager({
                       </span>
                     </div>
                     <div className={styles.productListItemActions}>
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                          color: "#475569",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          cursor: "grab",
+                          padding: "0.5rem",
+                          backgroundColor: "#f8fafc",
+                          border: "1px dashed #cbd5e1",
+                          borderRadius: "0.375rem",
+                          userSelect: "none"
+                        }}
+                        title="ลากตรงนี้เพื่อจัดเรียงลำดับการแสดงผล"
+                      >
+                        <GripVertical size={14} />
+                        <span>จัดเรียง</span>
+                      </div>
+                      
                       <button
                         onClick={() => {
                           onSetEditingProduct(p);
