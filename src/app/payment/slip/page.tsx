@@ -21,6 +21,7 @@ interface Order {
   customer_address: string | null;
   total_amount: number;
   quantity: number;
+  payment_method?: string | null;
   products?: {
     name: string;
   } | null;
@@ -105,7 +106,9 @@ function SlipContent() {
       return;
     }
 
-    if (!slipFile) {
+    const isCod = order?.payment_method === "cod";
+
+    if (!isCod && !slipFile) {
       setError("กรุณาแนบรูปภาพสลิปหลักฐานการโอนเงินเพื่อยืนยัน");
       return;
     }
@@ -118,7 +121,9 @@ function SlipContent() {
       formData.append("customer_name", name);
       formData.append("customer_tel", tel);
       formData.append("customer_address", address);
-      formData.append("slip", slipFile);
+      if (slipFile) {
+        formData.append("slip", slipFile);
+      }
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -128,7 +133,7 @@ function SlipContent() {
       const resData = await res.json();
 
       if (!res.ok) {
-        throw new Error(resData.error || "เกิดข้อผิดพลาดในการอัปโหลดหลักฐาน");
+        throw new Error(resData.error || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       }
 
       router.push(`/success?orderId=${orderId}`);
@@ -170,7 +175,13 @@ function SlipContent() {
       <main className={styles.main}>
         <div className={styles.backHeader}>
           <button
-            onClick={() => router.push(`/?orderId=${orderId}&showQr=true`)}
+            onClick={() => {
+              if (order?.payment_method === "cod") {
+                router.push("/");
+              } else {
+                router.push(`/?orderId=${orderId}&showQr=true`);
+              }
+            }}
             className={styles.backLinkBtn}
             style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
           >
@@ -196,10 +207,14 @@ function SlipContent() {
             <div className={styles.formCard}>
               <div className={styles.formHeader}>
                 <h2 className={styles.formTitle}>
-                  กรอกที่อยู่จัดส่งและแนบสลิป
+                  {order?.payment_method === "cod"
+                    ? "กรอกที่อยู่จัดส่งสินค้า"
+                    : "กรอกที่อยู่จัดส่งและแนบสลิป"}
                 </h2>
                 <p className={styles.formSubtitle}>
-                  กรุณากรอกข้อมูลผู้รับของจริงเพื่อความแม่นยำในการจัดส่ง
+                  {order?.payment_method === "cod"
+                    ? "กรุณากรอกข้อมูลผู้รับของจริงเพื่อความแม่นยำในการจัดส่ง (ระบบเก็บเงินปลายทาง)"
+                    : "กรุณากรอกข้อมูลผู้รับของจริงเพื่อความแม่นยำในการจัดส่ง"}
                 </p>
               </div>
 
@@ -215,15 +230,17 @@ function SlipContent() {
                   onAddressChange={setAddress}
                 />
 
-                <SlipUploadZone
-                  slipFile={slipFile}
-                  slipPreview={slipPreview}
-                  onFileChange={handleFileChange}
-                  onClearFile={() => {
-                    setSlipFile(null);
-                    setSlipPreview("");
-                  }}
-                />
+                {order?.payment_method !== "cod" && (
+                  <SlipUploadZone
+                    slipFile={slipFile}
+                    slipPreview={slipPreview}
+                    onFileChange={handleFileChange}
+                    onClearFile={() => {
+                      setSlipFile(null);
+                      setSlipPreview("");
+                    }}
+                  />
+                )}
 
                 {/* Submit */}
                 <button
@@ -234,8 +251,14 @@ function SlipContent() {
                   {submitting ? (
                     <div className={styles.btnTextFlex}>
                       <div className={styles.spinnerSmall}></div>
-                      <span>กำลังอัปโหลดและประมวลผลข้อมูล...</span>
+                      <span>
+                        {order?.payment_method === "cod"
+                          ? "กำลังประมวลผลข้อมูลคำสั่งซื้อ..."
+                          : "กำลังอัปโหลดและประมวลผลข้อมูล..."}
+                      </span>
                     </div>
+                  ) : order?.payment_method === "cod" ? (
+                    "ยืนยันคำสั่งซื้อเก็บเงินปลายทาง"
                   ) : (
                     "ยืนยันการชำระเงินและคำสั่งซื้อ"
                   )}

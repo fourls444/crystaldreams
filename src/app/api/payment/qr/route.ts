@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { anyId, billPayment } from "promptparse/generate";
 import qrcode from "qrcode";
+import { getSupabaseAdmin } from "@/utils/supabase";
 
 /**
  * POST /api/payment/qr
@@ -31,10 +32,27 @@ export async function POST(req: Request) {
     if (billerId && String(billerId).trim()) {
       targetId = String(billerId).trim();
     } else {
-      const envId = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER;
+      // Try to fetch promptpay_number from settings table
+      let dbPromptPay: string | null = null;
+      try {
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data, error } = await supabaseAdmin
+          .from("settings")
+          .select("value")
+          .eq("key", "promptpay_number")
+          .single();
+
+        if (!error && data && data.value) {
+          dbPromptPay = data.value.trim();
+        }
+      } catch (err) {
+        console.error("Failed to fetch promptpay_number from DB settings, falling back to env:", err);
+      }
+
+      const envId = dbPromptPay || process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER;
       if (!envId) {
         return NextResponse.json(
-          { error: "ยังไม่ได้ตั้งค่าหมายเลขพร้อมเพย์/Biller ID กรุณาตั้งค่าใน .env.local" },
+          { error: "ยังไม่สามารถใช้งานได้" },
           { status: 500 }
         );
       }
@@ -44,28 +62,50 @@ export async function POST(req: Request) {
     // --- Clean and validate ID ---
     const cleanId = targetId.replace(/[^0-9]/g, "");
 
-    // --- Prepare Ref 1 and Ref 2 for Bill Payment (Tag 30) ---
-    // Bill Payment (Tag 30) ต้องมี Reference 1 เสมอ (ความยาวสูงสุด 20 ตัวอักษร)
-    let ref1 = process.env.NEXT_PUBLIC_PROMPTPAY_REF1 || bodyRef1 || orderId || "";
-    let ref2 = process.env.NEXT_PUBLIC_PROMPTPAY_REF2 || body.ref2 || "";
-
-    if (ref1) {
-      // ลบสัญลักษณ์พิเศษ (เช่น เครื่องหมายย่อหน้าของ UUID) และจำกัดที่ 20 ตัวอักษรพิมพ์ใหญ่
-      ref1 = String(ref1).replace(/[^a-zA-Z0-9]/g, "").substring(0, 20).toUpperCase();
-    } else {
-      // หากไม่มี ให้สร้างเป็นค่าสุ่มที่ไม่ซ้ำกัน
-      ref1 = `REF${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 1000)}`;
-    }
-
-    if (ref2) {
-      ref2 = String(ref2).replace(/[^a-zA-Z0-9]/g, "").substring(0, 20).toUpperCase();
-    }
-
     // --- Generate Thai QR Payment Payload ---
     let payload: string;
+    let finalRef1: string | undefined = undefined;
 
     if (cleanId.length === 15) {
       // 1. กรณีเป็น Biller ID 15 หลัก (K-SHOP/Bill Payment) -> ใช้ Tag 30
+      // ดึงค่าอ้างอิง Ref 1 และ Ref 2 จากฐานข้อมูลเฉพาะกรณี Biller ID เท่านั้น
+      let dbRef1: string | null = null;
+      let dbRef2: string | null = null;
+      try {
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data: refData } = await supabaseAdmin
+          .from("settings")
+          .select("key, value")
+          .in("key", ["promptpay_ref1", "promptpay_ref2"]);
+
+        if (refData) {
+          refData.forEach((item) => {
+            if (item.key === "promptpay_ref1" && item.value) dbRef1 = item.value.trim();
+            if (item.key === "promptpay_ref2" && item.value) dbRef2 = item.value.trim();
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch promptpay refs from DB settings, falling back to env:", err);
+      }
+
+      // Bill Payment (Tag 30) ต้องมี Reference 1 เสมอ (ความยาวสูงสุด 20 ตัวอักษร)
+      let ref1 = dbRef1 || process.env.NEXT_PUBLIC_PROMPTPAY_REF1 || bodyRef1 || orderId || "";
+      let ref2 = dbRef2 || process.env.NEXT_PUBLIC_PROMPTPAY_REF2 || body.ref2 || "";
+
+      if (ref1) {
+        // ลบสัญลักษณ์พิเศษ (เช่น เครื่องหมายย่อหน้าของ UUID) และจำกัดที่ 20 ตัวอักษรพิมพ์ใหญ่
+        ref1 = String(ref1).replace(/[^a-zA-Z0-9]/g, "").substring(0, 20).toUpperCase();
+      } else {
+        // หากไม่มี ให้สร้างเป็นค่าสุ่มที่ไม่ซ้ำกัน
+        ref1 = `REF${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 1000)}`;
+      }
+
+      if (ref2) {
+        ref2 = String(ref2).replace(/[^a-zA-Z0-9]/g, "").substring(0, 20).toUpperCase();
+      }
+
+      finalRef1 = ref1;
+
       payload = billPayment({
         billerId: cleanId,
         amount,
@@ -109,12 +149,12 @@ export async function POST(req: Request) {
       success: true,
       qrDataUrl,
       billerId: cleanId,
-      ref1: cleanId.length === 15 ? ref1 : undefined,
+      ref1: cleanId.length === 15 ? finalRef1 : undefined,
     });
   } catch (error: unknown) {
     console.error("Thai QR Payment generation error:", error);
     return NextResponse.json(
-      { error: "ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการตั้งค่าบัญชีปลายทาง" },
+      { error: "ยังไม่สามารถใช้งานได้" },
       { status: 500 }
     );
   }

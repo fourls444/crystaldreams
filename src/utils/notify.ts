@@ -25,7 +25,7 @@ interface NotificationParams {
   customerAddress: string;
   amount: number;
   slipUrl?: string;
-  status: "pending" | "slip_uploaded" | "verified" | "rejected";
+  status: "pending" | "slip_uploaded" | "verified" | "rejected" | "cod_pending";
   senderName?: string;
   mode?: string;
 }
@@ -57,9 +57,13 @@ export async function sendAdminNotification(params: NotificationParams): Promise
   } else if (params.status === "rejected") {
     statusText = "ปฏิเสธสลิป / ยกเลิกคำสั่งซื้อ";
     statusColor = "#ef4444"; // Red
+  } else if (params.status === "cod_pending") {
+    statusText = "ออเดอร์เก็บเงินปลายทาง (รอการจัดส่ง)";
+    statusColor = "#d97706"; // Amber/Orange
   }
-
-  const altText = `📢 [Crystal Dreams] ${statusText} - ออเดอร์ ${params.orderId} ยอดโอน ${params.amount} บาท`;
+ 
+  const amountLabelText = params.status === "cod_pending" ? "ยอดชำระปลายทาง" : "ยอดโอน";
+  const altText = `📢 [Crystal Dreams] ${statusText} - ออเดอร์ ${params.orderId} ${amountLabelText} ${params.amount} บาท`;
 
   const flexContents = {
     type: "bubble",
@@ -115,7 +119,7 @@ export async function sendAdminNotification(params: NotificationParams): Promise
             },
             {
               type: "text",
-              text: `💰 ยอดเงิน: ${params.amount.toLocaleString()} บาท`,
+              text: `💰 ${amountLabelText}: ${params.amount.toLocaleString()} บาท`,
               weight: "bold",
               color: "#111111",
               size: "sm",
@@ -206,7 +210,7 @@ export async function sendAdminNotification(params: NotificationParams): Promise
           <p><strong>ชื่อผู้รับ:</strong> คุณ${params.customerName}</p>
           <p><strong>เบอร์โทรศัพท์:</strong> ${params.customerTel}</p>
           <p><strong>ที่อยู่จัดส่ง:</strong> ${params.customerAddress}</p>
-          <p><strong>ยอดโอนชำระเงิน:</strong> ${params.amount.toLocaleString()} บาท</p>
+          <p><strong>${amountLabelText}:</strong> ${params.amount.toLocaleString()} บาท</p>
           ${params.slipUrl ? `<p><a href="${params.slipUrl}" style="display: inline-block; padding: 10px 20px; background-color: #1DB954; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">ดูรูปภาพสลิปที่อัปโหลด</a></p>` : ""}
           <p><a href="${appUrl}/admin?view=orders" style="display: inline-block; padding: 10px 20px; background-color: #1e3a8a; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 10px;">จัดการคำสั่งซื้อหลังบ้าน</a></p>
         </div>

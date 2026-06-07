@@ -40,6 +40,7 @@ CREATE TABLE orders (
     slip_url TEXT,
     slip_verified BOOLEAN DEFAULT FALSE,
     verified_by TEXT, -- 'auto' | 'manual'
+    payment_method TEXT NOT NULL DEFAULT 'promptpay',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -71,5 +72,30 @@ CREATE POLICY "Allow admins to manage orders" ON orders
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
 -- DROP POLICY IF EXISTS "Allow public read on products" ON products;
 -- CREATE POLICY "Allow public read on products" ON products FOR SELECT USING (is_visible = true);
+
+-- 3. Create Settings Table
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+
+-- Create Policies for settings (Anyone can read, Admin can manage all)
+DROP POLICY IF EXISTS "Allow public select settings" ON settings;
+CREATE POLICY "Allow public select settings" ON settings
+    FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow admins to manage settings" ON settings;
+CREATE POLICY "Allow admins to manage settings" ON settings
+    FOR ALL USING (auth.role() = 'authenticated');
+
+-- Insert default promptpay number if not exists
+INSERT INTO settings (key, value)
+VALUES ('promptpay_number', '010753600031501')
+ON CONFLICT (key) DO NOTHING;
+
 
 

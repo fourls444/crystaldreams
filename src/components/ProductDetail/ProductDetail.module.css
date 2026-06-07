@@ -511,8 +511,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.75);
   animation: fadeIn 0.25s ease-out forwards;
 }
 
@@ -972,7 +971,6 @@
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.2s ease-out;
-  backdrop-filter: blur(8px);
 }
 
 .lightboxContent {

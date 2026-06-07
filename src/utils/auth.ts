@@ -44,11 +44,12 @@ export async function isAdminAuthenticated(): Promise<boolean> {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (!error && user) {
         // Check standard metadata role flags
+        // IMPORTANT: Do NOT use user.role === "authenticated" here.
+        // "authenticated" is the default role for ALL Supabase users, not just admins.
         const hasAdminMeta =
           user.app_metadata?.isAdmin === true ||
           user.user_metadata?.isAdmin === true ||
-          user.app_metadata?.role === "admin" ||
-          user.role === "authenticated"; // Fallback to check if standard auth role is used
+          user.app_metadata?.role === "admin";
         
         if (hasAdminMeta) {
           return true;

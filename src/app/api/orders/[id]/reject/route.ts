@@ -53,8 +53,8 @@ export async function POST(
       throw new Error(updateErr.message);
     }
 
-    // 3. Restore Stock (only if previous status was 'slip_uploaded' or 'verified' where stock was deducted)
-    if (previousStatus === "slip_uploaded" || previousStatus === "verified") {
+    // 3. Restore Stock (only if previous status was 'slip_uploaded', 'verified', or 'cod_pending' where stock was deducted)
+    if (previousStatus === "slip_uploaded" || previousStatus === "verified" || previousStatus === "cod_pending") {
       if (order.items && Array.isArray(order.items)) {
         const cartItems = order.items as Array<{ product_id: string; quantity: number }>;
         for (const item of cartItems) {

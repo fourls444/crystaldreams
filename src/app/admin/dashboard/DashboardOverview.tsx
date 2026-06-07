@@ -1,26 +1,9 @@
 "use client";
 
+import { memo } from "react";
 import { DollarSign, CheckCircle2, FileText } from "lucide-react";
 import styles from "../admin.module.css";
-
-interface Order {
-  id: string;
-  product_id: string | null;
-  quantity: number;
-  total_amount: number;
-  customer_name: string | null;
-  customer_tel: string | null;
-  customer_address: string | null;
-  status: string;
-  slip_url: string | null;
-  slip_verified: boolean;
-  verified_by: string | null;
-  created_at: string;
-  products?: {
-    name: string;
-  } | null;
-  items?: any;
-}
+import type { Order } from "@/types/order";
 
 interface DashboardOverviewProps {
   totalSales: number;
@@ -34,7 +17,7 @@ interface DashboardOverviewProps {
   onSelectAddressOrder: (order: Order) => void;
 }
 
-export default function DashboardOverview({
+function DashboardOverview({
   totalSales,
   verifiedOrdersCount,
   pendingSlipsCount,
@@ -100,6 +83,7 @@ export default function DashboardOverview({
             <thead>
               <tr>
                 <th>Order ID</th>
+                <th>ชื่อผู้รับ</th>
                 <th style={{ textAlign: "center" }}>ยอดชำระ</th>
                 <th style={{ textAlign: "center" }}>สถานะ</th>
                 <th style={{ textAlign: "center" }}>รายละเอียด</th>
@@ -109,10 +93,17 @@ export default function DashboardOverview({
               {initialOrders.slice(0, 5).map((order) => (
                 <tr key={order.id} className={styles.tableRow}>
                   <td style={{ fontFamily: "monospace" }}>
-                    <div>#{order.id.slice(0, 8)}</div>
+                    <div style={{ fontWeight: "bold" }}>#{order.id.slice(0, 8)}</div>
                     <div style={{ fontSize: "0.75rem", color: "#64748b", fontFamily: "sans-serif", marginTop: "0.15rem" }}>
                       {formatThaiDate(order.created_at)}
                     </div>
+                  </td>
+                  <td>
+                    {order.customer_name ? (
+                      <span style={{ fontWeight: 500 }}>{order.customer_name}</span>
+                    ) : (
+                      <span style={{ color: "#94a3b8", fontStyle: "italic", fontSize: "0.85rem" }}>ยังไม่ระบุ</span>
+                    )}
                   </td>
                   <td className={styles.orderPrice} style={{ textAlign: "center" }}>{order.total_amount.toLocaleString()} ฿</td>
                   <td style={{ textAlign: "center" }}>
@@ -132,7 +123,7 @@ export default function DashboardOverview({
               ))}
               {initialOrders.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", color: "#64748b" }}>
+                  <td colSpan={5} style={{ textAlign: "center", color: "#64748b" }}>
                     ไม่มีออเดอร์อยู่ในระบบ
                   </td>
                 </tr>
@@ -144,3 +135,5 @@ export default function DashboardOverview({
     </div>
   );
 }
+
+export default memo(DashboardOverview);

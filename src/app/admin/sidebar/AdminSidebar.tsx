@@ -1,18 +1,19 @@
 "use client";
 
+import { memo } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, FileText, Package, X } from "lucide-react";
+import { BarChart3, FileText, Package, Settings, X } from "lucide-react";
 import styles from "../admin.module.css";
 
 interface AdminSidebarProps {
-  activeTab: "dashboard" | "orders" | "products";
-  onTabChange: (tab: "dashboard" | "orders" | "products") => void;
+  activeTab: "dashboard" | "orders" | "products" | "settings";
+  onTabChange: (tab: "dashboard" | "orders" | "products" | "settings") => void;
   pendingSlipsCount: number;
   isOpen?: boolean;
   onClose?: () => void;
 }
 
-export default function AdminSidebar({
+function AdminSidebar({
   activeTab,
   onTabChange,
   pendingSlipsCount,
@@ -23,8 +24,6 @@ export default function AdminSidebar({
 
   const handleLogout = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Clear admin_session cookie
-    await fetch("/api/admin/products", { method: "DELETE" }).catch(() => {});
     // Call logout via server action/api route
     await fetch("/api/admin/login", {
       method: "POST",
@@ -103,6 +102,18 @@ export default function AdminSidebar({
             <span>จัดการสินค้า</span>
           </span>
         </button>
+
+        <button
+          onClick={() => onTabChange("settings")}
+          className={`${styles.sidebarMenuItem} ${
+            activeTab === "settings" ? styles.sidebarMenuItemActive : ""
+          }`}
+        >
+          <span className={styles.menuItemLabel}>
+            <Settings size={18} />
+            <span>ตั้งค่าระบบ</span>
+          </span>
+        </button>
       </nav>
 
       <div className={styles.sidebarFooter}>
@@ -115,3 +126,5 @@ export default function AdminSidebar({
     </aside>
   );
 }
+
+export default memo(AdminSidebar);

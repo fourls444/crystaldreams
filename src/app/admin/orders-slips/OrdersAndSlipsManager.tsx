@@ -1,32 +1,15 @@
 "use client";
 
+import { memo } from "react";
 import { Trash2 } from "lucide-react";
 import styles from "../admin.module.css";
-
-interface Order {
-  id: string;
-  product_id: string | null;
-  quantity: number;
-  total_amount: number;
-  customer_name: string | null;
-  customer_tel: string | null;
-  customer_address: string | null;
-  status: string;
-  slip_url: string | null;
-  slip_verified: boolean;
-  verified_by: string | null;
-  created_at: string;
-  products?: {
-    name: string;
-  } | null;
-  items?: any;
-}
+import type { Order } from "@/types/order";
 
 interface OrdersAndSlipsManagerProps {
   initialOrders: Order[];
   filteredOrders: Order[];
-  orderFilter: "all" | "slip_uploaded" | "verified" | "rejected" | "pending";
-  onSetOrderFilter: (filter: "all" | "slip_uploaded" | "verified" | "rejected" | "pending") => void;
+  orderFilter: "all" | "promptpay" | "cod";
+  onSetOrderFilter: (filter: "all" | "promptpay" | "cod") => void;
   searchQuery: string;
   onSetSearchQuery: (query: string) => void;
   formatThaiDate: (dateStr: string) => string;
@@ -38,7 +21,7 @@ interface OrdersAndSlipsManagerProps {
   actionLoading: string | null;
 }
 
-export default function OrdersAndSlipsManager({
+function OrdersAndSlipsManager({
   initialOrders,
   filteredOrders,
   orderFilter,
@@ -72,28 +55,16 @@ export default function OrdersAndSlipsManager({
             ทั้งหมด ( {initialOrders.length} )
           </button>
           <button
-            onClick={() => onSetOrderFilter("slip_uploaded")}
-            className={`${styles.filterBtn} ${orderFilter === "slip_uploaded" ? styles.filterBtnActive : ""}`}
+            onClick={() => onSetOrderFilter("promptpay")}
+            className={`${styles.filterBtn} ${orderFilter === "promptpay" ? styles.filterBtnActive : ""}`}
           >
-            รอตรวจสลิป ( {initialOrders.filter((o) => o.status === "slip_uploaded").length} )
+            โอนเงินผ่านพร้อมเพย์ ( {initialOrders.filter((o) => o.payment_method !== "cod").length} )
           </button>
           <button
-            onClick={() => onSetOrderFilter("verified")}
-            className={`${styles.filterBtn} ${orderFilter === "verified" ? styles.filterBtnActive : ""}`}
+            onClick={() => onSetOrderFilter("cod")}
+            className={`${styles.filterBtn} ${orderFilter === "cod" ? styles.filterBtnActive : ""}`}
           >
-            ชำระเงินสำเร็จ ( {initialOrders.filter((o) => o.status === "verified").length} )
-          </button>
-          <button
-            onClick={() => onSetOrderFilter("rejected")}
-            className={`${styles.filterBtn} ${orderFilter === "rejected" ? styles.filterBtnActive : ""}`}
-          >
-            ปฏิเสธ/ยกเลิก ( {initialOrders.filter((o) => o.status === "rejected").length} )
-          </button>
-          <button
-            onClick={() => onSetOrderFilter("pending")}
-            className={`${styles.filterBtn} ${orderFilter === "pending" ? styles.filterBtnActive : ""}`}
-          >
-            รอชำระเงิน ( {initialOrders.filter((o) => o.status === "pending").length} )
+            เก็บเงินปลายทาง ( {initialOrders.filter((o) => o.payment_method === "cod").length} )
           </button>
         </div>
 
@@ -113,6 +84,7 @@ export default function OrdersAndSlipsManager({
             <thead>
               <tr>
                 <th>Order ID</th>
+                <th>ชื่อผู้รับ</th>
                 <th style={{ textAlign: "center" }}>รายละเอียดออเดอร์</th>
                 <th style={{ textAlign: "center" }}>ยอดชำระ</th>
                 <th style={{ textAlign: "center" }}>สถานะ</th>
@@ -123,10 +95,17 @@ export default function OrdersAndSlipsManager({
               {filteredOrders.map((order) => (
                 <tr key={order.id} className={styles.tableRow}>
                   <td style={{ fontFamily: "monospace" }}>
-                    <div>#{order.id.slice(0, 8)}</div>
+                    <div style={{ fontWeight: "bold" }}>#{order.id.slice(0, 8)}</div>
                     <div style={{ fontSize: "0.75rem", color: "#64748b", fontFamily: "sans-serif", marginTop: "0.15rem" }}>
                       {formatThaiDate(order.created_at)}
                     </div>
+                  </td>
+                  <td>
+                    {order.customer_name ? (
+                      <span style={{ fontWeight: 500 }}>{order.customer_name}</span>
+                    ) : (
+                      <span style={{ color: "#94a3b8", fontStyle: "italic", fontSize: "0.85rem" }}>ยังไม่ระบุ</span>
+                    )}
                   </td>
                   <td style={{ textAlign: "center" }}>
                     <button
@@ -144,15 +123,17 @@ export default function OrdersAndSlipsManager({
                   </td>
                   <td>
                     <div className={styles.actionCell} style={{ justifyContent: "center", alignItems: "center", gap: "0.5rem" }}>
-                      {order.slip_url ? (
-                        <button
-                          onClick={() => onSelectOrder(order)}
-                          className={styles.viewSlipBtn}
-                        >
-                          ดูสลิปหลักฐาน
-                        </button>
-                      ) : (
-                        <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>ไม่มีสลิป</span>
+                      {order.payment_method !== "cod" && (
+                        order.slip_url ? (
+                          <button
+                            onClick={() => onSelectOrder(order)}
+                            className={styles.viewSlipBtn}
+                          >
+                            ดูสลิปหลักฐาน
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>ไม่มีสลิป</span>
+                        )
                       )}
                       <button
                         onClick={() => onDeleteOrder(order.id)}
@@ -169,7 +150,7 @@ export default function OrdersAndSlipsManager({
               ))}
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
                     <div className={styles.emptyState}>
                       <div className={styles.emptyStateIcon}>🔍</div>
                       <div className={styles.emptyStateTitle}>ไม่พบออเดอร์</div>
@@ -185,3 +166,5 @@ export default function OrdersAndSlipsManager({
     </div>
   );
 }
+
+export default memo(OrdersAndSlipsManager);

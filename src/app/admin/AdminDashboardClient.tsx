@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useDeferredValue } from "react";
+import { useState, useMemo, useDeferredValue, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { Menu } from "lucide-react";
@@ -11,6 +11,8 @@ import OrdersAndSlipsManager from "./orders-slips/OrdersAndSlipsManager";
 import ProductInventoryManager from "./products-inventory/ProductInventoryManager";
 import OrderSlipVerificationModal from "./orders-slips/OrderSlipVerificationModal";
 import CustomerAddressDetailsModal from "./orders-slips/CustomerAddressDetailsModal";
+import SystemSettingsManager from "./settings/SystemSettingsManager";
+import type { Order } from "@/types/order";
 
 interface Product {
   id: string;
@@ -24,25 +26,6 @@ interface Product {
   is_visible?: boolean;
 }
 
-interface Order {
-  id: string;
-  product_id: string | null;
-  quantity: number;
-  total_amount: number;
-  customer_name: string | null;
-  customer_tel: string | null;
-  customer_address: string | null;
-  status: string; // 'pending' | 'slip_uploaded' | 'verified' | 'rejected'
-  slip_url: string | null;
-  slip_verified: boolean;
-  verified_by: string | null;
-  created_at: string;
-  products?: {
-    name: string;
-  } | null;
-  items?: any;
-}
-
 interface Props {
   initialProducts: Product[];
   initialOrders: Order[];
@@ -54,21 +37,12 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
 
   // Navigation tab state derived from search params
   const viewParam = searchParams.get("view");
-  const activeTab = (viewParam === "orders" || viewParam === "products" || viewParam === "dashboard")
+  const activeTab = (viewParam === "orders" || viewParam === "products" || viewParam === "dashboard" || viewParam === "settings")
     ? viewParam
     : "dashboard";
 
   // Sidebar state for mobile drawer
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const handleTabChange = (tab: "dashboard" | "orders" | "products") => {
-    if (tab === "products") {
-      setShowProductModal(false);
-      setEditingProduct(null);
-    }
-    router.push(`/admin?view=${tab}`);
-    setIsSidebarOpen(false);
-  };
 
   // Product CRUD states
   const [showProductModal, setShowProductModal] = useState(false);
@@ -79,15 +53,24 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [selectedAddressOrder, setSelectedAddressOrder] = useState<Order | null>(null);
-  const [orderFilter, setOrderFilter] = useState<"all" | "slip_uploaded" | "verified" | "rejected" | "pending">("all");
+  const [orderFilter, setOrderFilter] = useState<"all" | "promptpay" | "cod">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Loading States for API buttons
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const handleTabChange = useCallback((tab: "dashboard" | "orders" | "products" | "settings") => {
+    if (tab === "products") {
+      setShowProductModal(false);
+      setEditingProduct(null);
+    }
+    router.push(`/admin?view=${tab}`);
+    setIsSidebarOpen(false);
+  }, [router]);
+
   // Sidebar count of pending slips (status = 'slip_uploaded') - Memoized to prevent recalculation on every render
   const pendingSlipsCount = useMemo(() => {
-    return initialOrders.filter((o) => o.status === "slip_uploaded").length;
+    return initialOrders.filter((o) => o.status === "slip_uploaded" || o.status === "cod_pending").length;
   }, [initialOrders]);
 
   // Dashboard Stats Calculations - Memoized to prevent recalculation on every render
@@ -102,7 +85,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   }, [initialOrders]);
 
   // Order Verification Actions
-  const handleAutoVerify = async (orderId: string) => {
+  const handleAutoVerify = useCallback(async (orderId: string) => {
     setActionLoading(orderId);
     Swal.fire({
       title: "กำลังตรวจสอบสลิปอัตโนมัติ...",
@@ -148,9 +131,9 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [router]);
 
-  const handleManualApprove = async (orderId: string) => {
+  const handleManualApprove = useCallback(async (orderId: string) => {
     setActionLoading(orderId);
     Swal.fire({
       title: "กำลังบันทึกการอนุมัติแมนนวล...",
@@ -193,9 +176,9 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [router]);
 
-  const handleRejectOrder = async (orderId: string) => {
+  const handleRejectOrder = useCallback(async (orderId: string) => {
     const confirm = await Swal.fire({
       title: "ปฏิเสธสลิปหลักฐานการโอนเงิน?",
       text: "การปฏิเสธจะยกเลิกสถานะออเดอร์นี้ และคืนจำนวนสินค้าที่หักไว้กลับเข้าสต็อกดังเดิม คุณต้องการดำเนินการต่อหรือไม่?",
@@ -251,10 +234,10 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [router]);
 
   // Product Delete Action
-  const handleDeleteProduct = async (productId: string, productName: string) => {
+  const handleDeleteProduct = useCallback(async (productId: string, productName: string) => {
     const confirm = await Swal.fire({
       title: `ต้องการลบสินค้าหรือไม่?`,
       text: `คุณกำลังจะลบสินค้า "${productName}" การดำเนินการนี้ไม่สามารถย้อนกลับได้`,
@@ -299,10 +282,10 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
         confirmButtonText: "ตกลง",
       });
     }
-  };
+  }, [router]);
 
   // Helper to format date in Thai timezone
-  const formatThaiDate = (dateStr: string) => {
+  const formatThaiDate = useCallback((dateStr: string) => {
     try {
       const date = new Date(dateStr);
       return date.toLocaleDateString("th-TH", {
@@ -315,10 +298,10 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
     } catch {
       return dateStr;
     }
-  };
+  }, []);
 
   // Delete individual order action
-  const handleDeleteOrder = async (orderId: string) => {
+  const handleDeleteOrder = useCallback(async (orderId: string) => {
     const confirm = await Swal.fire({
       title: "ต้องการลบออเดอร์นี้หรือไม่?",
       html: "การดำเนินการนี้จะลบข้อมูลคำสั่งซื้อออกจากระบบ<br/>และไม่สามารถย้อนกลับได้",
@@ -366,7 +349,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [router]);
 
   // Use React 18 Deferred Value for search query to prevent input lag/delay.
   // This defers the expensive filtering and re-rendering of the orders table list.
@@ -376,11 +359,8 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   const filteredOrders = useMemo(() => {
     return initialOrders
       .filter((order) => {
-        // 1. Tab Status Filter
-        if (orderFilter === "slip_uploaded" && order.status !== "slip_uploaded") return false;
-        if (orderFilter === "verified" && order.status !== "verified") return false;
-        if (orderFilter === "rejected" && order.status !== "rejected") return false;
-        if (orderFilter === "pending" && order.status !== "pending") return false;
+        if (orderFilter === "promptpay" && order.payment_method === "cod") return false;
+        if (orderFilter === "cod" && order.payment_method !== "cod") return false;
         return true;
       })
       .filter((order) => {
@@ -397,35 +377,38 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   }, [initialOrders, orderFilter, deferredSearchQuery]);
 
   // Display status in Thai
-  const getStatusText = (status: string) => {
+  const getStatusText = useCallback((status: string) => {
     switch (status) {
-      case "pending":
-        return "รอโอนเงิน (Pending)";
-      case "slip_uploaded":
-        return "รอตรวจสลิป (Slip Uploaded)";
       case "verified":
-        return "ชำระเงินสำเร็จ (Verified)";
+        return "ชำระเงินสำเร็จ";
+      case "pending":
+        return "รอชำระเงิน";
+      case "slip_uploaded":
+        return "อัปโหลดสลิปแล้ว (รอตรวจ)";
+      case "cod_pending":
+        return "เก็บเงินปลายทาง (รอจัดส่ง)";
       case "rejected":
-        return "ปฏิเสธสลิป / ยกเลิก (Rejected)";
+        return "ปฏิเสธ/ยกเลิก";
       default:
         return status;
     }
-  };
+  }, []);
 
-  const getStatusBadgeClass = (status: string) => {
+  const getStatusBadgeClass = useCallback((status: string) => {
     switch (status) {
-      case "pending":
-        return styles.statusPending;
-      case "slip_uploaded":
-        return styles.statusUploaded;
       case "verified":
         return styles.statusVerified;
       case "rejected":
         return styles.statusRejected;
+      case "slip_uploaded":
+        return styles.statusUploaded;   // amber — มีสลิป รอตรวจ
+      case "cod_pending":
+        return styles.statusCodPending; // orange — COD รอจัดส่ง
+      case "pending":
       default:
-        return "";
+        return styles.statusPending;    // gray — ยังไม่ชำระ
     }
-  };
+  }, []);
 
   return (
     <div className={styles.dashboardLayout}>
@@ -534,6 +517,11 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
             }}
           />
         )}
+
+        {/* VIEW 4: SYSTEM SETTINGS VIEW */}
+        {activeTab === "settings" && (
+          <SystemSettingsManager />
+        )}
       </main>
 
       {/* ORDER SLIP VERIFICATION MODAL */}
@@ -547,7 +535,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
         onAutoVerify={handleAutoVerify}
         onManualApprove={handleManualApprove}
         onRejectOrder={handleRejectOrder}
-        ordersList={filteredOrders.filter((o) => o.slip_url)}
+        ordersList={filteredOrders.filter((o) => o.slip_url || o.payment_method === "cod")}
         onSelectOrder={setSelectedOrder}
       />
 
@@ -556,6 +544,9 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
         showAddressModal={showAddressModal}
         onSetShowAddressModal={setShowAddressModal}
         selectedAddressOrder={selectedAddressOrder}
+        actionLoading={actionLoading}
+        onManualApprove={handleManualApprove}
+        onRejectOrder={handleRejectOrder}
       />
     </div>
   );

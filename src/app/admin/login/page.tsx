@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import styles from "./login.module.css";
 
-export default function AdminLogin() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -45,7 +46,9 @@ export default function AdminLogin() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push("/admin");
+        // Redirect back to the requested page or to /admin by default
+        const from = searchParams.get("from") || "/admin";
+        router.push(from);
         router.refresh();
       } else {
         setError(data.error || "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
@@ -115,5 +118,19 @@ export default function AdminLogin() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AdminLogin() {
+  return (
+    <Suspense fallback={
+      <div className={styles.container}>
+        <div className={styles.card} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+          <div style={{ fontSize: '1.2rem', color: '#666' }}>กำลังโหลดหน้าเข้าสู่ระบบ...</div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

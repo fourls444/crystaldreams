@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/utils/supabase";
 import { verifyOrderSlip } from "@/utils/verify";
+import { sendAdminNotification } from "@/utils/notify";
 
 export async function POST(req: Request) {
   try {
@@ -9,11 +10,34 @@ export async function POST(req: Request) {
     const customer_name = formData.get("customer_name") as string;
     const customer_tel = formData.get("customer_tel") as string;
     const customer_address = formData.get("customer_address") as string;
-    const slipFile = formData.get("slip") as File;
+    const slipFile = formData.get("slip") as File | null;
 
-    if (!order_id || !customer_name || !customer_tel || !customer_address || !slipFile) {
+    if (!order_id || !customer_name || !customer_tel || !customer_address) {
       return NextResponse.json(
-        { error: "กรุณากรอกข้อมูลจัดส่งและแนบสลิปโอนเงินให้ครบถ้วน" },
+        { error: "กรุณากรอกข้อมูลจัดส่งให้ครบถ้วน" },
+        { status: 400 }
+      );
+    }
+
+    // Server-side character limits and format validation
+    if (customer_name.trim().length > 80) {
+      return NextResponse.json(
+        { error: "ชื่อ-นามสกุล ต้องมีความยาวไม่เกิน 80 ตัวอักษร" },
+        { status: 400 }
+      );
+    }
+
+    const cleanTel = customer_tel.replace(/[^0-9]/g, "");
+    if (!/^[0-9]{9,10}$/.test(cleanTel)) {
+      return NextResponse.json(
+        { error: "เบอร์โทรศัพท์ไม่ถูกต้อง (ต้องเป็นตัวเลข 9-10 หลัก)" },
+        { status: 400 }
+      );
+    }
+
+    if (customer_address.trim().length > 300) {
+      return NextResponse.json(
+        { error: "ที่อยู่สำหรับการจัดส่งต้องมีความยาวไม่เกิน 300 ตัวอักษร" },
         { status: 400 }
       );
     }
@@ -23,7 +47,7 @@ export async function POST(req: Request) {
     // 1. Check if order exists and fetch items, quantity & product details
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id, product_id, quantity, items")
+      .select("id, product_id, quantity, items, payment_method, total_amount, status")
       .eq("id", order_id)
       .single();
 
@@ -34,33 +58,57 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Upload file to Supabase Storage Bucket 'slips'
-    // Generate a unique filename using order_id and timestamp
-    const fileExtension = slipFile.name.split(".").pop() || "png";
-    const filename = `${order_id}_${Date.now()}.${fileExtension}`;
-    const fileBuffer = Buffer.from(await slipFile.arrayBuffer());
+    const isCod = order.payment_method === "cod";
 
-    const { error: uploadError } = await supabaseAdmin
-      .storage
-      .from("slips")
-      .upload(filename, fileBuffer, {
-        contentType: slipFile.type,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error("Storage upload error:", uploadError);
+    // Guard: prevent double-submission / race condition
+    // Stock should only be deducted from status "pending" orders
+    if (order.status !== "pending") {
       return NextResponse.json(
-        { error: "ไม่สามารถอัปโหลดไฟล์สลิปได้ กรุณาลองใหม่อีกครั้ง" },
-        { status: 500 }
+        { error: "คำสั่งซื้อนี้ได้รับการดำเนินการแล้ว กรุณาไม่อัปโหลดซ้ำ" },
+        { status: 409 }
       );
     }
 
-    // 3. Get Public URL of the uploaded slip
-    const { data: { publicUrl } } = supabaseAdmin
-      .storage
-      .from("slips")
-      .getPublicUrl(filename);
+    if (!isCod && !slipFile) {
+      return NextResponse.json(
+        { error: "กรุณาแนบสลิปโอนเงินเพื่อยืนยันคำสั่งซื้อ" },
+        { status: 400 }
+      );
+    }
+
+    let publicUrl: string | null = null;
+
+    if (!isCod && slipFile) {
+      // 2. Upload file to Supabase Storage Bucket 'slips'
+      // Generate a unique filename using order_id and timestamp
+      const fileExtension = slipFile.name.split(".").pop() || "png";
+      const filename = `${order_id}_${Date.now()}.${fileExtension}`;
+      const fileBuffer = Buffer.from(await slipFile.arrayBuffer());
+
+      const { error: uploadError } = await supabaseAdmin
+        .storage
+        .from("slips")
+        .upload(filename, fileBuffer, {
+          contentType: slipFile.type,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error("Storage upload error:", uploadError);
+        return NextResponse.json(
+          { error: "ไม่สามารถอัปโหลดไฟล์สลิปได้ กรุณาลองใหม่อีกครั้ง" },
+          { status: 500 }
+        );
+      }
+
+      // 3. Get Public URL of the uploaded slip
+      const { data: { publicUrl: url } } = supabaseAdmin
+        .storage
+        .from("slips")
+        .getPublicUrl(filename);
+
+      publicUrl = url;
+    }
 
     // 3.5 Validate Stock and Deduct Stock
     if (order.items && Array.isArray(order.items)) {
@@ -155,6 +203,8 @@ export async function POST(req: Request) {
     }
 
     // 4. Update Order details and status
+    const status = isCod ? "cod_pending" : "slip_uploaded";
+
     const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
@@ -162,7 +212,7 @@ export async function POST(req: Request) {
         customer_tel,
         customer_address,
         slip_url: publicUrl,
-        status: "slip_uploaded",
+        status,
         updated_at: new Date().toISOString(),
       })
       .eq("id", order_id);
@@ -175,17 +225,35 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Trigger auto slip verification synchronously on the server side
-    console.log(`[Upload API] Initiating auto-verification on server for Order ID: ${order_id}`);
-    const verifyResult = await verifyOrderSlip(order_id);
-    
-    return NextResponse.json({
-      success: true,
-      message: verifyResult.verified 
-        ? "ยืนยันการชำระเงินและบันทึกที่อยู่จัดส่งเรียบร้อยแล้ว" 
-        : `บันทึกที่อยู่สำเร็จ: ${verifyResult.message}`,
-      verified: verifyResult.verified,
-    });
+    // 5. Trigger auto slip verification or send COD notification
+    if (!isCod) {
+      console.log(`[Upload API] Initiating auto-verification on server for Order ID: ${order_id}`);
+      const verifyResult = await verifyOrderSlip(order_id);
+      
+      return NextResponse.json({
+        success: true,
+        message: verifyResult.verified 
+          ? "ยืนยันการชำระเงินและบันทึกที่อยู่จัดส่งเรียบร้อยแล้ว" 
+          : `บันทึกที่อยู่สำเร็จ: ${verifyResult.message}`,
+        verified: verifyResult.verified,
+      });
+    } else {
+      console.log(`[Upload API] Sending COD notification for Order ID: ${order_id}`);
+      await sendAdminNotification({
+        orderId: order_id,
+        customerName: customer_name,
+        customerTel: customer_tel,
+        customerAddress: customer_address,
+        amount: Number(order.total_amount),
+        status: "cod_pending",
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "บันทึกออเดอร์เก็บเงินปลายทางเรียบร้อยแล้ว",
+        verified: false,
+      });
+    }
   } catch (error: unknown) {
     console.error("Upload API main error:", error);
     return NextResponse.json(

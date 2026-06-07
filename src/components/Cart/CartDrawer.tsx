@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { X, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
+import Swal from "sweetalert2";
 import { useCart } from "@/context/CartContext";
 import styles from "./CartDrawer.module.css";
 import PaymentQrModal from "../ProductDetail/PaymentQrModal";
+import PaymentMethodModal from "../Checkout/PaymentMethodModal";
 
 export default function CartDrawer() {
   const router = useRouter();
@@ -28,12 +30,20 @@ export default function CartDrawer() {
   const [createdOrderId, setCreatedOrderId] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
+    setShowPaymentMethodModal(true);
+  };
+
+  const handlePaymentMethodSelect = async (selectedMethod: "promptpay" | "cod") => {
+    setShowPaymentMethodModal(false);
     setSubmitting(true);
-    setLoadingQr(true);
-    setShowQrModal(true);
+    if (selectedMethod === "promptpay") {
+      setLoadingQr(true);
+      setShowQrModal(true);
+    }
 
     try {
       // 1. Create order in backend with all cart items
@@ -47,6 +57,7 @@ export default function CartDrawer() {
             product_id: item.id,
             quantity: item.quantity,
           })),
+          payment_method: selectedMethod,
         }),
       });
 
@@ -59,28 +70,34 @@ export default function CartDrawer() {
       setCreatedOrderId(data.orderId);
       setTotalAmount(data.totalAmount);
       
-      // Close cart drawer since checkout is showing QR
+      // Close cart drawer
       setIsCartOpen(false);
 
-      // 2. Fetch PromptPay QR Code base64 data
-      const qrRes = await fetch("/api/payment/qr", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: data.totalAmount,
-          orderId: data.orderId,
-        }),
-      });
+      if (selectedMethod === "promptpay") {
+        // 2. Fetch PromptPay QR Code base64 data
+        const qrRes = await fetch("/api/payment/qr", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: data.totalAmount,
+            orderId: data.orderId,
+          }),
+        });
 
-      const qrData = await qrRes.json();
+        const qrData = await qrRes.json();
 
-      if (!qrRes.ok) {
-        throw new Error(qrData.error || "ไม่สามารถสร้างคิวอาร์โค้ดชำระเงินได้");
+        if (!qrRes.ok) {
+          throw new Error(qrData.error || "ไม่สามารถสร้างคิวอาร์โค้ดชำระเงินได้");
+        }
+
+        setQrCodeDataUrl(qrData.qrDataUrl);
+      } else {
+        // Cash on Delivery: Redirect directly to the shipping form page
+        clearCart();
+        router.push(`/payment/slip?orderId=${data.orderId}`);
       }
-
-      setQrCodeDataUrl(qrData.qrDataUrl);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการดำเนินงาน";
       alert(errMsg);
@@ -249,6 +266,14 @@ export default function CartDrawer() {
         createdOrderId={createdOrderId}
         onProceed={proceedToUploadSlip}
         onCancel={handleCancelOrder}
+      />
+
+      {/* Payment Method Selection Modal */}
+      <PaymentMethodModal
+        isOpen={showPaymentMethodModal}
+        onClose={() => setShowPaymentMethodModal(false)}
+        onSelect={handlePaymentMethodSelect}
+        totalAmount={cartTotal}
       />
     </>
   );

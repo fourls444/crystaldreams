@@ -19,10 +19,10 @@ export async function POST(
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // 1. Fetch Order
+    // 1. Fetch Order (with amount for notification)
     const { data: order, error: orderErr } = await supabaseAdmin
       .from("orders")
-      .select("status")
+      .select("status, total_amount, customer_name, customer_tel, customer_address")
       .eq("id", orderId)
       .single();
 
@@ -62,7 +62,10 @@ export async function POST(
           orderId,
           status: "verified",
           senderName: "แอดมินยืนยันสลิปแมนนวล",
-          amountPaid: 0,
+          amountPaid: Number(order.total_amount),
+          customerName: order.customer_name || "ไม่ระบุชื่อ",
+          customerTel: order.customer_tel || "ไม่ระบุเบอร์",
+          customerAddress: order.customer_address || "ไม่ระบุที่อยู่",
           mode: "manual",
         }),
       }).catch((e) => console.error("Notification async err:", e));

@@ -70,6 +70,7 @@ export async function POST(req: Request) {
         quantity: firstItem.quantity,
         total_amount,
         status: "pending",
+        payment_method: body.payment_method || "promptpay",
         items: itemsWithDetails,
       })
       .select("id")

@@ -29,7 +29,15 @@ export const orders = pgTable("orders", {
   slip_url: text("slip_url"),
   slip_verified: boolean("slip_verified").default(false),
   verified_by: text("verified_by"),
+  payment_method: text("payment_method").notNull().default("promptpay"),
   items: jsonb("items"),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 3. Settings Table Definition
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

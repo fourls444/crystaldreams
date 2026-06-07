@@ -1,43 +1,26 @@
 "use client";
 
-import { X } from "lucide-react";
+import { memo } from "react";
+import { X, Check } from "lucide-react";
 import styles from "../admin.module.css";
-
-interface Order {
-  id: string;
-  product_id: string | null;
-  quantity: number;
-  total_amount: number;
-  customer_name: string | null;
-  customer_tel: string | null;
-  customer_address: string | null;
-  status: string;
-  slip_url: string | null;
-  slip_verified: boolean;
-  verified_by: string | null;
-  created_at: string;
-  products?: {
-    name: string;
-  } | null;
-  items?: Array<{
-    product_id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    image_url: string | null;
-  }> | null;
-}
+import type { Order } from "@/types/order";
 
 interface CustomerAddressDetailsModalProps {
   showAddressModal: boolean;
   onSetShowAddressModal: (show: boolean) => void;
   selectedAddressOrder: Order | null;
+  actionLoading?: string | null;
+  onManualApprove?: (orderId: string) => void;
+  onRejectOrder?: (orderId: string) => void;
 }
 
-export default function CustomerAddressDetailsModal({
+function CustomerAddressDetailsModal({
   showAddressModal,
   onSetShowAddressModal,
   selectedAddressOrder,
+  actionLoading,
+  onManualApprove,
+  onRejectOrder,
 }: CustomerAddressDetailsModalProps) {
   if (!showAddressModal || !selectedAddressOrder) return null;
 
@@ -62,6 +45,12 @@ export default function CustomerAddressDetailsModal({
               <div className={styles.slipInfoRow}>
                 <label>เบอร์โทรศัพท์:</label>
                 <span>{selectedAddressOrder.customer_tel || "ยังไม่ได้กรอกข้อมูล"}</span>
+              </div>
+              <div className={styles.slipInfoRow}>
+                <label>วิธีการชำระเงิน:</label>
+                <span style={{ color: selectedAddressOrder.payment_method === "cod" ? "#ea580c" : "#1e3a8a", fontWeight: "bold" }}>
+                  {selectedAddressOrder.payment_method === "cod" ? "เก็บเงินปลายทาง (COD)" : "พร้อมเพย์ (PromptPay)"}
+                </span>
               </div>
               <div style={{ fontSize: "0.85rem", display: "flex", flexDirection: "column", gap: "0.25rem", borderTop: "1px solid #e2e8f0", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                 <label style={{ color: "#64748b" }}>ที่อยู่จัดส่ง:</label>
@@ -107,17 +96,76 @@ export default function CustomerAddressDetailsModal({
           </div>
         </div>
 
-        <div className={styles.modalFooter}>
-          <button
-            type="button"
-            onClick={() => onSetShowAddressModal(false)}
-            className={styles.cancelFormBtn}
-            style={{ marginTop: 0, width: "100%" }}
-          >
-            ปิดหน้าต่าง
-          </button>
-        </div>
+        {(selectedAddressOrder.status === "cod_pending" || selectedAddressOrder.status === "pending") && (
+          <div className={styles.modalFooter} style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", flexWrap: "wrap" }}>
+            {selectedAddressOrder.status === "cod_pending" && onManualApprove && onRejectOrder && (
+              <div className={styles.modalActionGroup} style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onManualApprove(selectedAddressOrder.id);
+                    onSetShowAddressModal(false);
+                  }}
+                  disabled={actionLoading !== null}
+                  className={styles.verifyActionBtn}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
+                >
+                  <Check size={14} />
+                  <span>ยืนยันว่าได้รับเงิน</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onRejectOrder(selectedAddressOrder.id);
+                    onSetShowAddressModal(false);
+                  }}
+                  disabled={actionLoading !== null}
+                  className={styles.rejectActionBtn}
+                  style={{ border: "none", marginTop: 0, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                >
+                  <X size={14} />
+                  <span>ยกเลิกคำสั่งซื้อ</span>
+                </button>
+              </div>
+            )}
+
+            {selectedAddressOrder.status === "pending" && onManualApprove && onRejectOrder && (
+              <div className={styles.modalActionGroup} style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onManualApprove(selectedAddressOrder.id);
+                    onSetShowAddressModal(false);
+                  }}
+                  disabled={actionLoading !== null}
+                  className={styles.verifyActionBtn}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
+                >
+                  <Check size={14} />
+                  <span>อนุมัติการชำระเงินแมนนวล</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onRejectOrder(selectedAddressOrder.id);
+                    onSetShowAddressModal(false);
+                  }}
+                  disabled={actionLoading !== null}
+                  className={styles.rejectActionBtn}
+                  style={{ border: "none", marginTop: 0, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                >
+                  <X size={14} />
+                  <span>ยกเลิกคำสั่งซื้อ</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+export default memo(CustomerAddressDetailsModal);

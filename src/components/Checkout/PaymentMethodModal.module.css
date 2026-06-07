@@ -1,0 +1,245 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 1.5rem;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+.modalCard {
+  background-color: #ffffff;
+  border-radius: 1.25rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15), 
+              0 0 0 1px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modalHeader {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+}
+
+.modalTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  font-family: inherit;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+.modalBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modalSubtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.amountBox {
+  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 40%, #4c1d95 100%);
+  border-radius: 1rem;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 
+              0 12px 24px -8px rgba(49, 46, 129, 0.4);
+}
+
+.amountLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #a5b4fc;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+}
+
+.amountValue {
+  font-size: 1.85rem;
+  font-weight: 800;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.optionsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.optionCard {
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  width: 100%;
+}
+
+.optionCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.05);
+}
+
+.promptpayCard:hover {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.codCard:hover {
+  border-color: #d97706;
+  background-color: #fffbeb;
+}
+
+.iconWrapper {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.optionCard:hover .iconWrapper {
+  transform: scale(1.08);
+}
+
+.promptpayCard .iconWrapper {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.promptpayCard:hover .iconWrapper {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.codCard .iconWrapper {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+.codCard:hover .iconWrapper {
+  background-color: #d97706;
+  color: #ffffff;
+}
+
+.optionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.optionTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.optionDesc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.modalFooter {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f8fafc;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+  background-color: #f1f5f9;
+  color: #334155;
+  border-color: #94a3b8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

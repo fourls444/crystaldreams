@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, memo } from "react";
 import Image from "next/image";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import AdminProductForm from "./AdminProductForm";
@@ -29,7 +29,7 @@ interface ProductInventoryManagerProps {
   onCancel: () => void;
 }
 
-export default function ProductInventoryManager({
+function ProductInventoryManager({
   initialProducts,
   showProductModal,
   onSetShowProductModal,
@@ -40,13 +40,14 @@ export default function ProductInventoryManager({
   onCancel,
 }: ProductInventoryManagerProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [prevInitialProducts, setPrevInitialProducts] = useState<Product[]>(initialProducts);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  // Sync state with props using useEffect to prevent double rendering in render pass
-  useEffect(() => {
+  if (initialProducts !== prevInitialProducts) {
     setProducts(initialProducts);
-  }, [initialProducts]);
+    setPrevInitialProducts(initialProducts);
+  }
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
@@ -248,3 +249,5 @@ export default function ProductInventoryManager({
     </div>
   );
 }
+
+export default memo(ProductInventoryManager);
