@@ -16,6 +16,7 @@ interface Product {
   detail?: string | null;
   image_urls?: string[] | null;
   is_visible?: boolean;
+  discount_percent?: number;
 }
 
 interface ProductInventoryManagerProps {
@@ -154,6 +155,9 @@ function ProductInventoryManager({
               const hasStock = p.stock > 0;
               const isDragged = draggedIndex === index;
               const isDragOver = dragOverIndex === index;
+              const discountedPrice = p.discount_percent && p.discount_percent > 0
+                ? Math.round(Number(p.price) * (1 - p.discount_percent / 100))
+                : Number(p.price);
               return (
                 <div 
                   key={p.id} 
@@ -182,8 +186,22 @@ function ProductInventoryManager({
                         {p.is_visible !== false ? "แสดงหน้าร้าน" : "ซ่อนอยู่"}
                       </span>
                     </div>
-                    <div className={styles.productListItemPriceRow}>
-                      <span className={styles.productListItemPrice}>{p.price.toLocaleString()} ฿</span>
+                    <div className={styles.productListItemPriceRow} style={{ flexWrap: "wrap", gap: "0.25rem 0.5rem" }}>
+                      {p.discount_percent && p.discount_percent > 0 ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
+                          <span className={styles.productListItemPrice} style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.85rem", fontWeight: "normal" }}>
+                            {Number(p.price).toLocaleString()} ฿
+                          </span>
+                          <span className={styles.productListItemPrice} style={{ color: "#ef4444", fontWeight: "bold" }}>
+                            {discountedPrice.toLocaleString()} ฿
+                          </span>
+                          <span style={{ fontSize: "0.65rem", backgroundColor: "#fee2e2", color: "#ef4444", padding: "0.1rem 0.35rem", borderRadius: "0.25rem", fontWeight: "bold" }}>
+                            ลด {p.discount_percent}%
+                          </span>
+                        </div>
+                      ) : (
+                        <span className={styles.productListItemPrice}>{Number(p.price).toLocaleString()} ฿</span>
+                      )}
                       <span
                         className={`${styles.productListItemStock} ${hasStock ? styles.productListItemStockIn : styles.productListItemStockOut}`}
                       >

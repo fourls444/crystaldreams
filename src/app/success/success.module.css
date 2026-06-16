@@ -156,6 +156,7 @@
 .infoValueBold {
   color: #1e293b;
   font-weight: 700;
+  white-space: pre-line;
 }
 
 .infoValuePrice {

@@ -52,6 +52,20 @@ function SuccessContent() {
     fetchOrder();
   }, [orderId]);
 
+  useEffect(() => {
+    if (order) {
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq("track", "Purchase", {
+          value: order.total_amount,
+          currency: "THB",
+          content_name: order.products?.name || "หมอนสุขภาพ Crystal Dreams",
+          content_type: "product",
+          content_ids: [order.id],
+        });
+      }
+    }
+  }, [order]);
+
   if (loading) {
     return <SuccessSkeleton />;
   }

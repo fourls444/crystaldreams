@@ -47,6 +47,10 @@ function CustomerAddressDetailsModal({
                 <span>{selectedAddressOrder.customer_tel || "ยังไม่ได้กรอกข้อมูล"}</span>
               </div>
               <div className={styles.slipInfoRow}>
+                <label>Line ID:</label>
+                <span>{selectedAddressOrder.customer_line || "ไม่ได้ระบุ"}</span>
+              </div>
+              <div className={styles.slipInfoRow}>
                 <label>วิธีการชำระเงิน:</label>
                 <span style={{ color: selectedAddressOrder.payment_method === "cod" ? "#ea580c" : "#1e3a8a", fontWeight: "bold" }}>
                   {selectedAddressOrder.payment_method === "cod" ? "เก็บเงินปลายทาง (COD)" : "พร้อมเพย์ (PromptPay)"}
@@ -67,7 +71,7 @@ function CustomerAddressDetailsModal({
                   {(selectedAddressOrder.items as Array<{ product_id: string; name: string; price: number; quantity: number }>)
                     .map((item, idx) => (
                       <div key={item.product_id || idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontSize: "0.85rem", borderBottom: "1px dashed #f1f5f9", paddingBottom: "0.35rem" }}>
-                        <div style={{ maxWidth: "70%", fontWeight: 550, color: "#0f172a" }}>
+                        <div style={{ maxWidth: "70%", fontWeight: 550, color: "#0f172a", whiteSpace: "pre-line" }}>
                           {item.name}
                         </div>
                         <div style={{ color: "#475569", fontWeight: 600 }}>
@@ -80,7 +84,7 @@ function CustomerAddressDetailsModal({
                 <>
                   <div className={styles.slipInfoRow}>
                     <label>สินค้า:</label>
-                    <span style={{ fontWeight: 600 }}>{selectedAddressOrder.products?.name || "ไม่พบข้อมูลสินค้า"}</span>
+                    <span style={{ fontWeight: 600, whiteSpace: "pre-line" }}>{selectedAddressOrder.products?.name || "ไม่พบข้อมูลสินค้า"}</span>
                   </div>
                   <div className={styles.slipInfoRow}>
                     <label>จำนวน:</label>

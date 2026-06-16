@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/utils/supabase";
 import Swal from "sweetalert2";
 import styles from "./ProductDetail.module.css";
-import { AlertTriangle, Share2 } from "lucide-react";
+import { AlertTriangle, Share2, Copy } from "lucide-react";
 import ProductImageGallery from "./ProductImageGallery";
 import ProductFeatures from "./ProductFeatures";
 import PaymentQrModal from "./PaymentQrModal";
@@ -23,6 +23,7 @@ interface Product {
   detail?: string | null;
   image_urls?: string[] | null;
   is_visible?: boolean;
+  discount_percent?: number;
 }
 
 export default function ProductDetail() {
@@ -51,6 +52,12 @@ export default function ProductDetail() {
 
   const product = productsList.find((p) => p.id === selectedProductId) || productsList[0] || null;
 
+  const hasDiscount = product && product.discount_percent !== undefined && product.discount_percent > 0;
+  const originalPrice = product ? Number(product.price) : 1890;
+  const discountedPrice = hasDiscount
+    ? Math.round(originalPrice * (1 - (product.discount_percent || 0) / 100))
+    : originalPrice;
+
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -64,6 +71,14 @@ export default function ProductDetail() {
           setError("ไม่สามารถดึงข้อมูลสินค้าได้ กรุณาลองใหม่อีกครั้ง");
         } else if (data) {
           setProductsList(data);
+          
+          // Set initial selected product based on URL or first item
+          const productIdFromUrl = searchParams.get("productId");
+          if (productIdFromUrl && data.some((p) => p.id === productIdFromUrl)) {
+            setSelectedProductId(productIdFromUrl);
+          } else if (data.length > 0) {
+            setSelectedProductId(data[0].id);
+          }
         }
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -74,7 +89,7 @@ export default function ProductDetail() {
     }
 
     fetchProducts();
-  }, []);
+  }, [searchParams]);
 
   // Restore QR modal state from URL parameters
   useEffect(() => {
@@ -91,7 +106,10 @@ export default function ProductDetail() {
           if (fetchErr || !orderData) {
             console.error("Error fetching order for QR restoration:", fetchErr);
             setShowQrModal(false);
-            window.history.pushState(null, "", "/");
+            const url = new URL(window.location.href);
+            url.searchParams.delete("orderId");
+            url.searchParams.delete("showQr");
+            window.history.pushState(null, "", url.pathname + url.search);
             return;
           }
 
@@ -174,7 +192,10 @@ export default function ProductDetail() {
 
       if (selectedMethod === "promptpay") {
         setShowQrModal(true);
-        window.history.pushState(null, "", `/?orderId=${data.orderId}&showQr=true`);
+        const url = new URL(window.location.href);
+        url.searchParams.set("orderId", data.orderId);
+        url.searchParams.set("showQr", "true");
+        window.history.pushState(null, "", url.pathname + url.search);
 
         // 2. Fetch PromptPay QR Code base64 data
         const qrRes = await fetch("/api/payment/qr", {
@@ -228,7 +249,44 @@ export default function ProductDetail() {
     setShowQrModal(false);
     setCreatedOrderId("");
     setQrCodeDataUrl("");
-    window.history.pushState(null, "", "/");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("orderId");
+    url.searchParams.delete("showQr");
+    window.history.pushState(null, "", url.pathname + url.search);
+  };
+
+  const handleCopyLink = async () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        Swal.fire({
+          icon: "success",
+          title: "คัดลอกลิงก์สำเร็จ!",
+          text: "คัดลอกลิงก์สินค้าลงในคลิปบอร์ดแล้ว คุณสามารถนำไปแชร์ต่อได้ทันที",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+        });
+      } catch (err) {
+        console.error("Clipboard copy failed:", err);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถคัดลอกลิงก์ได้โดยอัตโนมัติ กรุณาคัดลอกด้วยตนเอง",
+          confirmButtonText: "ตกลง",
+        });
+      }
+    } else {
+      Swal.fire({
+        icon: "info",
+        title: "คัดลอกลิงก์สินค้า",
+        text: `คัดลอกลิงก์นี้เพื่อแชร์: ${window.location.href}`,
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#1e3a8a",
+      });
+    }
   };
 
   const handleShare = async () => {
@@ -392,14 +450,31 @@ export default function ProductDetail() {
               {product?.name || "หมอนยางพารา + วัสดุ TPE"}
             </h1>
             <div className={styles.priceContainer}>
-              <span className={styles.priceText}>
-                {product?.price ? product.price.toLocaleString("en-US", { minimumFractionDigits: 2 }) : "1,890.00"} THB
-              </span>
-              
-              {/* Stock Badge next to the price */}
-              <span className={`${styles.stockBadge} ${isSoldOut ? styles.stockSoldOut : styles.stockInStock}`}>
-                {isSoldOut ? "สินค้าหมด" : `${product?.stock} ชิ้น`}
-              </span>
+              {hasDiscount ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <span className={styles.priceText} style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "1.1rem", fontWeight: "normal" }}>
+                    {originalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                  </span>
+                  <span className={styles.priceText} style={{ color: "#ef4444", fontSize: "1.75rem", fontWeight: "bold", lineHeight: 1 }}>
+                    {discountedPrice.toLocaleString("en-US")} THB
+                  </span>
+                  <span style={{ fontSize: "0.85rem", backgroundColor: "#fee2e2", color: "#ef4444", padding: "0.2rem 0.5rem", borderRadius: "0.25rem", fontWeight: "600" }}>
+                    SAVE {product?.discount_percent}%
+                  </span>
+                  <span className={`${styles.stockBadge} ${isSoldOut ? styles.stockSoldOut : styles.stockInStock}`}>
+                    {isSoldOut ? "สินค้าหมด" : `${product?.stock} ชิ้น`}
+                  </span>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <span className={styles.priceText}>
+                    {originalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                  </span>
+                  <span className={`${styles.stockBadge} ${isSoldOut ? styles.stockSoldOut : styles.stockInStock}`}>
+                    {isSoldOut ? "สินค้าหมด" : `${product?.stock} ชิ้น`}
+                  </span>
+                </div>
+              )}
             </div>
             <p className={styles.taxesIncluded}>Taxes included.</p>
           </div>
@@ -464,7 +539,7 @@ export default function ProductDetail() {
                       addToCart({
                         id: product.id,
                         name: product.name,
-                        price: product.price,
+                        price: discountedPrice,
                         stock: product.stock,
                         image_url: product.image_url,
                       }, quantity);
@@ -503,6 +578,10 @@ export default function ProductDetail() {
                 <Share2 size={16} />
                 <span>Share</span>
               </button>
+              <button type="button" className={styles.shareLink} onClick={handleCopyLink} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                <Copy size={16} />
+                <span>Copy Link</span>
+              </button>
             </div>
           </div>
         </div>
@@ -515,6 +594,11 @@ export default function ProductDetail() {
           <div className={styles.otherProductsGrid}>
             {productsList.map((p) => {
               const isSelected = p.id === product?.id;
+              const hasOtherDiscount = p.discount_percent !== undefined && p.discount_percent > 0;
+              const otherOriginalPrice = Number(p.price);
+              const otherDiscountedPrice = hasOtherDiscount
+                ? Math.round(otherOriginalPrice * (1 - (p.discount_percent || 0) / 100))
+                : otherOriginalPrice;
               return (
                 <div
                   key={p.id}
@@ -522,6 +606,9 @@ export default function ProductDetail() {
                   onClick={() => {
                     setSelectedProductId(p.id);
                     setCurrentImageIndex(0); // reset gallery image index when switching products
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("productId", p.id);
+                    window.history.replaceState(null, "", url.pathname + url.search);
                   }}
                 >
                   <div className={styles.otherProductImageWrapper}>
@@ -531,7 +618,23 @@ export default function ProductDetail() {
                       className={styles.otherProductImage}
                     />
                   </div>
-                  <span className={styles.otherProductName}>{p.name}</span>
+                  <div className={styles.otherProductInfo}>
+                    <span className={styles.otherProductName}>{p.name}</span>
+                    {hasOtherDiscount ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem" }}>
+                        <span className={styles.otherProductPrice} style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.8rem", fontWeight: "normal" }}>
+                          {otherOriginalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                        </span>
+                        <span className={styles.otherProductPrice} style={{ color: "#ef4444", fontWeight: "bold" }}>
+                          {otherDiscountedPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                        </span>
+                      </div>
+                    ) : (
+                      <span className={styles.otherProductPrice}>
+                        {otherOriginalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -555,7 +658,7 @@ export default function ProductDetail() {
         isOpen={showPaymentMethodModal}
         onClose={() => setShowPaymentMethodModal(false)}
         onSelect={handlePaymentMethodSelect}
-        totalAmount={product ? product.price * quantity : 0}
+        totalAmount={product ? discountedPrice * quantity : 0}
       />
 
       <CartDrawer />

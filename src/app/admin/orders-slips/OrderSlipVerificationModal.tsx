@@ -201,6 +201,10 @@ function OrderSlipVerificationModal({
                     <label>เบอร์โทรศัพท์:</label>
                     <span>{selectedOrder.customer_tel || "ไม่ระบุ"}</span>
                   </div>
+                  <div className={styles.slipInfoRow}>
+                    <label>Line ID:</label>
+                    <span>{selectedOrder.customer_line || "ไม่ระบุ"}</span>
+                  </div>
                   <div style={{ fontSize: "0.85rem", display: "flex", flexDirection: "column", gap: "0.25rem", borderTop: "1px solid #e2e8f0", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                     <label style={{ color: "#64748b" }}>ที่อยู่จัดส่ง:</label>
                     <span style={{ color: "#0f172a", fontWeight: 500, lineHeight: 1.4 }}>
@@ -213,7 +217,7 @@ function OrderSlipVerificationModal({
                   <h5 className={styles.slipInfoTitle}>ข้อมูลยอดชำระเงิน</h5>
                   <div className={styles.slipInfoRow}>
                     <label>สินค้าที่สั่งซื้อ:</label>
-                    <span>{selectedOrder.products?.name || "ไม่พบสินค้า"}</span>
+                    <span style={{ whiteSpace: "pre-line" }}>{selectedOrder.products?.name || "ไม่พบสินค้า"}</span>
                   </div>
                   <div className={styles.slipInfoRow}>
                     <label>จำนวนยอดซื้อ:</label>

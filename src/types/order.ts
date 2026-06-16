@@ -18,6 +18,7 @@ export interface Order {
   customer_name: string | null;
   customer_tel: string | null;
   customer_address: string | null;
+  customer_line: string | null;
   /** 'pending' | 'slip_uploaded' | 'cod_pending' | 'verified' | 'rejected' */
   status: string;
   slip_url: string | null;

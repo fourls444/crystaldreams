@@ -12,6 +12,7 @@ export const products = pgTable("products", {
   image_urls: text("image_urls").array(),
   is_visible: boolean("is_visible").notNull().default(true),
   sort_order: integer("sort_order").notNull().default(0),
+  discount_percent: integer("discount_percent").notNull().default(0),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -25,6 +26,7 @@ export const orders = pgTable("orders", {
   customer_name: text("customer_name"),
   customer_tel: text("customer_tel"),
   customer_address: text("customer_address"),
+  customer_line: text("customer_line"),
   status: text("status").notNull().default("pending"),
   slip_url: text("slip_url"),
   slip_verified: boolean("slip_verified").default(false),

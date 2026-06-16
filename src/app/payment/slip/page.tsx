@@ -50,6 +50,7 @@ function SlipContent() {
   const [name, setName] = useState("");
   const [tel, setTel] = useState("");
   const [address, setAddress] = useState("");
+  const [lineId, setLineId] = useState("");
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string>("");
 
@@ -75,6 +76,7 @@ function SlipContent() {
         setOrder(data);
         setName(data.customer_name || "");
         setTel(data.customer_tel || "");
+        setLineId(data.customer_line || "");
       } catch (err) {
         console.error(err);
         setError("เกิดข้อผิดพลาดในการโหลดข้อมูลคำสั่งซื้อ");
@@ -121,6 +123,7 @@ function SlipContent() {
       formData.append("customer_name", name);
       formData.append("customer_tel", tel);
       formData.append("customer_address", address);
+      formData.append("customer_line", lineId);
       if (slipFile) {
         formData.append("slip", slipFile);
       }
@@ -228,6 +231,8 @@ function SlipContent() {
                   onTelChange={setTel}
                   address={address}
                   onAddressChange={setAddress}
+                  lineId={lineId}
+                  onLineIdChange={setLineId}
                 />
 
                 {order?.payment_method !== "cod" && (

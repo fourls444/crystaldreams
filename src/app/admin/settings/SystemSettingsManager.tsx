@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, CreditCard, Save, RefreshCw, AlertTriangle, Eye, HelpCircle } from "lucide-react";
+import { Settings, CreditCard, Save, RefreshCw, AlertTriangle, Eye, EyeOff, HelpCircle } from "lucide-react";
 import Swal from "sweetalert2";
 import styles from "../admin.module.css";
 
@@ -13,6 +13,52 @@ export default function SystemSettingsManager() {
   const [initialNumber, setInitialNumber] = useState("");
   const [initialRef1, setInitialRef1] = useState("");
   const [initialRef2, setInitialRef2] = useState("");
+
+  // Footer fields states
+  const [footerMainTitle, setFooterMainTitle] = useState("");
+  
+  // States for 5 columns
+  const [col1Title, setCol1Title] = useState("");
+  const [col1Text, setCol1Text] = useState("");
+  const [col1Visible, setCol1Visible] = useState(true);
+
+  const [col2Title, setCol2Title] = useState("");
+  const [col2Text, setCol2Text] = useState("");
+  const [col2Visible, setCol2Visible] = useState(true);
+
+  const [col3Title, setCol3Title] = useState("");
+  const [col3Text, setCol3Text] = useState("");
+  const [col3Visible, setCol3Visible] = useState(true);
+
+  const [col4Title, setCol4Title] = useState("");
+  const [col4Text, setCol4Text] = useState("");
+  const [col4Visible, setCol4Visible] = useState(false);
+
+  const [col5Title, setCol5Title] = useState("");
+  const [col5Text, setCol5Text] = useState("");
+  const [col5Visible, setCol5Visible] = useState(false);
+
+  // Initial states for comparison
+  const [initialMainTitle, setInitialMainTitle] = useState("");
+  const [initialCol1Title, setInitialCol1Title] = useState("");
+  const [initialCol1Text, setInitialCol1Text] = useState("");
+  const [initialCol1Visible, setInitialCol1Visible] = useState(true);
+
+  const [initialCol2Title, setInitialCol2Title] = useState("");
+  const [initialCol2Text, setInitialCol2Text] = useState("");
+  const [initialCol2Visible, setInitialCol2Visible] = useState(true);
+
+  const [initialCol3Title, setInitialCol3Title] = useState("");
+  const [initialCol3Text, setInitialCol3Text] = useState("");
+  const [initialCol3Visible, setInitialCol3Visible] = useState(true);
+
+  const [initialCol4Title, setInitialCol4Title] = useState("");
+  const [initialCol4Text, setInitialCol4Text] = useState("");
+  const [initialCol4Visible, setInitialCol4Visible] = useState(false);
+
+  const [initialCol5Title, setInitialCol5Title] = useState("");
+  const [initialCol5Text, setInitialCol5Text] = useState("");
+  const [initialCol5Visible, setInitialCol5Visible] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,6 +88,67 @@ export default function SystemSettingsManager() {
 
         setPromptpayRef2(r2);
         setInitialRef2(r2);
+
+        // Load footer settings
+        const fmt = data.settings.footer_main_title || "เกี่ยวกับเรา";
+        
+        const c1t = data.settings.footer_col1_title || "สถานที่ตั้ง";
+        const c1x = data.settings.footer_col1_text || "ซอย 57 ตำบล บึงคำพร้อย อำเภอลำลูกกา ปทุมธานี 12150";
+        const c1v = data.settings.footer_col1_visible !== "false"; // default true
+
+        const c2t = data.settings.footer_col2_title || "ติดต่อ";
+        const c2x = data.settings.footer_col2_text || "Call : (+66) 062-991-6986\nLine : @cdmth\nGmail : CrystalDreamsth@gmail.com";
+        const c2v = data.settings.footer_col2_visible !== "false"; // default true
+
+        const c3t = data.settings.footer_col3_title || "ที่มา";
+        const c3x = data.settings.footer_col3_text || "Crystal Dreams ก่อตั้งด้วยความตั้งใจที่อยากให้คนไทยสามารถพักผ่อนได้อย่างเต็มที่ โดยปราศจากความกังวลทุกค่ำคืน";
+        const c3v = data.settings.footer_col3_visible !== "false"; // default true
+
+        const c4t = data.settings.footer_col4_title || "บริการลูกค้า";
+        const c4x = data.settings.footer_col4_text || "นโยบายความเป็นส่วนตัว\nข้อกำหนดการใช้งาน\nนโยบายการรับประกัน";
+        const c4v = data.settings.footer_col4_visible === "true"; // default false
+
+        const c5t = data.settings.footer_col5_title || "ความปลอดภัย";
+        const c5x = data.settings.footer_col5_text || "ชำระเงินผ่านระบบพร้อมเพย์และบัตรเครดิตปลอดภัย 100%";
+        const c5v = data.settings.footer_col5_visible === "true"; // default false
+
+        setFooterMainTitle(fmt);
+        setInitialMainTitle(fmt);
+
+        setCol1Title(c1t);
+        setInitialCol1Title(c1t);
+        setCol1Text(c1x);
+        setInitialCol1Text(c1x);
+        setCol1Visible(c1v);
+        setInitialCol1Visible(c1v);
+
+        setCol2Title(c2t);
+        setInitialCol2Title(c2t);
+        setCol2Text(c2x);
+        setInitialCol2Text(c2x);
+        setCol2Visible(c2v);
+        setInitialCol2Visible(c2v);
+
+        setCol3Title(c3t);
+        setInitialCol3Title(c3t);
+        setCol3Text(c3x);
+        setInitialCol3Text(c3x);
+        setCol3Visible(c3v);
+        setInitialCol3Visible(c3v);
+
+        setCol4Title(c4t);
+        setInitialCol4Title(c4t);
+        setCol4Text(c4x);
+        setInitialCol4Text(c4x);
+        setCol4Visible(c4v);
+        setInitialCol4Visible(c4v);
+
+        setCol5Title(c5t);
+        setInitialCol5Title(c5t);
+        setCol5Text(c5x);
+        setInitialCol5Text(c5x);
+        setCol5Visible(c5v);
+        setInitialCol5Visible(c5v);
       }
     } catch (err) {
       console.error("Failed to fetch system settings:", err);
@@ -178,6 +285,53 @@ export default function SystemSettingsManager() {
         );
       }
 
+      // Save footer settings
+      if (footerMainTitle !== initialMainTitle) {
+        promises.push(
+          fetch("/api/admin/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: "footer_main_title", value: footerMainTitle }),
+          }).then((r) => r.json())
+        );
+      }
+
+      const saveCol = (num: number, title: string, initialTitle: string, text: string, initialText: string, visible: boolean, initialVisible: boolean) => {
+        if (title !== initialTitle) {
+          promises.push(
+            fetch("/api/admin/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key: `footer_col${num}_title`, value: title }),
+            }).then((r) => r.json())
+          );
+        }
+        if (text !== initialText) {
+          promises.push(
+            fetch("/api/admin/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key: `footer_col${num}_text`, value: text }),
+            }).then((r) => r.json())
+          );
+        }
+        if (visible !== initialVisible) {
+          promises.push(
+            fetch("/api/admin/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key: `footer_col${num}_visible`, value: String(visible) }),
+            }).then((r) => r.json())
+          );
+        }
+      };
+
+      saveCol(1, col1Title, initialCol1Title, col1Text, initialCol1Text, col1Visible, initialCol1Visible);
+      saveCol(2, col2Title, initialCol2Title, col2Text, initialCol2Text, col2Visible, initialCol2Visible);
+      saveCol(3, col3Title, initialCol3Title, col3Text, initialCol3Text, col3Visible, initialCol3Visible);
+      saveCol(4, col4Title, initialCol4Title, col4Text, initialCol4Text, col4Visible, initialCol4Visible);
+      saveCol(5, col5Title, initialCol5Title, col5Text, initialCol5Text, col5Visible, initialCol5Visible);
+
       const results = await Promise.all(promises);
       const errors = results.filter((res) => !res.success);
 
@@ -189,10 +343,32 @@ export default function SystemSettingsManager() {
       setInitialRef1(promptpayRef1.trim());
       setInitialRef2(promptpayRef2.trim());
 
+      setInitialMainTitle(footerMainTitle);
+      
+      setInitialCol1Title(col1Title);
+      setInitialCol1Text(col1Text);
+      setInitialCol1Visible(col1Visible);
+
+      setInitialCol2Title(col2Title);
+      setInitialCol2Text(col2Text);
+      setInitialCol2Visible(col2Visible);
+
+      setInitialCol3Title(col3Title);
+      setInitialCol3Text(col3Text);
+      setInitialCol3Visible(col3Visible);
+
+      setInitialCol4Title(col4Title);
+      setInitialCol4Text(col4Text);
+      setInitialCol4Visible(col4Visible);
+
+      setInitialCol5Title(col5Title);
+      setInitialCol5Text(col5Text);
+      setInitialCol5Visible(col5Visible);
+
       Swal.fire({
         icon: "success",
         title: "บันทึกข้อมูลสำเร็จ",
-        text: "บันทึกการตั้งค่าระบบพร้อมเพย์หลักของร้านค้าเรียบร้อยแล้ว",
+        text: "บันทึกการตั้งค่าระบบพร้อมเพย์และข้อมูลส่วนท้ายของร้านค้าเรียบร้อยแล้ว",
         confirmButtonColor: "#1e3a8a",
         timer: 2000,
       });
@@ -212,7 +388,23 @@ export default function SystemSettingsManager() {
   const hasChanges =
     promptpayNumber.replace(/[^0-9]/g, "") !== initialNumber ||
     promptpayRef1.trim() !== initialRef1 ||
-    promptpayRef2.trim() !== initialRef2;
+    promptpayRef2.trim() !== initialRef2 ||
+    footerMainTitle !== initialMainTitle ||
+    col1Title !== initialCol1Title ||
+    col1Text !== initialCol1Text ||
+    col1Visible !== initialCol1Visible ||
+    col2Title !== initialCol2Title ||
+    col2Text !== initialCol2Text ||
+    col2Visible !== initialCol2Visible ||
+    col3Title !== initialCol3Title ||
+    col3Text !== initialCol3Text ||
+    col3Visible !== initialCol3Visible ||
+    col4Title !== initialCol4Title ||
+    col4Text !== initialCol4Text ||
+    col4Visible !== initialCol4Visible ||
+    col5Title !== initialCol5Title ||
+    col5Text !== initialCol5Text ||
+    col5Visible !== initialCol5Visible;
 
   if (loading) {
     return (
@@ -477,8 +669,8 @@ export default function SystemSettingsManager() {
               </div>
             </div>
 
-            {/* Form actions */}
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem", borderTop: "1px solid #f1f5f9", paddingTop: "1.25rem" }}>
+            {/* PromptPay specific action */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2rem", borderTop: "1px solid #f1f5f9", paddingTop: "1.25rem" }}>
               <button
                 type="button"
                 onClick={handleGeneratePreview}
@@ -489,24 +681,383 @@ export default function SystemSettingsManager() {
                 {previewLoading ? <RefreshCw className={styles.spinIcon} size={16} /> : <Eye size={16} />}
                 <span>ทดสอบสแกน QR Code</span>
               </button>
-
-              <button
-                type="submit"
-                className={styles.saveBtn}
-                style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "0.5rem", 
-                  padding: "0.625rem 1.25rem",
-                  backgroundColor: hasChanges ? "#1e3a8a" : "#94a3b8",
-                  cursor: hasChanges && !saving ? "pointer" : "not-allowed"
-                }}
-                disabled={!hasChanges || saving}
-              >
-                {saving ? <RefreshCw className={styles.spinIcon} size={16} /> : <Save size={16} />}
-                <span>บันทึกตั้งค่า</span>
-              </button>
             </div>
+          </div>
+
+          {/* Footer Settings Card */}
+          <div 
+            style={{ 
+              background: "#ffffff", 
+              borderRadius: "1rem", 
+              padding: "2rem", 
+              border: "1px solid #e2e8f0", 
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" 
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1rem" }}>
+              <div style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.5rem", backgroundColor: "#eff6ff", color: "#1e3a8a", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center" }}>
+                <Settings size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>ตั้งค่าข้อมูล Footer / เกี่ยวกับเรา (Footer Settings)</h3>
+                <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>จัดการหัวข้อหลัก และคอลัมน์แสดงข้อมูลติดต่อต่าง ๆ (เปิดใช้งานได้สูงสุด 5 คอลัมน์)</p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <div>
+                <label 
+                  htmlFor="footer_main_title_input"
+                  style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.5rem" }}
+                >
+                  หัวข้อหลัก Footer (Main Title)
+                </label>
+                <input
+                  id="footer_main_title_input"
+                  type="text"
+                  placeholder="เช่น เกี่ยวกับเรา"
+                  value={footerMainTitle}
+                  onChange={(e) => setFooterMainTitle(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "0.5rem",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "1rem",
+                    fontWeight: 500,
+                    outline: "none",
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", marginTop: "0.5rem" }}>
+                {/* Column 1 */}
+                <div style={{ 
+                  border: col1Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
+                  padding: "1.25rem", 
+                  borderRadius: "0.75rem", 
+                  backgroundColor: col1Visible ? "#f0f9ff" : "#f8fafc",
+                  opacity: col1Visible ? 1 : 0.65,
+                  transition: "all 0.2s"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col1Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 1</h4>
+                    <button 
+                      type="button"
+                      onClick={() => setCol1Visible(!col1Visible)}
+                      style={{ 
+                        background: "none", 
+                        border: "none", 
+                        cursor: "pointer", 
+                        color: col1Visible ? "#1e3a8a" : "#64748b",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.375rem",
+                        backgroundColor: col1Visible ? "#eff6ff" : "#f1f5f9",
+                        transition: "all 0.2s"
+                      }}
+                      title={col1Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
+                    >
+                      {col1Visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col1Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น สถานที่ตั้ง"
+                        value={col1Title}
+                        onChange={(e) => setCol1Title(e.target.value)}
+                        disabled={!col1Visible}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col1Visible ? "#ffffff" : "#f1f5f9", cursor: col1Visible ? "text" : "not-allowed" }}
+                        required={col1Visible}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
+                      <textarea
+                        placeholder="เช่น ซอย 57..."
+                        value={col1Text}
+                        onChange={(e) => setCol1Text(e.target.value)}
+                        disabled={!col1Visible}
+                        rows={4}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col1Visible ? "#ffffff" : "#f1f5f9", cursor: col1Visible ? "text" : "not-allowed" }}
+                        required={col1Visible}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 2 */}
+                <div style={{ 
+                  border: col2Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
+                  padding: "1.25rem", 
+                  borderRadius: "0.75rem", 
+                  backgroundColor: col2Visible ? "#f0f9ff" : "#f8fafc",
+                  opacity: col2Visible ? 1 : 0.65,
+                  transition: "all 0.2s"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col2Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 2</h4>
+                    <button 
+                      type="button"
+                      onClick={() => setCol2Visible(!col2Visible)}
+                      style={{ 
+                        background: "none", 
+                        border: "none", 
+                        cursor: "pointer", 
+                        color: col2Visible ? "#1e3a8a" : "#64748b",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.375rem",
+                        backgroundColor: col2Visible ? "#eff6ff" : "#f1f5f9",
+                        transition: "all 0.2s"
+                      }}
+                      title={col2Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
+                    >
+                      {col2Visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col2Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น ติดต่อ"
+                        value={col2Title}
+                        onChange={(e) => setCol2Title(e.target.value)}
+                        disabled={!col2Visible}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col2Visible ? "#ffffff" : "#f1f5f9", cursor: col2Visible ? "text" : "not-allowed" }}
+                        required={col2Visible}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
+                      <textarea
+                        placeholder="เช่น Call..."
+                        value={col2Text}
+                        onChange={(e) => setCol2Text(e.target.value)}
+                        disabled={!col2Visible}
+                        rows={4}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col2Visible ? "#ffffff" : "#f1f5f9", cursor: col2Visible ? "text" : "not-allowed" }}
+                        required={col2Visible}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 3 */}
+                <div style={{ 
+                  border: col3Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
+                  padding: "1.25rem", 
+                  borderRadius: "0.75rem", 
+                  backgroundColor: col3Visible ? "#f0f9ff" : "#f8fafc",
+                  opacity: col3Visible ? 1 : 0.65,
+                  transition: "all 0.2s"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col3Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 3</h4>
+                    <button 
+                      type="button"
+                      onClick={() => setCol3Visible(!col3Visible)}
+                      style={{ 
+                        background: "none", 
+                        border: "none", 
+                        cursor: "pointer", 
+                        color: col3Visible ? "#1e3a8a" : "#64748b",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.375rem",
+                        backgroundColor: col3Visible ? "#eff6ff" : "#f1f5f9",
+                        transition: "all 0.2s"
+                      }}
+                      title={col3Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
+                    >
+                      {col3Visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col3Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น ที่มา"
+                        value={col3Title}
+                        onChange={(e) => setCol3Title(e.target.value)}
+                        disabled={!col3Visible}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col3Visible ? "#ffffff" : "#f1f5f9", cursor: col3Visible ? "text" : "not-allowed" }}
+                        required={col3Visible}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
+                      <textarea
+                        placeholder="เช่น Crystal Dreams ก่อตั้ง..."
+                        value={col3Text}
+                        onChange={(e) => setCol3Text(e.target.value)}
+                        disabled={!col3Visible}
+                        rows={4}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col3Visible ? "#ffffff" : "#f1f5f9", cursor: col3Visible ? "text" : "not-allowed" }}
+                        required={col3Visible}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 4 */}
+                <div style={{ 
+                  border: col4Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
+                  padding: "1.25rem", 
+                  borderRadius: "0.75rem", 
+                  backgroundColor: col4Visible ? "#f0f9ff" : "#f8fafc",
+                  opacity: col4Visible ? 1 : 0.65,
+                  transition: "all 0.2s"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col4Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 4</h4>
+                    <button 
+                      type="button"
+                      onClick={() => setCol4Visible(!col4Visible)}
+                      style={{ 
+                        background: "none", 
+                        border: "none", 
+                        cursor: "pointer", 
+                        color: col4Visible ? "#1e3a8a" : "#64748b",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.375rem",
+                        backgroundColor: col4Visible ? "#eff6ff" : "#f1f5f9",
+                        transition: "all 0.2s"
+                      }}
+                      title={col4Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
+                    >
+                      {col4Visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col4Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น บริการลูกค้า"
+                        value={col4Title}
+                        onChange={(e) => setCol4Title(e.target.value)}
+                        disabled={!col4Visible}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col4Visible ? "#ffffff" : "#f1f5f9", cursor: col4Visible ? "text" : "not-allowed" }}
+                        required={col4Visible}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
+                      <textarea
+                        placeholder="เช่น นโยบายต่าง ๆ..."
+                        value={col4Text}
+                        onChange={(e) => setCol4Text(e.target.value)}
+                        disabled={!col4Visible}
+                        rows={4}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col4Visible ? "#ffffff" : "#f1f5f9", cursor: col4Visible ? "text" : "not-allowed" }}
+                        required={col4Visible}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 5 */}
+                <div style={{ 
+                  border: col5Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
+                  padding: "1.25rem", 
+                  borderRadius: "0.75rem", 
+                  backgroundColor: col5Visible ? "#f0f9ff" : "#f8fafc",
+                  opacity: col5Visible ? 1 : 0.65,
+                  transition: "all 0.2s"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col5Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 5</h4>
+                    <button 
+                      type="button"
+                      onClick={() => setCol5Visible(!col5Visible)}
+                      style={{ 
+                        background: "none", 
+                        border: "none", 
+                        cursor: "pointer", 
+                        color: col5Visible ? "#1e3a8a" : "#64748b",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.375rem",
+                        backgroundColor: col5Visible ? "#eff6ff" : "#f1f5f9",
+                        transition: "all 0.2s"
+                      }}
+                      title={col5Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
+                    >
+                      {col5Visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col5Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น ความปลอดภัย"
+                        value={col5Title}
+                        onChange={(e) => setCol5Title(e.target.value)}
+                        disabled={!col5Visible}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col5Visible ? "#ffffff" : "#f1f5f9", cursor: col5Visible ? "text" : "not-allowed" }}
+                        required={col5Visible}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
+                      <textarea
+                        placeholder="รายละเอียดคอลัมน์ที่ 5..."
+                        value={col5Text}
+                        onChange={(e) => setCol5Text(e.target.value)}
+                        disabled={!col5Visible}
+                        rows={4}
+                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col5Visible ? "#ffffff" : "#f1f5f9", cursor: col5Visible ? "text" : "not-allowed" }}
+                        required={col5Visible}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
+            <button
+              type="submit"
+              className={styles.saveBtn}
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "0.5rem", 
+                padding: "0.75rem 1.5rem",
+                backgroundColor: hasChanges ? "#1e3a8a" : "#94a3b8",
+                cursor: hasChanges && !saving ? "pointer" : "not-allowed"
+              }}
+              disabled={!hasChanges || saving}
+            >
+              {saving ? <RefreshCw className={styles.spinIcon} size={16} /> : <Save size={16} />}
+              <span>บันทึกตั้งค่าทั้งหมด</span>
+            </button>
           </div>
         </form>
 

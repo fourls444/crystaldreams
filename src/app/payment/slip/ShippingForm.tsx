@@ -9,6 +9,8 @@ interface ShippingFormProps {
   onTelChange: (val: string) => void;
   address: string;
   onAddressChange: (val: string) => void;
+  lineId: string;
+  onLineIdChange: (val: string) => void;
 }
 
 export default function ShippingForm({
@@ -18,28 +20,32 @@ export default function ShippingForm({
   onTelChange,
   address,
   onAddressChange,
+  lineId,
+  onLineIdChange,
 }: ShippingFormProps) {
   return (
     <>
-      {/* 1. ชื่อ + เบอร์โทร */}
-      <div className={styles.recipientRow}>
-        <div className={styles.inputGroup}>
-          <label className={styles.inputLabel}>
-            ชื่อ-นามสกุล ผู้รับของ <span className={styles.inputLabelSpan}>*</span>
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => onNameChange(e.target.value.slice(0, 80))}
-            placeholder="เช่น สมชาย ใจดี"
-            className={styles.inputField}
-            maxLength={80}
-            required
-          />
-          <div style={{ textAlign: "right", fontSize: "0.75rem", color: "#64748b", marginTop: "0.25rem" }}>
-            {name.length}/80 ตัวอักษร
-          </div>
+      {/* 1. ชื่อ-นามสกุล */}
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          ชื่อ-นามสกุล ผู้รับของ <span className={styles.inputLabelSpan}>*</span>
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => onNameChange(e.target.value.slice(0, 80))}
+          placeholder="เช่น สมชาย ใจดี"
+          className={styles.inputField}
+          maxLength={80}
+          required
+        />
+        <div style={{ textAlign: "right", fontSize: "0.75rem", color: "#64748b", marginTop: "0.25rem" }}>
+          {name.length}/80 ตัวอักษร
         </div>
+      </div>
+
+      {/* 2. เบอร์โทรศัพท์ + Line ID */}
+      <div className={styles.recipientRow}>
         <div className={styles.inputGroup}>
           <label className={styles.inputLabel}>
             เบอร์โทรศัพท์ผู้รับ <span className={styles.inputLabelSpan}>*</span>
@@ -59,9 +65,26 @@ export default function ShippingForm({
             {tel.length}/10 ตัวอักษร
           </div>
         </div>
+
+        <div className={styles.inputGroup}>
+          <label className={styles.inputLabel}>
+            Line ID <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "normal" }}>(ไม่บังคับ)</span>
+          </label>
+          <input
+            type="text"
+            value={lineId}
+            onChange={(e) => onLineIdChange(e.target.value.slice(0, 80))}
+            placeholder="เช่น @cdmth หรือ line_username"
+            className={styles.inputField}
+            maxLength={80}
+          />
+          <div style={{ textAlign: "right", fontSize: "0.75rem", color: "#64748b", marginTop: "0.25rem" }}>
+            {lineId.length}/80 ตัวอักษร
+          </div>
+        </div>
       </div>
 
-      {/* 2. ที่อยู่ */}
+      {/* 3. ที่อยู่ */}
       <div className={styles.inputGroup}>
         <label className={styles.inputLabel}>
           ที่อยู่สำหรับการจัดส่งโดยละเอียด <span className={styles.inputLabelSpan}>*</span>

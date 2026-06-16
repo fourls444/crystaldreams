@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 
-    const { id, name, price, stock, image_url, description, detail, image_urls, is_visible } = await request.json();
+    const { id, name, price, stock, image_url, description, detail, image_urls, is_visible, discount_percent } = await request.json();
 
     if (!name || price === undefined || stock === undefined) {
       return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
           detail,
           image_urls,
           is_visible: is_visible !== false,
+          discount_percent: discount_percent !== undefined ? Number(discount_percent) : 0,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
           detail,
           image_urls,
           is_visible: is_visible !== false,
+          discount_percent: discount_percent !== undefined ? Number(discount_percent) : 0,
         })
         .select();
 

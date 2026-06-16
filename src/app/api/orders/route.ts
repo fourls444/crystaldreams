@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     for (const item of cartItems) {
       const { data: product, error: productError } = await supabaseAdmin
         .from("products")
-        .select("id, name, price, stock, is_visible, image_url")
+        .select("id, name, price, stock, is_visible, image_url, discount_percent")
         .eq("id", item.product_id)
         .single();
 
@@ -47,13 +47,18 @@ export async function POST(req: Request) {
         );
       }
 
-      const itemTotal = Number(product.price) * item.quantity;
+      let activePrice = Number(product.price);
+      if (product.discount_percent && product.discount_percent > 0) {
+        activePrice = Math.round(activePrice * (1 - product.discount_percent / 100));
+      }
+
+      const itemTotal = activePrice * item.quantity;
       total_amount += itemTotal;
 
       itemsWithDetails.push({
         product_id: product.id,
         name: product.name,
-        price: Number(product.price),
+        price: activePrice,
         quantity: item.quantity,
         image_url: product.image_url,
       });

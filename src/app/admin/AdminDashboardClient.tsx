@@ -371,7 +371,8 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
           order.id.toLowerCase().includes(q) ||
           (order.customer_name && order.customer_name.toLowerCase().includes(q)) ||
           (order.customer_tel && order.customer_tel.includes(q)) ||
-          (order.customer_address && order.customer_address.toLowerCase().includes(q))
+          (order.customer_address && order.customer_address.toLowerCase().includes(q)) ||
+          (order.customer_line && order.customer_line.toLowerCase().includes(q))
         );
       });
   }, [initialOrders, orderFilter, deferredSearchQuery]);

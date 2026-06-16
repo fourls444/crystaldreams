@@ -10,6 +10,7 @@ export async function POST(req: Request) {
     const customer_name = formData.get("customer_name") as string;
     const customer_tel = formData.get("customer_tel") as string;
     const customer_address = formData.get("customer_address") as string;
+    const customer_line = formData.get("customer_line") as string | null;
     const slipFile = formData.get("slip") as File | null;
 
     if (!order_id || !customer_name || !customer_tel || !customer_address) {
@@ -38,6 +39,13 @@ export async function POST(req: Request) {
     if (customer_address.trim().length > 300) {
       return NextResponse.json(
         { error: "ที่อยู่สำหรับการจัดส่งต้องมีความยาวไม่เกิน 300 ตัวอักษร" },
+        { status: 400 }
+      );
+    }
+
+    if (customer_line && customer_line.trim().length > 80) {
+      return NextResponse.json(
+        { error: "Line ID ต้องมีความยาวไม่เกิน 80 ตัวอักษร" },
         { status: 400 }
       );
     }
@@ -211,6 +219,7 @@ export async function POST(req: Request) {
         customer_name,
         customer_tel,
         customer_address,
+        customer_line: customer_line || null,
         slip_url: publicUrl,
         status,
         updated_at: new Date().toISOString(),
@@ -244,6 +253,7 @@ export async function POST(req: Request) {
         customerName: customer_name,
         customerTel: customer_tel,
         customerAddress: customer_address,
+        customerLine: customer_line || undefined,
         amount: Number(order.total_amount),
         status: "cod_pending",
       });

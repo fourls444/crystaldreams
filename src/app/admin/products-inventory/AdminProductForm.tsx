@@ -15,6 +15,7 @@ interface Product {
   detail?: string | null;
   image_urls?: string[] | null;
   is_visible?: boolean;
+  discount_percent?: number;
 }
 
 interface Props {
@@ -26,6 +27,7 @@ interface Props {
 export default function AdminProductForm({ initialProduct, onSaveSuccess, onCancel }: Props) {
   const [name, setName] = useState(initialProduct?.name || "");
   const [price, setPrice] = useState<number | "">(initialProduct?.price !== undefined ? initialProduct.price : "");
+  const [discountPercent, setDiscountPercent] = useState<number | "">(initialProduct?.discount_percent !== undefined ? initialProduct.discount_percent : 0);
   const [stock, setStock] = useState<number | "">(initialProduct?.stock !== undefined ? initialProduct.stock : "");
   const [description, setDescription] = useState(initialProduct?.description || "");
   const [detail, setDetail] = useState(initialProduct?.detail || "");
@@ -188,6 +190,7 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
           detail,
           image_urls: imageUrls,
           is_visible: isVisible,
+          discount_percent: discountPercent === "" ? 0 : Number(discountPercent),
         }),
       });
 
@@ -246,18 +249,18 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
 
       <div className={styles.inputGroup}>
         <label htmlFor="name">ชื่อสินค้า</label>
-        <input
+        <textarea
           id="name"
-          type="text"
           required
+          rows={2}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className={styles.input}
+          className={styles.textarea}
           placeholder="ใส่ชื่อสินค้า (เช่น หมอนเพื่อสุขภาพ)"
         />
       </div>
 
-      <div className={styles.inputRow}>
+      <div className={styles.inputRowThree}>
         <div className={styles.inputGroup}>
           <label htmlFor="price">ราคาขาย (บาท)</label>
           <input
@@ -283,6 +286,20 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
             onChange={(e) => setStock(e.target.value === "" ? "" : Number(e.target.value))}
             className={styles.input}
             placeholder="ใส่จำนวนสินค้าคงเหลือในสต็อก เช่น 10"
+          />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="discountPercent">ส่วนลด (%)</label>
+          <input
+            id="discountPercent"
+            type="number"
+            min="0"
+            max="100"
+            value={discountPercent}
+            onChange={(e) => setDiscountPercent(e.target.value === "" ? "" : Number(e.target.value))}
+            className={styles.input}
+            placeholder="ใส่เปอร์เซ็นต์ส่วนลด เช่น 10"
           />
         </div>
       </div>

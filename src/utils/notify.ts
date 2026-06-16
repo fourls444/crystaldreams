@@ -23,6 +23,7 @@ interface NotificationParams {
   customerName: string;
   customerTel: string;
   customerAddress: string;
+  customerLine?: string;
   amount: number;
   slipUrl?: string;
   status: "pending" | "slip_uploaded" | "verified" | "rejected" | "cod_pending";
@@ -111,6 +112,15 @@ export async function sendAdminNotification(params: NotificationParams): Promise
               text: `📞 เบอร์โทร: ${params.customerTel}`, // Private channel receives original data
               size: "sm",
             },
+            ...(params.customerLine
+              ? [
+                  {
+                    type: "text",
+                    text: `💬 Line ID: ${params.customerLine}`,
+                    size: "sm",
+                  },
+                ]
+              : []),
             {
               type: "text",
               text: `📍 ที่อยู่: ${params.customerAddress}`, // Private channel receives original data
@@ -209,6 +219,7 @@ export async function sendAdminNotification(params: NotificationParams): Promise
           <h3>รายละเอียดลูกค้า</h3>
           <p><strong>ชื่อผู้รับ:</strong> คุณ${params.customerName}</p>
           <p><strong>เบอร์โทรศัพท์:</strong> ${params.customerTel}</p>
+          ${params.customerLine ? `<p><strong>Line ID:</strong> ${params.customerLine}</p>` : ""}
           <p><strong>ที่อยู่จัดส่ง:</strong> ${params.customerAddress}</p>
           <p><strong>${amountLabelText}:</strong> ${params.amount.toLocaleString()} บาท</p>
           ${params.slipUrl ? `<p><a href="${params.slipUrl}" style="display: inline-block; padding: 10px 20px; background-color: #1DB954; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">ดูรูปภาพสลิปที่อัปโหลด</a></p>` : ""}

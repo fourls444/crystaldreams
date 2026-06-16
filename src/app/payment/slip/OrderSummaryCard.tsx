@@ -49,7 +49,7 @@ export default function OrderSummaryCard({
                   />
                 </div>
                 <div style={{ flexGrow: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0f172a", whiteSpace: "pre-line" }}>
                     {item.name}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.15rem" }}>
