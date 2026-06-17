@@ -24,7 +24,13 @@
   gap: 2.5rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(var(--cols-count, 5), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
   .grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }

@@ -38,6 +38,9 @@ export default function SystemSettingsManager() {
   const [col5Text, setCol5Text] = useState("");
   const [col5Visible, setCol5Visible] = useState(false);
 
+  // Tab state for Footer columns
+  const [activeFooterTab, setActiveFooterTab] = useState(1);
+
   // Initial states for comparison
   const [initialMainTitle, setInitialMainTitle] = useState("");
   const [initialCol1Title, setInitialCol1Title] = useState("");
@@ -481,6 +484,152 @@ export default function SystemSettingsManager() {
 
   const isBillPayment = cleanNum.length === 15;
 
+  const renderFooterColumnTab = (
+    num: number,
+    title: string,
+    setTitle: (val: string) => void,
+    text: string,
+    setText: (val: string) => void,
+    visible: boolean,
+    setVisible: (val: boolean) => void
+  ) => {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1e3a8a", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.5rem", height: "1.5rem", borderRadius: "50%", backgroundColor: "#eff6ff", color: "#1e3a8a", fontSize: "0.8rem", fontWeight: 800 }}>
+              {num}
+            </span>
+            จัดการข้อมูลคอลัมน์ที่ {num}
+          </span>
+          <button 
+            type="button"
+            onClick={() => setVisible(!visible)}
+            style={{ 
+              background: "none", 
+              border: "1px solid", 
+              borderColor: visible ? "#bfdbfe" : "#cbd5e1",
+              cursor: "pointer", 
+              color: visible ? "#1e3a8a" : "#64748b",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.35rem 0.75rem",
+              borderRadius: "0.375rem",
+              backgroundColor: visible ? "#eff6ff" : "#f1f5f9",
+              transition: "all 0.2s"
+            }}
+          >
+            {visible ? <Eye size={16} /> : <EyeOff size={16} />}
+            <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{visible ? "แสดงผลบนหน้าเว็บ" : "ซ่อนคอลัมน์นี้"}</span>
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.5rem" }}>
+              หัวข้อย่อย (Column Title)
+            </label>
+            <input
+              type="text"
+              placeholder="ระบุหัวข้อย่อย เช่น ติดต่อเรา"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={!visible}
+              style={{ 
+                width: "100%", 
+                padding: "0.75rem 1rem", 
+                borderRadius: "0.5rem", 
+                border: "1px solid #cbd5e1", 
+                backgroundColor: visible ? "#ffffff" : "#f8fafc", 
+                color: visible ? "#0f172a" : "#94a3b8",
+                cursor: visible ? "text" : "not-allowed",
+                fontSize: "0.95rem",
+                fontWeight: 500,
+                transition: "all 0.2s"
+              }}
+              required={visible}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.5rem" }}>
+              เนื้อหา (Column Content)
+            </label>
+            <textarea
+              placeholder="ระบุรายละเอียดข้อความของคุณ..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              disabled={!visible}
+              rows={5}
+              style={{ 
+                width: "100%", 
+                padding: "0.75rem 1rem", 
+                borderRadius: "0.5rem", 
+                border: "1px solid #cbd5e1", 
+                fontFamily: "inherit", 
+                backgroundColor: visible ? "#ffffff" : "#f8fafc", 
+                color: visible ? "#0f172a" : "#94a3b8",
+                cursor: visible ? "text" : "not-allowed",
+                fontSize: "0.95rem",
+                lineHeight: "1.5",
+                transition: "all 0.2s"
+              }}
+              required={visible}
+            />
+            <p style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.35rem", marginBottom: 0 }}>
+              💡 สามารถกดปุ่ม Enter เพื่อขึ้นบรรทัดใหม่ได้ ข้อความจะแสดงผลแยกบรรทัดบนหน้าหลักตามที่คุณจัดพิมพ์
+            </p>
+          </div>
+        </div>
+
+        {/* Live Preview Box */}
+        <div style={{
+          marginTop: "0.5rem",
+          padding: "1.25rem",
+          borderRadius: "0.75rem",
+          border: "1px dashed #cbd5e1",
+          backgroundColor: "#ffffff",
+          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)"
+        }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.75rem" }}>
+            ตัวอย่างแสดงผลจริงในหน้าแรก (Live Preview)
+          </div>
+          {visible ? (
+            <div style={{ 
+              borderLeft: "3px solid #1e3a8a", 
+              paddingLeft: "0.75rem",
+              textAlign: "left"
+            }}>
+              <h4 style={{ 
+                fontSize: "1.1rem", 
+                fontWeight: 600, 
+                color: "#1e293b", 
+                margin: "0 0 0.5rem 0", 
+                fontFamily: "inherit" 
+              }}>
+                {title.trim() || <span style={{ color: "#cbd5e1", fontStyle: "italic" }}>ไม่ได้ระบุหัวข้อ</span>}
+              </h4>
+              <p style={{ 
+                fontSize: "0.9rem", 
+                color: "#475569", 
+                lineHeight: "1.6", 
+                margin: 0, 
+                whiteSpace: "pre-line", 
+                fontFamily: "inherit" 
+              }}>
+                {text.trim() || <span style={{ color: "#cbd5e1", fontStyle: "italic" }}>ไม่ได้ระบุเนื้อหา</span>}
+              </p>
+            </div>
+          ) : (
+            <div style={{ color: "#94a3b8", fontSize: "0.85rem", fontStyle: "italic", textAlign: "left" }}>
+              คอลัมน์นี้ถูกปิดใช้งาน (ซ่อนอยู่) จะไม่แสดงบนหน้าหลัก
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.panelContainer}>
       <header className={styles.panelHeader}>
@@ -731,310 +880,76 @@ export default function SystemSettingsManager() {
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", marginTop: "0.5rem" }}>
-                {/* Column 1 */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "0.5rem" }}>
+                {/* Tabs Navigation */}
                 <div style={{ 
-                  border: col1Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
-                  padding: "1.25rem", 
-                  borderRadius: "0.75rem", 
-                  backgroundColor: col1Visible ? "#f0f9ff" : "#f8fafc",
-                  opacity: col1Visible ? 1 : 0.65,
-                  transition: "all 0.2s"
+                  display: "flex", 
+                  gap: "0.5rem", 
+                  borderBottom: "1px solid #e2e8f0", 
+                  paddingBottom: "0.75rem", 
+                  overflowX: "auto",
+                  scrollbarWidth: "thin"
                 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col1Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 1</h4>
-                    <button 
-                      type="button"
-                      onClick={() => setCol1Visible(!col1Visible)}
-                      style={{ 
-                        background: "none", 
-                        border: "none", 
-                        cursor: "pointer", 
-                        color: col1Visible ? "#1e3a8a" : "#64748b",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        padding: "0.25rem 0.5rem",
-                        borderRadius: "0.375rem",
-                        backgroundColor: col1Visible ? "#eff6ff" : "#f1f5f9",
-                        transition: "all 0.2s"
-                      }}
-                      title={col1Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
-                    >
-                      {col1Visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col1Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
-                      <input
-                        type="text"
-                        placeholder="เช่น สถานที่ตั้ง"
-                        value={col1Title}
-                        onChange={(e) => setCol1Title(e.target.value)}
-                        disabled={!col1Visible}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col1Visible ? "#ffffff" : "#f1f5f9", cursor: col1Visible ? "text" : "not-allowed" }}
-                        required={col1Visible}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
-                      <textarea
-                        placeholder="เช่น ซอย 57..."
-                        value={col1Text}
-                        onChange={(e) => setCol1Text(e.target.value)}
-                        disabled={!col1Visible}
-                        rows={4}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col1Visible ? "#ffffff" : "#f1f5f9", cursor: col1Visible ? "text" : "not-allowed" }}
-                        required={col1Visible}
-                      />
-                    </div>
-                  </div>
+                  {[1, 2, 3, 4, 5].map((num) => {
+                    const isTabActive = activeFooterTab === num;
+                    const colTitle = num === 1 ? col1Title : num === 2 ? col2Title : num === 3 ? col3Title : num === 4 ? col4Title : col5Title;
+                    const colVisible = num === 1 ? col1Visible : num === 2 ? col2Visible : num === 3 ? col3Visible : num === 4 ? col4Visible : col5Visible;
+                    
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setActiveFooterTab(num)}
+                        style={{
+                          padding: "0.5rem 1rem",
+                          borderRadius: "0.5rem",
+                          fontSize: "0.875rem",
+                          fontWeight: 600,
+                          border: "1px solid",
+                          borderColor: isTabActive ? "#1e3a8a" : "#e2e8f0",
+                          backgroundColor: isTabActive ? "#eff6ff" : "#ffffff",
+                          color: isTabActive ? "#1e3a8a" : "#64748b",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          whiteSpace: "nowrap",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        <span style={{ 
+                          width: "8px", 
+                          height: "8px", 
+                          borderRadius: "50%", 
+                          backgroundColor: colVisible ? "#22c55e" : "#cbd5e1",
+                          flexShrink: 0
+                        }} />
+                        <span>คอลัมน์ที่ {num} {colTitle.trim() ? `(${colTitle.trim()})` : ''}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Column 2 */}
-                <div style={{ 
-                  border: col2Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
-                  padding: "1.25rem", 
+                {/* Tab content panel */}
+                <div style={{
+                  border: (activeFooterTab === 1 ? col1Visible : activeFooterTab === 2 ? col2Visible : activeFooterTab === 3 ? col3Visible : activeFooterTab === 4 ? col4Visible : col5Visible) 
+                    ? "1px solid #bfdbfe" 
+                    : "1px solid #e2e8f0", 
+                  padding: "1.5rem", 
                   borderRadius: "0.75rem", 
-                  backgroundColor: col2Visible ? "#f0f9ff" : "#f8fafc",
-                  opacity: col2Visible ? 1 : 0.65,
+                  backgroundColor: (activeFooterTab === 1 ? col1Visible : activeFooterTab === 2 ? col2Visible : activeFooterTab === 3 ? col3Visible : activeFooterTab === 4 ? col4Visible : col5Visible) 
+                    ? "#f0f9ff" 
+                    : "#f8fafc",
+                  opacity: (activeFooterTab === 1 ? col1Visible : activeFooterTab === 2 ? col2Visible : activeFooterTab === 3 ? col3Visible : activeFooterTab === 4 ? col4Visible : col5Visible) 
+                    ? 1 
+                    : 0.85,
                   transition: "all 0.2s"
                 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col2Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 2</h4>
-                    <button 
-                      type="button"
-                      onClick={() => setCol2Visible(!col2Visible)}
-                      style={{ 
-                        background: "none", 
-                        border: "none", 
-                        cursor: "pointer", 
-                        color: col2Visible ? "#1e3a8a" : "#64748b",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        padding: "0.25rem 0.5rem",
-                        borderRadius: "0.375rem",
-                        backgroundColor: col2Visible ? "#eff6ff" : "#f1f5f9",
-                        transition: "all 0.2s"
-                      }}
-                      title={col2Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
-                    >
-                      {col2Visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col2Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
-                      <input
-                        type="text"
-                        placeholder="เช่น ติดต่อ"
-                        value={col2Title}
-                        onChange={(e) => setCol2Title(e.target.value)}
-                        disabled={!col2Visible}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col2Visible ? "#ffffff" : "#f1f5f9", cursor: col2Visible ? "text" : "not-allowed" }}
-                        required={col2Visible}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
-                      <textarea
-                        placeholder="เช่น Call..."
-                        value={col2Text}
-                        onChange={(e) => setCol2Text(e.target.value)}
-                        disabled={!col2Visible}
-                        rows={4}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col2Visible ? "#ffffff" : "#f1f5f9", cursor: col2Visible ? "text" : "not-allowed" }}
-                        required={col2Visible}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 3 */}
-                <div style={{ 
-                  border: col3Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
-                  padding: "1.25rem", 
-                  borderRadius: "0.75rem", 
-                  backgroundColor: col3Visible ? "#f0f9ff" : "#f8fafc",
-                  opacity: col3Visible ? 1 : 0.65,
-                  transition: "all 0.2s"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col3Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 3</h4>
-                    <button 
-                      type="button"
-                      onClick={() => setCol3Visible(!col3Visible)}
-                      style={{ 
-                        background: "none", 
-                        border: "none", 
-                        cursor: "pointer", 
-                        color: col3Visible ? "#1e3a8a" : "#64748b",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        padding: "0.25rem 0.5rem",
-                        borderRadius: "0.375rem",
-                        backgroundColor: col3Visible ? "#eff6ff" : "#f1f5f9",
-                        transition: "all 0.2s"
-                      }}
-                      title={col3Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
-                    >
-                      {col3Visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col3Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
-                      <input
-                        type="text"
-                        placeholder="เช่น ที่มา"
-                        value={col3Title}
-                        onChange={(e) => setCol3Title(e.target.value)}
-                        disabled={!col3Visible}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col3Visible ? "#ffffff" : "#f1f5f9", cursor: col3Visible ? "text" : "not-allowed" }}
-                        required={col3Visible}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
-                      <textarea
-                        placeholder="เช่น Crystal Dreams ก่อตั้ง..."
-                        value={col3Text}
-                        onChange={(e) => setCol3Text(e.target.value)}
-                        disabled={!col3Visible}
-                        rows={4}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col3Visible ? "#ffffff" : "#f1f5f9", cursor: col3Visible ? "text" : "not-allowed" }}
-                        required={col3Visible}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 4 */}
-                <div style={{ 
-                  border: col4Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
-                  padding: "1.25rem", 
-                  borderRadius: "0.75rem", 
-                  backgroundColor: col4Visible ? "#f0f9ff" : "#f8fafc",
-                  opacity: col4Visible ? 1 : 0.65,
-                  transition: "all 0.2s"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col4Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 4</h4>
-                    <button 
-                      type="button"
-                      onClick={() => setCol4Visible(!col4Visible)}
-                      style={{ 
-                        background: "none", 
-                        border: "none", 
-                        cursor: "pointer", 
-                        color: col4Visible ? "#1e3a8a" : "#64748b",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        padding: "0.25rem 0.5rem",
-                        borderRadius: "0.375rem",
-                        backgroundColor: col4Visible ? "#eff6ff" : "#f1f5f9",
-                        transition: "all 0.2s"
-                      }}
-                      title={col4Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
-                    >
-                      {col4Visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col4Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
-                      <input
-                        type="text"
-                        placeholder="เช่น บริการลูกค้า"
-                        value={col4Title}
-                        onChange={(e) => setCol4Title(e.target.value)}
-                        disabled={!col4Visible}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col4Visible ? "#ffffff" : "#f1f5f9", cursor: col4Visible ? "text" : "not-allowed" }}
-                        required={col4Visible}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
-                      <textarea
-                        placeholder="เช่น นโยบายต่าง ๆ..."
-                        value={col4Text}
-                        onChange={(e) => setCol4Text(e.target.value)}
-                        disabled={!col4Visible}
-                        rows={4}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col4Visible ? "#ffffff" : "#f1f5f9", cursor: col4Visible ? "text" : "not-allowed" }}
-                        required={col4Visible}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 5 */}
-                <div style={{ 
-                  border: col5Visible ? "1px solid #bfdbfe" : "1px solid #e2e8f0", 
-                  padding: "1.25rem", 
-                  borderRadius: "0.75rem", 
-                  backgroundColor: col5Visible ? "#f0f9ff" : "#f8fafc",
-                  opacity: col5Visible ? 1 : 0.65,
-                  transition: "all 0.2s"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                    <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: col5Visible ? "#1e3a8a" : "#64748b", margin: 0 }}>คอลัมน์ที่ 5</h4>
-                    <button 
-                      type="button"
-                      onClick={() => setCol5Visible(!col5Visible)}
-                      style={{ 
-                        background: "none", 
-                        border: "none", 
-                        cursor: "pointer", 
-                        color: col5Visible ? "#1e3a8a" : "#64748b",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        padding: "0.25rem 0.5rem",
-                        borderRadius: "0.375rem",
-                        backgroundColor: col5Visible ? "#eff6ff" : "#f1f5f9",
-                        transition: "all 0.2s"
-                      }}
-                      title={col5Visible ? "คลิกเพื่อซ่อนคอลัมน์นี้" : "คลิกเพื่อแสดงคอลัมน์นี้"}
-                    >
-                      {col5Visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                      <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{col5Visible ? "แสดงผล" : "ซ่อนอยู่"}</span>
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>หัวข้อย่อย</label>
-                      <input
-                        type="text"
-                        placeholder="เช่น ความปลอดภัย"
-                        value={col5Title}
-                        onChange={(e) => setCol5Title(e.target.value)}
-                        disabled={!col5Visible}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", backgroundColor: col5Visible ? "#ffffff" : "#f1f5f9", cursor: col5Visible ? "text" : "not-allowed" }}
-                        required={col5Visible}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.25rem" }}>เนื้อหา</label>
-                      <textarea
-                        placeholder="รายละเอียดคอลัมน์ที่ 5..."
-                        value={col5Text}
-                        onChange={(e) => setCol5Text(e.target.value)}
-                        disabled={!col5Visible}
-                        rows={4}
-                        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit", backgroundColor: col5Visible ? "#ffffff" : "#f1f5f9", cursor: col5Visible ? "text" : "not-allowed" }}
-                        required={col5Visible}
-                      />
-                    </div>
-                  </div>
+                  {activeFooterTab === 1 && renderFooterColumnTab(1, col1Title, setCol1Title, col1Text, setCol1Text, col1Visible, setCol1Visible)}
+                  {activeFooterTab === 2 && renderFooterColumnTab(2, col2Title, setCol2Title, col2Text, setCol2Text, col2Visible, setCol2Visible)}
+                  {activeFooterTab === 3 && renderFooterColumnTab(3, col3Title, setCol3Title, col3Text, setCol3Text, col3Visible, setCol3Visible)}
+                  {activeFooterTab === 4 && renderFooterColumnTab(4, col4Title, setCol4Title, col4Text, setCol4Text, col4Visible, setCol4Visible)}
+                  {activeFooterTab === 5 && renderFooterColumnTab(5, col5Title, setCol5Title, col5Text, setCol5Text, col5Visible, setCol5Visible)}
                 </div>
               </div>
             </div>
