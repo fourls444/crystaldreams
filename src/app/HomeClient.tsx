@@ -88,37 +88,99 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
     setActiveImgIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const customerInitial = review.customer_name ? review.customer_name.trim().charAt(0).toUpperCase() : "U";
+
   return (
     <div className={styles.reviewCard}>
-      {/* Review Header with full product name before customer name */}
-      <div className={styles.reviewHeader}>
-        {review.products?.name && (
-          <div className={styles.productNameRow}>
-            <span className={styles.reviewLabelSmall}>สินค้าที่รีวิว:</span>
-            <span className={styles.productNameFull}>
-              {review.products.name}
-            </span>
-          </div>
-        )}
-        <div className={styles.customerNameRow}>
-          <span className={styles.reviewLabelSmall}>ชื่อลูกค้า:</span>
-          <span className={styles.customerName}>
+      {/* Testimonial Header: Avatar, Name, Stars */}
+      <div style={{ display: "flex", gap: "0.85rem", alignItems: "center" }}>
+        <div style={{
+          width: "42px",
+          height: "42px",
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
+          color: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: 700,
+          fontSize: "1.1rem",
+          flexShrink: 0,
+          boxShadow: "0 2px 8px rgba(30, 58, 138, 0.15)",
+        }}>
+          {customerInitial}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem", flexGrow: 1, minWidth: 0 }}>
+          <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {review.customer_name}
           </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            <RatingStars rating={Number(review.rating)} />
+            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#f59e0b" }}>
+              {Number(review.rating).toFixed(1)}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Review Screenshot Image */}
+      {/* Product Tag Badge */}
+      {review.products?.name && (
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "0.35rem",
+          padding: "0.35rem 0.75rem",
+          backgroundColor: "#eff6ff",
+          border: "1px solid #dbeafe",
+          borderRadius: "9999px",
+          width: "fit-content",
+          maxWidth: "100%",
+        }}>
+          <span style={{ fontSize: "0.75rem", color: "#1e3a8a", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem", whiteSpace: "nowrap" }}>
+            🛍️ สินค้าที่รีวิว:
+          </span>
+          <span style={{
+            fontSize: "0.75rem",
+            color: "#1e40af",
+            fontWeight: 600,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }} title={review.products.name}>
+            {review.products.name}
+          </span>
+        </div>
+      )}
+
+      {/* Review Screenshot Image with Background Blur Fill */}
       {images.length > 0 && (
         <div
           className={styles.reviewImageWrapper}
           onClick={() => setLightboxUrl(images[activeImgIndex])}
           title="คลิกเพื่อขยายรูปภาพรีวิว"
         >
+          {/* Blur background fill */}
+          <img
+            src={images[activeImgIndex]}
+            alt="Blur background fill"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "blur(14px) opacity(0.2)",
+              pointerEvents: "none",
+              zIndex: 1,
+            }}
+          />
+          
           <img
             src={images[activeImgIndex]}
             alt={`Review by ${review.customer_name}`}
             className={styles.reviewImage}
+            style={{ zIndex: 2 }}
             loading="lazy"
           />
           
@@ -128,6 +190,7 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
                 type="button"
                 onClick={handlePrev}
                 className={styles.reviewImageNavBtnLeft}
+                style={{ zIndex: 10 }}
                 aria-label="รูปภาพก่อนหน้า"
               >
                 <ChevronLeft size={16} />
@@ -136,12 +199,13 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
                 type="button"
                 onClick={handleNext}
                 className={styles.reviewImageNavBtnRight}
+                style={{ zIndex: 10 }}
                 aria-label="รูปภาพถัดไป"
               >
                 <ChevronRight size={16} />
               </button>
               
-              <div className={styles.reviewImageIndicators}>
+              <div className={styles.reviewImageIndicators} style={{ zIndex: 10 }}>
                 {images.map((_, idx) => (
                   <span
                     key={idx}
@@ -154,25 +218,25 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
             </>
           )}
 
-          <div className={styles.reviewImageOverlay}>
+          <div className={styles.reviewImageOverlay} style={{ zIndex: 5 }}>
             <ZoomIn size={20} />
           </div>
         </div>
       )}
 
-      {/* Star ratings and rating text */}
-      <div className={styles.starsRow}>
-        <RatingStars rating={Number(review.rating)} />
-        <span className={styles.ratingText}>
-          ({Number(review.rating).toFixed(1)} / 5.0 คะแนน)
-        </span>
-      </div>
-
-      {/* Comment section */}
-      <div className={styles.commentSection}>
-        <span className={styles.reviewLabel}>รายละเอียดการรีวิว:</span>
-        <p className={styles.reviewComment} title={review.comment}>
-          {review.comment}
+      {/* Review Comment Quote Block */}
+      <div style={{ position: "relative", marginTop: "0.25rem" }}>
+        <p style={{
+          fontSize: "0.875rem",
+          color: "#475569",
+          lineHeight: "1.6",
+          margin: 0,
+          fontStyle: "italic",
+          whiteSpace: "pre-line",
+          paddingLeft: "0.75rem",
+          borderLeft: "3px solid #3b82f6",
+        }} title={review.comment}>
+          "{review.comment}"
         </p>
       </div>
     </div>

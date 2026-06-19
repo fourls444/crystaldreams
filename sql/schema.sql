@@ -56,7 +56,9 @@ CREATE POLICY "Allow public read on products" ON products
     FOR SELECT USING (is_visible = true);
 
 CREATE POLICY "Allow admins to manage products" ON products
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL
+    TO authenticated
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
 
 -- Create Policies for orders (Anyone can create and read by ID, Admin can manage all)
 CREATE POLICY "Allow public create orders" ON orders
@@ -66,7 +68,9 @@ CREATE POLICY "Allow public select orders by id" ON orders
     FOR SELECT USING (true); -- In production we can restrict or keep it open since IDs are UUIDs.
 
 CREATE POLICY "Allow admins to manage orders" ON orders
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL
+    TO authenticated
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
 
 -- --- DATABASE MIGRATION FOR EXISTING TABLES ---
 -- Run this SQL in your Supabase SQL Editor:
@@ -93,7 +97,9 @@ CREATE POLICY "Allow public select settings" ON settings
 
 DROP POLICY IF EXISTS "Allow admins to manage settings" ON settings;
 CREATE POLICY "Allow admins to manage settings" ON settings
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL
+    TO authenticated
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
 
 -- Insert default promptpay number if not exists
 INSERT INTO settings (key, value)
@@ -121,4 +127,6 @@ CREATE POLICY "Allow public select reviews" ON reviews
     FOR SELECT USING (is_visible = true);
 
 CREATE POLICY "Allow admins to manage reviews" ON reviews
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL
+    TO authenticated
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );

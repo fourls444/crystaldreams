@@ -213,7 +213,112 @@ export async function verifyOrderSlip(orderId: string): Promise<VerifySlipResult
         };
       }
 
-      // 2. Validate Amount: verify that amount paid matches order total_amount
+      // 2. Validate Recipient Name: check if the receiver's name matches our shop name (if configured)
+      const expectedReceiver = process.env.SHOP_RECEIVER_NAME;
+      if (expectedReceiver) {
+        const receiverObj = slipDetails.receiver || {};
+        const receiverName = receiverObj.name || receiverObj.displayName || "";
+        const cleanExpected = expectedReceiver.replace(/\s+/g, "").toLowerCase();
+        const cleanActual = receiverName.replace(/\s+/g, "").toLowerCase();
+        
+        if (cleanActual && !cleanActual.includes(cleanExpected) && !cleanExpected.includes(cleanActual)) {
+          console.warn(`[Verify Service] Recipient mismatch: Expected: ${expectedReceiver}, Actual: ${receiverName}`);
+          
+          await supabaseAdmin
+            .from("orders")
+            .update({
+              status: "slip_uploaded",
+              verified_by: `pending_manual_recipient_mismatch_receiver_${receiverName}`,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", orderId);
+
+          // Notify admin about the recipient mismatch
+          await sendAdminNotification({
+            orderId,
+            customerName: order.customer_name || "ไม่ระบุชื่อ",
+            customerTel: order.customer_tel || "ไม่ระบุเบอร์โทร",
+            customerAddress: order.customer_address || "ไม่ระบุที่อยู่",
+            customerLine: order.customer_line || undefined,
+            amount: amountPaid,
+            slipUrl: order.slip_url,
+            status: "slip_uploaded",
+            senderName: `บัญชีผู้รับไม่ตรง (ผู้รับ: ${receiverName})`,
+          }).catch((err) => console.error("[Verify Service] Recipient mismatch notification failed:", err));
+
+          return {
+            success: false,
+            verified: false,
+            fallback: true,
+            message: `บัญชีผู้รับโอนไม่ถูกต้อง (ผู้รับโอนคือ ${receiverName} แต่ต้องโอนให้ ${expectedReceiver})`,
+            error: "Recipient name mismatch, queued for manual approval",
+          };
+        }
+      }
+
+      // 3. Validate Transfer Date: check if the payment is within 24 hours of order creation
+      if (slipDetails.transDate) {
+        try {
+          const year = parseInt(slipDetails.transDate.substring(0, 4));
+          const month = parseInt(slipDetails.transDate.substring(4, 6)) - 1; // 0-indexed month
+          const day = parseInt(slipDetails.transDate.substring(6, 8));
+          
+          let hour = 0;
+          let minute = 0;
+          let second = 0;
+          if (slipDetails.transTime) {
+            const timeParts = slipDetails.transTime.split(":");
+            if (timeParts.length >= 3) {
+              hour = parseInt(timeParts[0]);
+              minute = parseInt(timeParts[1]);
+              second = parseInt(timeParts[2]);
+            }
+          }
+          
+          const transferDate = new Date(year, month, day, hour, minute, second);
+          const orderDate = new Date(order.created_at);
+          const diffInMs = Math.abs(orderDate.getTime() - transferDate.getTime());
+          const diffInHours = diffInMs / (1000 * 60 * 60);
+          
+          if (diffInHours > 24) {
+            console.warn(`[Verify Service] Transfer date too old: Order created: ${orderDate.toISOString()}, Slip transfer date: ${transferDate.toISOString()}`);
+            
+            await supabaseAdmin
+              .from("orders")
+              .update({
+                status: "slip_uploaded",
+                verified_by: `pending_manual_slip_expired_transfer_date_${slipDetails.transDate}`,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", orderId);
+
+            // Notify admin about the expired slip date
+            await sendAdminNotification({
+              orderId,
+              customerName: order.customer_name || "ไม่ระบุชื่อ",
+              customerTel: order.customer_tel || "ไม่ระบุเบอร์โทร",
+              customerAddress: order.customer_address || "ไม่ระบุที่อยู่",
+              customerLine: order.customer_line || undefined,
+              amount: amountPaid,
+              slipUrl: order.slip_url,
+              status: "slip_uploaded",
+              senderName: `สลิปเก่าเกิน 24 ชม. (โอนวันที่: ${day}/${month + 1}/${year})`,
+            }).catch((err) => console.error("[Verify Service] Expired slip date notification failed:", err));
+
+            return {
+              success: false,
+              verified: false,
+              fallback: true,
+              message: "สลิปโอนเงินนี้เก่าเกินไป (ทำรายการห่างจากเวลาสั่งซื้อเกิน 24 ชั่วโมง)",
+              error: "Slip date expired, queued for manual approval",
+            };
+          }
+        } catch (dateErr) {
+          console.error("[Verify Service] Failed to validate slip transfer date:", dateErr);
+        }
+      }
+
+      // 4. Validate Amount: verify that amount paid matches order total_amount
       if (amountPaid !== Number(order.total_amount)) {
         console.warn(`[Verify Service] Amount mismatch: Expected ${order.total_amount}, Paid: ${amountPaid}`);
         

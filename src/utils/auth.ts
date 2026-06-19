@@ -46,9 +46,10 @@ export async function isAdminAuthenticated(): Promise<boolean> {
         // Check standard metadata role flags
         // IMPORTANT: Do NOT use user.role === "authenticated" here.
         // "authenticated" is the default role for ALL Supabase users, not just admins.
+        // SECURITY UPDATE: We removed user.user_metadata?.isAdmin to prevent privilege escalation,
+        // because user_metadata is user-editable on the client-side. App metadata is database-locked.
         const hasAdminMeta =
           user.app_metadata?.isAdmin === true ||
-          user.user_metadata?.isAdmin === true ||
           user.app_metadata?.role === "admin";
         
         if (hasAdminMeta) {
