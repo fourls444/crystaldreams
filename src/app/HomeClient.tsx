@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
+import RatingStars from "@/components/RatingStars";
 import styles from "./HomeClient.module.css";
 import type { Review } from "@/types/review";
 
@@ -26,51 +27,6 @@ interface HomeClientProps {
   initialProducts: Product[];
   initialReviews: Review[];
   initialSettings: Record<string, string>;
-}
-
-function RatingStars({ rating }: { rating: number }) {
-  const stars = [];
-  for (let i = 1; i <= 5; i++) {
-    const leftVal = i - 0.5;
-    const rightVal = i;
-
-    stars.push(
-      <div
-        key={i}
-        style={{
-          position: "relative",
-          display: "inline-block",
-          width: "16px",
-          height: "16px",
-        }}
-      >
-        <Star
-          size={16}
-          color="#cbd5e1"
-          fill="#cbd5e1"
-          style={{ position: "absolute", top: 0, left: 0 }}
-        />
-        {rating >= leftVal && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: rating >= rightVal ? "100%" : "50%",
-              overflow: "hidden",
-            }}
-          >
-            <Star size={16} color="#fbbf24" fill="#fbbf24" />
-          </div>
-        )}
-      </div>
-    );
-  }
-  return (
-    <div style={{ display: "inline-flex", gap: "2px", alignItems: "center" }}>
-      {stars}
-    </div>
-  );
 }
 
 function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl: (url: string | null) => void }) {
@@ -98,7 +54,7 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
           width: "42px",
           height: "42px",
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
+          background: "#0037ad",
           color: "#ffffff",
           display: "flex",
           alignItems: "center",
@@ -122,35 +78,6 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
           </div>
         </div>
       </div>
-
-      {/* Product Tag Badge */}
-      {review.products?.name && (
-        <div style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.35rem",
-          padding: "0.35rem 0.75rem",
-          backgroundColor: "#eff6ff",
-          border: "1px solid #dbeafe",
-          borderRadius: "9999px",
-          width: "fit-content",
-          maxWidth: "100%",
-        }}>
-          <span style={{ fontSize: "0.75rem", color: "#1e3a8a", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem", whiteSpace: "nowrap" }}>
-            🛍️ สินค้าที่รีวิว:
-          </span>
-          <span style={{
-            fontSize: "0.75rem",
-            color: "#1e40af",
-            fontWeight: 600,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }} title={review.products.name}>
-            {review.products.name}
-          </span>
-        </div>
-      )}
 
       {/* Review Screenshot Image with Background Blur Fill */}
       {images.length > 0 && (
@@ -193,7 +120,7 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
                 style={{ zIndex: 10 }}
                 aria-label="รูปภาพก่อนหน้า"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={10} />
               </button>
               <button
                 type="button"
@@ -202,7 +129,7 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
                 style={{ zIndex: 10 }}
                 aria-label="รูปภาพถัดไป"
               >
-                <ChevronRight size={16} />
+                <ChevronRight size={10} />
               </button>
               
               <div className={styles.reviewImageIndicators} style={{ zIndex: 10 }}>
@@ -219,13 +146,29 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
           )}
 
           <div className={styles.reviewImageOverlay} style={{ zIndex: 5 }}>
-            <ZoomIn size={20} />
+            <ZoomIn size={16} />
           </div>
         </div>
       )}
 
+      {/* Product Tag Text (Moved under the image, no emoji, no border badge) */}
+      {review.products?.name && (
+        <div style={{
+          fontSize: "0.75rem",
+          color: "#475569",
+          fontWeight: 600,
+          marginTop: "0.25rem",
+          width: "100%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap"
+        }} title={review.products.name}>
+          สินค้าที่รีวิว: <span style={{ fontWeight: 700, color: "#0037ad" }}>{review.products.name}</span>
+        </div>
+      )}
+
       {/* Review Comment Quote Block */}
-      <div style={{ position: "relative", marginTop: "0.25rem" }}>
+      <div style={{ position: "relative", marginTop: "0.35rem" }}>
         <p style={{
           fontSize: "0.875rem",
           color: "#475569",
@@ -234,7 +177,7 @@ function ReviewCard({ review, setLightboxUrl }: { review: Review; setLightboxUrl
           fontStyle: "italic",
           whiteSpace: "pre-line",
           paddingLeft: "0.75rem",
-          borderLeft: "3px solid #3b82f6",
+          borderLeft: "3px solid #0037ad",
         }} title={review.comment}>
           "{review.comment}"
         </p>
@@ -248,7 +191,8 @@ export default function HomeClient({
   initialReviews,
   initialSettings,
 }: HomeClientProps) {
-  const [activeSlide, setActiveSlide] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const productsGridRef = useRef<HTMLDivElement>(null);
 
@@ -264,17 +208,32 @@ export default function HomeClient({
 
   // Parse banners dynamically from database settings
   const bannersRaw = initialSettings.homepage_banners;
-  let customBanners: string[] = [];
+  let parsedBanners: { url: string; name: string; visible: boolean }[] = [];
   if (bannersRaw) {
     try {
-      customBanners = JSON.parse(bannersRaw);
+      const parsed = JSON.parse(bannersRaw);
+      if (Array.isArray(parsed)) {
+        parsedBanners = parsed.map((item, idx) => {
+          if (typeof item === "string") {
+            return { url: item, name: `Crystal Dreams Banner ${idx + 1}`, visible: true };
+          }
+          return {
+            url: item.url || "",
+            name: item.name || `Crystal Dreams Banner ${idx + 1}`,
+            visible: item.visible !== false,
+          };
+        });
+      }
     } catch (e) {
       console.error("Failed to parse homepage_banners:", e);
     }
   }
 
-  const slides = customBanners.length > 0
-    ? customBanners.map((url, idx) => ({ id: idx + 1, url, alt: `Crystal Dreams Banner ${idx + 1}` }))
+  // Filter only visible banners for display
+  const visibleBanners = parsedBanners.filter((b) => b.visible);
+
+  const slides = visibleBanners.length > 0
+    ? visibleBanners.map((banner, idx) => ({ id: idx + 1, url: banner.url, alt: banner.name }))
     : [
         { id: 1, url: "/images/banner.png", alt: "Crystal Dreams Banner 1" },
         { id: 2, url: "/images/banner.png", alt: "Crystal Dreams Banner 2" },
@@ -282,21 +241,67 @@ export default function HomeClient({
         { id: 4, url: "/images/banner.png", alt: "Crystal Dreams Banner 4" },
       ];
 
+  const isSingle = slides.length <= 1;
+  const extendedSlides = isSingle
+    ? slides
+    : [slides[slides.length - 1], ...slides, slides[0]];
+
+  const handleTransitionEnd = () => {
+    if (isSingle) return;
+    if (currentIndex === 0) {
+      setIsTransitioning(false);
+      setCurrentIndex(slides.length);
+    } else if (currentIndex === slides.length + 1) {
+      setIsTransitioning(false);
+      setCurrentIndex(1);
+    }
+  };
+
+  // Re-enable transition after warping
+  useEffect(() => {
+    if (!isTransitioning) {
+      const raf = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsTransitioning(true);
+        });
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [isTransitioning]);
+
   // Carousel auto play
   useEffect(() => {
+    if (isSingle) return;
     const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % slides.length);
+      handleNextSlide();
     }, 5000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, currentIndex]);
 
   const handlePrevSlide = () => {
-    setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    if (isSingle) return;
+    if (currentIndex <= 0) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev - 1);
   };
 
   const handleNextSlide = () => {
-    setActiveSlide((prev) => (prev + 1) % slides.length);
+    if (isSingle) return;
+    if (currentIndex >= slides.length + 1) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev + 1);
   };
+
+  const activeDotIndex = isSingle
+    ? 0
+    : (currentIndex - 1 + slides.length) % slides.length;
+
+  const handleDotClick = (idx: number) => {
+    setIsTransitioning(true);
+    setCurrentIndex(idx + 1);
+  };
+
+  const displayIndex = isSingle ? 0 : currentIndex;
 
   return (
     <div className="min-h-screen bg-white text-slate-800 flex flex-col justify-between font-sans">
@@ -307,60 +312,76 @@ export default function HomeClient({
         <div className={styles.carouselContainer}>
           <div
             className={styles.carouselTrack}
-            style={{ "--active-index": activeSlide } as React.CSSProperties}
+            style={{
+              transform: `translateX(calc((100% - var(--slide-width)) / 2 - (var(--slide-width) + var(--slide-gap)) * ${displayIndex}))`,
+              transition: !isSingle && isTransitioning ? "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+            }}
+            onTransitionEnd={handleTransitionEnd}
           >
-            {slides.map((slide, idx) => (
-              <div
-                key={slide.id}
-                className={`${styles.carouselSlide} ${
-                  idx === activeSlide ? styles.carouselSlideActive : ""
-                }`}
-              >
-                <img
-                  src={slide.url}
-                  alt={slide.alt}
-                  className={styles.carouselImage}
-                />
-              </div>
-            ))}
+            {extendedSlides.map((slide, idx) => {
+              const isSlideActive = isSingle
+                ? true
+                : (idx === currentIndex) ||
+                  (currentIndex === 0 && idx === slides.length) ||
+                  (currentIndex === slides.length + 1 && idx === 1);
+
+              return (
+                <div
+                  key={`${slide.id}-${idx}`}
+                  className={`${styles.carouselSlide} ${
+                    isSlideActive ? styles.carouselSlideActive : ""
+                  }`}
+                >
+                  <img
+                    src={slide.url}
+                    alt={slide.alt}
+                    className={styles.carouselImage}
+                  />
+                </div>
+              );
+            })}
           </div>
 
-          {/* Left Navigation Button */}
-          <button
-            onClick={handlePrevSlide}
-            className={styles.carouselNavBtn}
-            style={{ left: "1.25rem" }}
-            aria-label="เลื่อนไปภาพก่อนหน้า"
-          >
-            <ChevronLeft size={24} />
-          </button>
+          {!isSingle && (
+            <>
+              {/* Left Navigation Button */}
+              <button
+                onClick={handlePrevSlide}
+                className={`${styles.carouselNavBtn} ${styles.carouselNavBtnLeft}`}
+                aria-label="เลื่อนไปภาพก่อนหน้า"
+              >
+                <ChevronLeft size={24} />
+              </button>
 
-          {/* Right Navigation Button */}
-          <button
-            onClick={handleNextSlide}
-            className={styles.carouselNavBtn}
-            style={{ right: "1.25rem" }}
-            aria-label="เลื่อนไปภาพถัดไป"
-          >
-            <ChevronRight size={24} />
-          </button>
+              {/* Right Navigation Button */}
+              <button
+                onClick={handleNextSlide}
+                className={`${styles.carouselNavBtn} ${styles.carouselNavBtnRight}`}
+                aria-label="เลื่อนไปภาพถัดไป"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Carousel Indicators dots below the image */}
-        <div className={styles.carouselIndicatorsContainer}>
-          <div className={styles.carouselIndicators}>
-            {slides.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveSlide(idx)}
-                className={`${styles.indicatorDot} ${
-                  idx === activeSlide ? styles.indicatorDotActive : ""
-                }`}
-                aria-label={`ไปที่แบนเนอร์ ${idx + 1}`}
-              />
-            ))}
+        {!isSingle && (
+          <div className={styles.carouselIndicatorsContainer}>
+            <div className={styles.carouselIndicators}>
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleDotClick(idx)}
+                  className={`${styles.indicatorDot} ${
+                    idx === activeDotIndex ? styles.indicatorDotActive : ""
+                  }`}
+                  aria-label={`ไปที่แบนเนอร์ ${idx + 1}`}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <main className={styles.main}>

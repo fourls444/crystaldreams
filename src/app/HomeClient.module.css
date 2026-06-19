@@ -2,50 +2,53 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem 0.25rem 3rem 0.25rem;
+  padding: 1.5rem 1.5rem 3rem 1.5rem;
   font-family: inherit;
 }
 
-@media (min-width: 768px) {
-  .main {
-    padding: 1.5rem 0.5rem 3rem 0.5rem;
-  }
-}
-
 /* Hero Carousel */
-.carouselContainer {
-  position: relative;
+.carouselWrapper {
+  --slide-width: 82%;
+  --slide-gap: 0.5rem;
   width: 100%;
-  height: 320px;
   overflow: hidden;
   margin-bottom: 1rem;
 }
 
 @media (min-width: 768px) {
-  .carouselContainer {
-    height: 460px;
+  .carouselWrapper {
+    --slide-width: 80%;
+    --slide-gap: 1.25rem;
   }
 }
 
-@media (min-width: 1024px) {
-  .carouselContainer {
-    height: 540px;
-  }
+.carouselContainer {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  margin-bottom: 1rem;
 }
 
 .carouselTrack {
   display: flex;
   width: 100%;
-  height: 100%;
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateX(calc(-100% * var(--active-index)));
+  transform: translateX(calc((100% - var(--slide-width)) / 2 - (var(--slide-width) + var(--slide-gap)) * var(--active-index)));
 }
 
 .carouselSlide {
-  flex: 0 0 100%;
-  width: 100%;
-  height: 100%;
+  flex: 0 0 var(--slide-width);
+  width: var(--slide-width);
+  margin-right: var(--slide-gap);
+  aspect-ratio: 16 / 9;
   background-color: #f1f5f9;
+  overflow: hidden;
+  opacity: 0.4;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carouselSlideActive {
+  opacity: 1;
 }
 
 .carouselImage {
@@ -83,6 +86,23 @@
 
 .carouselNavBtn:active {
   transform: translateY(-50%) scale(0.95);
+}
+
+.carouselNavBtnLeft {
+  left: 1rem;
+}
+
+.carouselNavBtnRight {
+  right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .carouselNavBtnLeft {
+    left: calc(10% + 1.25rem);
+  }
+  .carouselNavBtnRight {
+    right: calc(10% + 1.25rem);
+  }
 }
 
 /* Indicators Below Image */
@@ -149,6 +169,15 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   margin-bottom: 3.5rem;
+}
+
+@media (max-width: 767px) {
+  .productsGrid {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
 .productsGrid::-webkit-scrollbar {
@@ -317,8 +346,8 @@
 
 /* Image inside review card */
 .reviewImageWrapper {
-  width: 100%;
-  height: 240px;
+  width: 180px;
+  height: 180px;
   border-radius: 0.75rem;
   overflow: hidden;
   background-color: #f1f5f9;
@@ -327,12 +356,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: flex-start;
 }
 
 .reviewImage {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   position: relative;
   z-index: 2;
   transition: transform 0.3s ease;
@@ -468,14 +498,7 @@
 
 @media (max-width: 768px) {
   .scrollBtn {
-    width: 2.25rem;
-    height: 2.25rem;
-  }
-  .scrollBtnLeft {
-    left: -0.5rem;
-  }
-  .scrollBtnRight {
-    right: -0.5rem;
+    display: none;
   }
 }
 
@@ -515,8 +538,8 @@
   color: #ffffff;
   border: none;
   border-radius: 50%;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.25rem;
+  height: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -531,29 +554,29 @@
 }
 
 .reviewImageNavBtnLeft {
-  left: 0.5rem;
+  left: 0.25rem;
 }
 
 .reviewImageNavBtnRight {
-  right: 0.5rem;
+  right: 0.25rem;
 }
 
 .reviewImageIndicators {
   position: absolute;
-  bottom: 0.5rem;
+  bottom: 0.25rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 0.25rem;
+  gap: 0.2rem;
   z-index: 10;
   background-color: rgba(15, 23, 42, 0.35);
-  padding: 0.2rem 0.45rem;
+  padding: 0.15rem 0.35rem;
   border-radius: 9999px;
 }
 
 .reviewImageDot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.5);
   transition: all 0.2s ease;
@@ -561,7 +584,7 @@
 
 .reviewImageDotActive {
   background-color: #ffffff;
-  width: 12px;
+  width: 10px;
   border-radius: 2px;
 }
 

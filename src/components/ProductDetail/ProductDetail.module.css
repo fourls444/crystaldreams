@@ -2,13 +2,13 @@
   flex-grow: 1;
   max-width: 1300px;
   margin: 0 auto;
-  padding: 2rem 0.5rem;
+  padding: 2rem 1.5rem;
   width: 100%;
 }
 
 @media (min-width: 768px) {
   .main {
-    padding: 3rem 1rem;
+    padding: 3rem 1.5rem;
   }
 }
 
