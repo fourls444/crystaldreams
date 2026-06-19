@@ -43,3 +43,17 @@ export const settings = pgTable("settings", {
   value: text("value").notNull(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// 4. Reviews Table Definition
+export const reviews = pgTable("reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  product_id: uuid("product_id").references(() => products.id, { onDelete: "cascade" }),
+  customer_name: text("customer_name").notNull(),
+  image_urls: text("image_urls").array(),
+  rating: numeric("rating").notNull(), // numeric rating to support decimal/half stars (e.g. 4.5)
+  comment: text("comment").notNull(),
+  is_visible: boolean("is_visible").notNull().default(true),
+  created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+

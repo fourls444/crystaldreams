@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/utils/supabase";
 import Swal from "sweetalert2";
 import styles from "./ProductDetail.module.css";
-import { AlertTriangle, Share2, Copy } from "lucide-react";
+import { AlertTriangle, Share2, Copy, Star, X, ZoomIn } from "lucide-react";
+import type { Review } from "@/types/review";
 import ProductImageGallery from "./ProductImageGallery";
 import ProductFeatures from "./ProductFeatures";
 import PaymentQrModal from "./PaymentQrModal";
@@ -26,7 +27,11 @@ interface Product {
   discount_percent?: number;
 }
 
-export default function ProductDetail() {
+interface ProductDetailProps {
+  productId?: string;
+}
+
+export default function ProductDetail({ productId }: ProductDetailProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderIdParam = searchParams.get("orderId");
@@ -35,7 +40,7 @@ export default function ProductDetail() {
   const { addToCart, clearCart } = useCart();
 
   const [productsList, setProductsList] = useState<Product[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(productId || null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -72,12 +77,16 @@ export default function ProductDetail() {
         } else if (data) {
           setProductsList(data);
           
-          // Set initial selected product based on URL or first item
-          const productIdFromUrl = searchParams.get("productId");
-          if (productIdFromUrl && data.some((p) => p.id === productIdFromUrl)) {
-            setSelectedProductId(productIdFromUrl);
-          } else if (data.length > 0) {
-            setSelectedProductId(data[0].id);
+          // Set initial selected product based on props, URL or first item
+          if (productId && data.some((p) => p.id === productId)) {
+            setSelectedProductId(productId);
+          } else {
+            const productIdFromUrl = searchParams.get("productId");
+            if (productIdFromUrl && data.some((p) => p.id === productIdFromUrl)) {
+              setSelectedProductId(productIdFromUrl);
+            } else if (data.length > 0) {
+              setSelectedProductId(data[0].id);
+            }
           }
         }
       } catch (err) {
@@ -89,7 +98,7 @@ export default function ProductDetail() {
     }
 
     fetchProducts();
-  }, [searchParams]);
+  }, [searchParams, productId]);
 
   // Restore QR modal state from URL parameters
   useEffect(() => {
@@ -414,6 +423,49 @@ export default function ProductDetail() {
     );
   }
 
+  const renderCustomerStars = (ratingValue: number) => {
+    return (
+      <div style={{ display: "inline-flex", alignItems: "center", gap: "0.15rem" }}>
+        {[1, 2, 3, 4, 5].map((starIdx) => {
+          const leftVal = starIdx - 0.5;
+          const rightVal = starIdx;
+
+          return (
+            <div
+              key={starIdx}
+              style={{
+                position: "relative",
+                display: "inline-block",
+                width: "16px",
+                height: "16px",
+              }}
+            >
+              <Star
+                size={16}
+                color="#e2e8f0"
+                fill="#e2e8f0"
+                style={{ position: "absolute", top: 0, left: 0 }}
+              />
+              {ratingValue >= leftVal && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: ratingValue >= rightVal ? "100%" : "50%",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Star size={16} color="#fbbf24" fill="#fbbf24" />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const defaultImage = "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&q=80&w=800";
   const isSoldOut = !product || product.stock <= 0;
 
@@ -604,11 +656,15 @@ export default function ProductDetail() {
                   key={p.id}
                   className={`${styles.otherProductCard} ${isSelected ? styles.otherProductCardActive : ""}`}
                   onClick={() => {
-                    setSelectedProductId(p.id);
-                    setCurrentImageIndex(0); // reset gallery image index when switching products
-                    const url = new URL(window.location.href);
-                    url.searchParams.set("productId", p.id);
-                    window.history.replaceState(null, "", url.pathname + url.search);
+                    if (productId) {
+                      router.push(`/products/${p.id}`);
+                    } else {
+                      setSelectedProductId(p.id);
+                      setCurrentImageIndex(0); // reset gallery image index when switching products
+                      const url = new URL(window.location.href);
+                      url.searchParams.set("productId", p.id);
+                      window.history.replaceState(null, "", url.pathname + url.search);
+                    }
                   }}
                 >
                   <div className={styles.otherProductImageWrapper}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, CreditCard, Save, RefreshCw, AlertTriangle, Eye, EyeOff, HelpCircle } from "lucide-react";
+import { Settings, CreditCard, Save, RefreshCw, AlertTriangle, Eye, EyeOff, HelpCircle, GripVertical } from "lucide-react";
 import Swal from "sweetalert2";
 import styles from "../admin.module.css";
 
@@ -13,6 +13,106 @@ export default function SystemSettingsManager() {
   const [initialNumber, setInitialNumber] = useState("");
   const [initialRef1, setInitialRef1] = useState("");
   const [initialRef2, setInitialRef2] = useState("");
+
+  // Homepage Banners states
+  const [banners, setBanners] = useState<string[]>([]);
+  const [initialBanners, setInitialBanners] = useState<string[]>([]);
+  const [uploadingBanners, setUploadingBanners] = useState(false);
+
+  // Drag and Drop States and Handlers
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+    setBanners((prev) => {
+      const next = [...prev];
+      const draggedItem = next[draggedIndex];
+      next.splice(draggedIndex, 1);
+      next.splice(targetIndex, 0, draggedItem);
+      return next;
+    });
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingBanners(true);
+    const formData = new FormData();
+    Array.from(files).forEach((file) => {
+      formData.append("images", file);
+    });
+
+    try {
+      const res = await fetch("/api/admin/upload-images", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.urls) {
+        setBanners((prev) => [...prev, ...data.urls]);
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "อัปโหลดรูปแบนเนอร์สำเร็จ",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      } else {
+        throw new Error(data.error || "Upload failed");
+      }
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire("ข้อผิดพลาด", err.message || "ไม่สามารถอัปโหลดรูปภาพได้", "error");
+    } finally {
+      setUploadingBanners(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  const moveBannerUp = (index: number) => {
+    if (index === 0) return;
+    setBanners((prev) => {
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[index - 1];
+      next[index - 1] = temp;
+      return next;
+    });
+  };
+
+  const moveBannerDown = (index: number) => {
+    if (index === banners.length - 1) return;
+    setBanners((prev) => {
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[index + 1];
+      next[index + 1] = temp;
+      return next;
+    });
+  };
+
+  const removeBanner = (index: number) => {
+    setBanners((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // Footer fields states
   const [footerMainTitle, setFooterMainTitle] = useState("");
@@ -152,6 +252,16 @@ export default function SystemSettingsManager() {
         setInitialCol5Text(c5x);
         setCol5Visible(c5v);
         setInitialCol5Visible(c5v);
+
+        // Load homepage banners setting
+        let bns = [];
+        try {
+          bns = data.settings.homepage_banners ? JSON.parse(data.settings.homepage_banners) : [];
+        } catch (e) {
+          console.error("Failed to parse homepage_banners on fetch:", e);
+        }
+        setBanners(bns);
+        setInitialBanners(bns);
       }
     } catch (err) {
       console.error("Failed to fetch system settings:", err);
@@ -335,6 +445,17 @@ export default function SystemSettingsManager() {
       saveCol(4, col4Title, initialCol4Title, col4Text, initialCol4Text, col4Visible, initialCol4Visible);
       saveCol(5, col5Title, initialCol5Title, col5Text, initialCol5Text, col5Visible, initialCol5Visible);
 
+      // Save homepage banners
+      if (JSON.stringify(banners) !== JSON.stringify(initialBanners)) {
+        promises.push(
+          fetch("/api/admin/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: "homepage_banners", value: JSON.stringify(banners) }),
+          }).then((r) => r.json())
+        );
+      }
+
       const results = await Promise.all(promises);
       const errors = results.filter((res) => !res.success);
 
@@ -368,6 +489,8 @@ export default function SystemSettingsManager() {
       setInitialCol5Text(col5Text);
       setInitialCol5Visible(col5Visible);
 
+      setInitialBanners(banners);
+
       Swal.fire({
         icon: "success",
         title: "บันทึกข้อมูลสำเร็จ",
@@ -392,6 +515,7 @@ export default function SystemSettingsManager() {
     promptpayNumber.replace(/[^0-9]/g, "") !== initialNumber ||
     promptpayRef1.trim() !== initialRef1 ||
     promptpayRef2.trim() !== initialRef2 ||
+    JSON.stringify(banners) !== JSON.stringify(initialBanners) ||
     footerMainTitle !== initialMainTitle ||
     col1Title !== initialCol1Title ||
     col1Text !== initialCol1Text ||
@@ -644,6 +768,205 @@ export default function SystemSettingsManager() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem" }}>
         {/* Main Settings Card */}
         <form onSubmit={handleSaveSettings} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {/* Homepage Banners Settings Card */}
+          <div 
+            style={{ 
+              background: "#ffffff", 
+              borderRadius: "1rem", 
+              padding: "2rem", 
+              border: "1px solid #e2e8f0", 
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" 
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1rem" }}>
+              <div style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.5rem", backgroundColor: "#eff6ff", color: "#1e3a8a", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center" }}>
+                <Save size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>รูปภาพแบนเนอร์หน้าแรก (Homepage Banners)</h3>
+                <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>จัดการรูปภาพแบนเนอร์ภาพสไลด์สำหรับโปรโมตร้านค้า (ลากเพื่อจัดเรียงลำดับซ้ายไปขวา หรืออัปโหลดเพิ่มได้)</p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {/* Image list displaying banners in horizontal grid */}
+              {banners.length > 0 ? (
+                <div style={{ 
+                  display: "flex", 
+                  flexWrap: "wrap", 
+                  gap: "1rem", 
+                  padding: "0.5rem 0" 
+                }}>
+                  {banners.map((url, idx) => {
+                    const isDragged = draggedIndex === idx;
+                    return (
+                      <div 
+                        key={idx} 
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDrop={(e) => handleDrop(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        style={{ 
+                          display: "flex", 
+                          flexDirection: "column", 
+                          width: "220px", 
+                          border: isDragged ? "2px dashed #3b82f6" : "1px solid #e2e8f0", 
+                          borderRadius: "0.75rem",
+                          backgroundColor: isDragged ? "#f0f9ff" : "#ffffff",
+                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.02)",
+                          overflow: "hidden",
+                          transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
+                          cursor: "grab",
+                          opacity: isDragged ? 0.6 : 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateY(-2px)";
+                          e.currentTarget.style.boxShadow = "0 8px 12px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03)";
+                          e.currentTarget.style.borderColor = "#cbd5e1";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "none";
+                          e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.02)";
+                          e.currentTarget.style.borderColor = isDragged ? "#3b82f6" : "#e2e8f0";
+                        }}
+                      >
+                        {/* Banner Image Container */}
+                        <div style={{ position: "relative", width: "100%", height: "110px", backgroundColor: "#f1f5f9" }}>
+                          <img 
+                            src={url} 
+                            alt={`Banner ${idx + 1}`} 
+                            style={{ 
+                              width: "100%", 
+                              height: "100%", 
+                              objectFit: "cover",
+                              display: "block"
+                            }}
+                          />
+                          {/* Number Badge */}
+                          <span style={{ 
+                            position: "absolute", 
+                            top: "0.5rem", 
+                            left: "0.5rem", 
+                            fontSize: "0.75rem", 
+                            fontWeight: 700, 
+                            color: "#ffffff", 
+                            backgroundColor: "rgba(15, 23, 42, 0.75)", 
+                            padding: "0.15rem 0.5rem", 
+                            borderRadius: "0.25rem",
+                            backdropFilter: "blur(4px)"
+                          }}>
+                            {idx + 1}
+                          </span>
+                        </div>
+                        
+                        {/* Footer details & action inside card */}
+                        <div style={{ 
+                          padding: "0.75rem 1rem", 
+                          display: "flex", 
+                          alignItems: "center", 
+                          justifyContent: "space-between", 
+                          gap: "0.5rem",
+                          borderTop: "1px solid #f1f5f9",
+                          backgroundColor: "#f8fafc",
+                          flexGrow: 1
+                        }}>
+                          {/* Grip Handle and Text */}
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", overflow: "hidden", flexGrow: 1 }}>
+                            <div style={{ color: "#94a3b8", display: "flex", alignItems: "center", cursor: "grab" }}>
+                              <GripVertical size={16} />
+                            </div>
+                            <span 
+                              title={url}
+                              style={{ 
+                                fontSize: "0.75rem", 
+                                color: "#475569", 
+                                textOverflow: "ellipsis", 
+                                overflow: "hidden", 
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {url.substring(url.lastIndexOf('/') + 1) || url}
+                            </span>
+                          </div>
+                          
+                          {/* Delete Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeBanner(idx);
+                            }}
+                            style={{
+                              padding: "0.35rem 0.5rem",
+                              borderRadius: "0.375rem",
+                              border: "1px solid #fee2e2",
+                              backgroundColor: "#fee2e2",
+                              color: "#ef4444",
+                              cursor: "pointer",
+                              fontSize: "0.75rem",
+                              fontWeight: "bold",
+                              flexShrink: 0,
+                              transition: "all 0.15s ease"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#fca5a5";
+                              e.currentTarget.style.borderColor = "#fca5a5";
+                              e.currentTarget.style.color = "#ffffff";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "#fee2e2";
+                              e.currentTarget.style.borderColor = "#fee2e2";
+                              e.currentTarget.style.color = "#ef4444";
+                            }}
+                          >
+                            ลบ
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ padding: "2rem", border: "1px dashed #cbd5e1", borderRadius: "0.5rem", textAlign: "center", color: "#94a3b8", fontSize: "0.9rem" }}>
+                  ยังไม่มีรูปภาพแบนเนอร์ในระบบ (ระบบจะแสดงผลภาพแบนเนอร์เริ่มต้น 4 รูป)
+                </div>
+              )}
+
+              {/* Upload control button */}
+              <div>
+                <label 
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.625rem 1.25rem",
+                    backgroundColor: "#eff6ff",
+                    color: "#1e3a8a",
+                    border: "1px solid #bfdbfe",
+                    borderRadius: "0.5rem",
+                    fontWeight: 600,
+                    fontSize: "0.85rem",
+                    cursor: uploadingBanners ? "not-allowed" : "pointer",
+                    transition: "all 0.2s"
+                  }}
+                >
+                  <RefreshCw className={uploadingBanners ? styles.spinIcon : ""} size={16} />
+                  <span>{uploadingBanners ? "กำลังอัปโหลดแบนเนอร์..." : "อัปโหลดรูปแบนเนอร์เพิ่ม (เลือกได้หลายไฟล์)"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    disabled={uploadingBanners}
+                    onChange={handleBannerUpload}
+                    style={{ display: "none" }}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Settings Card (PromptPay) */}
           <div 
             style={{ 
               background: "#ffffff", 

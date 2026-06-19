@@ -100,5 +100,25 @@ INSERT INTO settings (key, value)
 VALUES ('promptpay_number', '010753600031501')
 ON CONFLICT (key) DO NOTHING;
 
+-- 4. Create Reviews Table
+CREATE TABLE reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    customer_name TEXT NOT NULL,
+    image_urls TEXT[] DEFAULT '{}',
+    rating NUMERIC(2,1) NOT NULL CHECK (rating >= 0.5 AND rating <= 5.0),
+    comment TEXT NOT NULL,
+    is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
+-- Enable Row Level Security (RLS)
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
+-- Create Policies for reviews
+CREATE POLICY "Allow public select reviews" ON reviews
+    FOR SELECT USING (is_visible = true);
+
+CREATE POLICY "Allow admins to manage reviews" ON reviews
+    FOR ALL USING (auth.role() = 'authenticated');

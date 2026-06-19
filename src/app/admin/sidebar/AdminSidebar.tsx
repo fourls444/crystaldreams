@@ -2,12 +2,12 @@
 
 import { memo } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, FileText, Package, Settings, X } from "lucide-react";
+import { BarChart3, FileText, Package, Settings, X, MessageSquare } from "lucide-react";
 import styles from "../admin.module.css";
 
 interface AdminSidebarProps {
-  activeTab: "dashboard" | "orders" | "products" | "settings";
-  onTabChange: (tab: "dashboard" | "orders" | "products" | "settings") => void;
+  activeTab: "dashboard" | "orders" | "products" | "settings" | "reviews";
+  onTabChange: (tab: "dashboard" | "orders" | "products" | "settings" | "reviews") => void;
   pendingSlipsCount: number;
   isOpen?: boolean;
   onClose?: () => void;
@@ -100,6 +100,18 @@ function AdminSidebar({
           <span className={styles.menuItemLabel}>
             <Package size={18} />
             <span>จัดการสินค้า</span>
+          </span>
+        </button>
+
+        <button
+          onClick={() => onTabChange("reviews")}
+          className={`${styles.sidebarMenuItem} ${
+            activeTab === "reviews" ? styles.sidebarMenuItemActive : ""
+          }`}
+        >
+          <span className={styles.menuItemLabel}>
+            <MessageSquare size={18} />
+            <span>จัดการรีวิว</span>
           </span>
         </button>
 

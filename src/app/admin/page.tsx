@@ -27,10 +27,17 @@ export default async function AdminDashboard() {
     .select("*, products(name)")
     .order("created_at", { ascending: false });
 
+  // 3. Fetch all reviews
+  const { data: reviews } = await supabaseAdmin
+    .from("reviews")
+    .select("*, products(name)")
+    .order("created_at", { ascending: false });
+
   return (
     <AdminDashboardClient
       initialProducts={products || []}
       initialOrders={orders || []}
+      initialReviews={reviews || []}
     />
   );
 }

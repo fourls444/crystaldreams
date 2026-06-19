@@ -12,7 +12,9 @@ import ProductInventoryManager from "./products-inventory/ProductInventoryManage
 import OrderSlipVerificationModal from "./orders-slips/OrderSlipVerificationModal";
 import CustomerAddressDetailsModal from "./orders-slips/CustomerAddressDetailsModal";
 import SystemSettingsManager from "./settings/SystemSettingsManager";
+import ReviewsManager from "./reviews/ReviewsManager";
 import type { Order } from "@/types/order";
+import type { Review } from "@/types/review";
 
 interface Product {
   id: string;
@@ -29,15 +31,16 @@ interface Product {
 interface Props {
   initialProducts: Product[];
   initialOrders: Order[];
+  initialReviews: Review[];
 }
 
-export default function AdminDashboardClient({ initialProducts, initialOrders }: Props) {
+export default function AdminDashboardClient({ initialProducts, initialOrders, initialReviews }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Navigation tab state derived from search params
   const viewParam = searchParams.get("view");
-  const activeTab = (viewParam === "orders" || viewParam === "products" || viewParam === "dashboard" || viewParam === "settings")
+  const activeTab = (viewParam === "orders" || viewParam === "products" || viewParam === "dashboard" || viewParam === "settings" || viewParam === "reviews")
     ? viewParam
     : "dashboard";
 
@@ -59,7 +62,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
   // Loading States for API buttons
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const handleTabChange = useCallback((tab: "dashboard" | "orders" | "products" | "settings") => {
+  const handleTabChange = useCallback((tab: "dashboard" | "orders" | "products" | "settings" | "reviews") => {
     if (tab === "products") {
       setShowProductModal(false);
       setEditingProduct(null);
@@ -522,6 +525,14 @@ export default function AdminDashboardClient({ initialProducts, initialOrders }:
         {/* VIEW 4: SYSTEM SETTINGS VIEW */}
         {activeTab === "settings" && (
           <SystemSettingsManager />
+        )}
+
+        {/* VIEW 5: REVIEWS MANAGEMENT VIEW */}
+        {activeTab === "reviews" && (
+          <ReviewsManager
+            initialReviews={initialReviews}
+            products={initialProducts}
+          />
         )}
       </main>
 
