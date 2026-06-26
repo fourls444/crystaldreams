@@ -138,11 +138,18 @@
 }
 
 /* Section Title */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 .sectionTitle {
   font-size: 1.5rem;
   font-weight: 800;
   color: #0f172a;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
   position: relative;
   padding-left: 0.75rem;
 }
@@ -156,6 +163,11 @@
   width: 4px;
   background-color: #1e3a8a;
   border-radius: 2px;
+}
+
+.scrollControls {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* Products Section */
@@ -307,26 +319,42 @@
 
 /* Reviews Section */
 .reviewsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 1.25rem 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   margin-bottom: 2rem;
 }
 
-@media (min-width: 640px) {
+@media (max-width: 767px) {
   .reviewsGrid {
-    grid-template-columns: repeat(2, 1fr);
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 
-@media (min-width: 1024px) {
-  .reviewsGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-  }
+.reviewsGrid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.reviewsGrid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reviewsGrid::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
 }
 
 .reviewCard {
+  flex-shrink: 0;
+  width: 290px;
   background-color: #ffffff;
   border: 1px solid #f1f5f9;
   border-radius: 1.25rem;
@@ -336,6 +364,12 @@
   gap: 1rem;
   box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+@media (min-width: 768px) {
+  .reviewCard {
+    width: 350px;
+  }
 }
 
 .reviewCard:hover {
@@ -460,44 +494,32 @@
 }
 
 .scrollBtn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   background-color: #ffffff;
   color: #1e3a8a;
   border: 1px solid #cbd5e1;
   border-radius: 50%;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .scrollBtn:hover {
   background-color: #f8fafc;
   color: #1d4ed8;
-  transform: translateY(-50%) scale(1.05);
+  transform: scale(1.05);
 }
 
 .scrollBtn:active {
-  transform: translateY(-50%) scale(0.95);
-}
-
-.scrollBtnLeft {
-  left: -1rem;
-}
-
-.scrollBtnRight {
-  right: -1rem;
+  transform: scale(0.95);
 }
 
 @media (max-width: 768px) {
-  .scrollBtn {
+  .scrollControls {
     display: none;
   }
 }

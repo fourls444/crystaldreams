@@ -21,6 +21,10 @@ export interface Order {
   customer_line: string | null;
   /** 'pending' | 'slip_uploaded' | 'cod_pending' | 'verified' | 'rejected' */
   status: string;
+  /** 'processing' | 'shipped' | 'delivered' */
+  shipping_status: string;
+  shipping_carrier?: string | null;
+  tracking_number?: string | null;
   slip_url: string | null;
   slip_verified: boolean;
   verified_by: string | null;

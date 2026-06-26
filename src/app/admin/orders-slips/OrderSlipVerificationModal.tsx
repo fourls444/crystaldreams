@@ -194,6 +194,12 @@ function OrderSlipVerificationModal({
                 <div className={styles.slipInfoBlock}>
                   <h5 className={styles.slipInfoTitle}>ข้อมูลการจัดส่ง</h5>
                   <div className={styles.slipInfoRow}>
+                    <label>รหัสสั่งซื้อ (ID):</label>
+                    <span style={{ fontSize: "0.75rem", fontFamily: "monospace", color: "#475569", wordBreak: "break-all", userSelect: "all" }}>
+                      {selectedOrder.id}
+                    </span>
+                  </div>
+                  <div className={styles.slipInfoRow}>
                     <label>ชื่อผู้รับ:</label>
                     <span>{selectedOrder.customer_name || "ไม่ระบุ"}</span>
                   </div>
@@ -257,10 +263,10 @@ function OrderSlipVerificationModal({
           </div>
         </div>
 
-        {["slip_uploaded", "cod_pending", "pending"].includes(selectedOrder.status) && (
+        {onManualApprove && onRejectOrder && (
           <div className={styles.modalFooter}>
-            {selectedOrder.status === "slip_uploaded" && (
-              <div className={styles.modalActionGroup}>
+            <div className={styles.modalActionGroup} style={{ display: "flex", gap: "0.5rem" }}>
+              {selectedOrder.status === "slip_uploaded" && onAutoVerify && (
                 <button
                   type="button"
                   onClick={() => onAutoVerify(selectedOrder.id)}
@@ -271,7 +277,9 @@ function OrderSlipVerificationModal({
                   <Search size={14} />
                   <span>ตรวจออโต้ (EasySlip)</span>
                 </button>
+              )}
 
+              {selectedOrder.status !== "verified" && (
                 <button
                   type="button"
                   onClick={() => onManualApprove(selectedOrder.id)}
@@ -280,9 +288,11 @@ function OrderSlipVerificationModal({
                   style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
                 >
                   <Check size={14} />
-                  <span>อนุมัติสลิปแมนนวล</span>
+                  <span>{selectedOrder.payment_method === "cod" ? "ยืนยันว่าได้รับเงิน" : "อนุมัติสลิปแมนนวล"}</span>
                 </button>
+              )}
 
+              {selectedOrder.status !== "rejected" && (
                 <button
                   type="button"
                   onClick={() => onRejectOrder(selectedOrder.id)}
@@ -291,62 +301,10 @@ function OrderSlipVerificationModal({
                   style={{ border: "none", marginTop: 0, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
                 >
                   <X size={14} />
-                  <span>ปฏิเสธสลิปนี้</span>
+                  <span>{selectedOrder.payment_method === "cod" ? "ยกเลิกคำสั่งซื้อ" : "ปฏิเสธสลิปนี้"}</span>
                 </button>
-              </div>
-            )}
-
-            {selectedOrder.status === "cod_pending" && (
-              <div className={styles.modalActionGroup}>
-                <button
-                  type="button"
-                  onClick={() => onManualApprove(selectedOrder.id)}
-                  disabled={actionLoading !== null}
-                  className={styles.verifyActionBtn}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
-                >
-                  <Check size={14} />
-                  <span>ยืนยันว่าได้รับเงิน</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onRejectOrder(selectedOrder.id)}
-                  disabled={actionLoading !== null}
-                  className={styles.rejectActionBtn}
-                  style={{ border: "none", marginTop: 0, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
-                >
-                  <X size={14} />
-                  <span>ยกเลิกคำสั่งซื้อ</span>
-                </button>
-              </div>
-            )}
-
-            {selectedOrder.status === "pending" && (
-              <div className={styles.modalActionGroup}>
-                <button
-                  type="button"
-                  onClick={() => onManualApprove(selectedOrder.id)}
-                  disabled={actionLoading !== null}
-                  className={styles.verifyActionBtn}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
-                >
-                  <Check size={14} />
-                  <span>อนุมัติการชำระเงินแมนนวล</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onRejectOrder(selectedOrder.id)}
-                  disabled={actionLoading !== null}
-                  className={styles.rejectActionBtn}
-                  style={{ border: "none", marginTop: 0, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
-                >
-                  <X size={14} />
-                  <span>ยกเลิกคำสั่งซื้อ</span>
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

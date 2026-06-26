@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
 import Swal from "sweetalert2";
 import { useCart } from "@/context/CartContext";
+import { supabase } from "@/utils/supabase";
 import styles from "./CartDrawer.module.css";
 import PaymentQrModal from "../ProductDetail/PaymentQrModal";
 import PaymentMethodModal from "../Checkout/PaymentMethodModal";
@@ -14,6 +16,7 @@ export default function CartDrawer() {
   const router = useRouter();
   const {
     cart,
+    setCart,
     removeFromCart,
     updateQuantity,
     clearCart,
@@ -31,6 +34,77 @@ export default function CartDrawer() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
+
+  // Stock checking states
+  const [stockMap, setStockMap] = useState<Record<string, number>>({});
+  const [stockChecking, setStockChecking] = useState(false);
+  const [recentOrders, setRecentOrders] = useState<string[]>([]);
+
+  // Load recent orders from localStorage when cart opens
+  useEffect(() => {
+    if (isCartOpen) {
+      try {
+        const saved = localStorage.getItem("crystaldreams_recent_orders");
+        if (saved) {
+          setRecentOrders(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Error reading recent orders:", e);
+      }
+    }
+  }, [isCartOpen]);
+
+  // Fetch latest stock from Supabase when cart opens or length changes
+  useEffect(() => {
+    if (!isCartOpen || cart.length === 0) return;
+
+    const checkStocks = async () => {
+      setStockChecking(true);
+      try {
+        const productIds = cart.map((item) => item.id);
+        const { data, error } = await supabase
+          .from("products")
+          .select("id, stock, is_visible")
+          .in("id", productIds);
+
+        if (error) {
+          console.error("Failed to check stock:", error);
+          return;
+        }
+
+        if (data) {
+          const map: Record<string, number> = {};
+          data.forEach((p) => {
+            map[p.id] = p.is_visible ? p.stock : 0;
+          });
+          setStockMap(map);
+
+          // Synchronize with local cart context stocks
+          setCart((prevCart) =>
+            prevCart.map((item) => {
+              const latestStock = map[item.id];
+              if (latestStock !== undefined && latestStock !== item.stock) {
+                return { ...item, stock: latestStock };
+              }
+              return item;
+            })
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching stocks:", err);
+      } finally {
+        setStockChecking(false);
+      }
+    };
+
+    checkStocks();
+  }, [isCartOpen, cart.length, setCart]);
+
+  // Check if there are any items that are out of stock or have insufficient quantity
+  const hasOutOfStockItems = cart.some((item) => {
+    const currentStock = stockMap[item.id] !== undefined ? stockMap[item.id] : item.stock;
+    return currentStock <= 0 || item.quantity > currentStock;
+  });
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
@@ -69,6 +143,18 @@ export default function CartDrawer() {
 
       setCreatedOrderId(data.orderId);
       setTotalAmount(data.totalAmount);
+      
+      // Save recent order ID for tracking
+      try {
+        const saved = localStorage.getItem("crystaldreams_recent_orders");
+        const list = saved ? JSON.parse(saved) : [];
+        if (!list.includes(data.orderId)) {
+          list.unshift(data.orderId);
+          localStorage.setItem("crystaldreams_recent_orders", JSON.stringify(list.slice(0, 5)));
+        }
+      } catch (e) {
+        console.error("Error saving recent order ID:", e);
+      }
       
       // Close cart drawer
       setIsCartOpen(false);
@@ -164,6 +250,41 @@ export default function CartDrawer() {
             <button onClick={() => setIsCartOpen(false)} className={styles.shopBtn}>
               เลือกซื้อสินค้าต่อ
             </button>
+            {recentOrders.length > 0 && (
+              <div style={{ marginTop: "2rem", borderTop: "1px solid #e2e8f0", paddingTop: "1.25rem", width: "100%", textAlign: "left" }}>
+                <h5 style={{ fontSize: "0.825rem", fontWeight: "800", color: "#1e3a8a", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                  📦 ติดตามสถานะพัสดุล่าสุดของคุณ
+                </h5>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {recentOrders.map((ordId) => (
+                    <Link
+                      key={ordId}
+                      href={`/track?orderId=${ordId}`}
+                      onClick={() => setIsCartOpen(false)}
+                      style={{ fontSize: "0.775rem", color: "#475569", textDecoration: "none", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8fafc", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #e2e8f0", transition: "all 0.2s" }}
+                    >
+                      <span>คำสั่งซื้อ: ...{ordId.slice(-8)}</span>
+                      <span style={{ color: "#1e3a8a", fontWeight: "700" }}>ดูสถานะ ➔</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            <Link
+              href="/track"
+              onClick={() => setIsCartOpen(false)}
+              className={styles.shopBtn}
+              style={{
+                marginTop: "0.75rem",
+                backgroundColor: "transparent",
+                border: "1.5px solid #1e3a8a",
+                color: "#1e3a8a",
+                textDecoration: "none",
+                display: "block"
+              }}
+            >
+              🔍 ค้นหาและติดตามสถานะพัสดุ
+            </Link>
           </div>
         ) : (
           <>
@@ -187,6 +308,15 @@ export default function CartDrawer() {
                       <div className={styles.itemPrice}>
                         {item.price.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
                       </div>
+                      {item.stock <= 0 ? (
+                        <div className={styles.stockError} style={{ color: "#ef4444", fontSize: "0.8rem", marginTop: "0.25rem", fontWeight: "500" }}>
+                          ⚠️ สินค้าหมดสต็อก
+                        </div>
+                      ) : item.quantity > item.stock ? (
+                        <div className={styles.stockError} style={{ color: "#ef4444", fontSize: "0.8rem", marginTop: "0.25rem", fontWeight: "500" }}>
+                          ⚠️ มีสินค้าไม่เพียงพอ (คงเหลือ {item.stock} ชิ้น)
+                        </div>
+                      ) : null}
                     </div>
 
                     <div className={styles.itemRow}>
@@ -223,6 +353,18 @@ export default function CartDrawer() {
                   </div>
                 </div>
               ))}
+              {recentOrders.length > 0 && (
+                <div style={{ padding: "1rem 1.25rem 0.5rem 1.25rem", borderTop: "1px solid #f1f5f9", marginTop: "1rem" }}>
+                  <Link
+                    href={`/track?orderId=${recentOrders[0]}`}
+                    onClick={() => setIsCartOpen(false)}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.775rem", color: "#1e3a8a", backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", padding: "0.6rem 0.85rem", borderRadius: "0.75rem", textDecoration: "none", fontWeight: "700" }}
+                  >
+                    <span>📦 ติดตามสถานะจัดส่งออเดอร์ล่าสุด (...{recentOrders[0].slice(-8)})</span>
+                    <span>ดูสเตตัส ➔</span>
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Footer subtotal & Action buttons */}
@@ -237,14 +379,19 @@ export default function CartDrawer() {
               <button
                 type="button"
                 onClick={handleCheckout}
-                disabled={submitting}
+                disabled={submitting || hasOutOfStockItems || stockChecking}
                 className={styles.checkoutBtn}
+                style={hasOutOfStockItems ? { backgroundColor: "#94a3b8" } : undefined}
               >
                 {submitting ? (
                   <>
                     <div className={styles.btnSpinner}></div>
                     <span>กำลังดำเนินการ...</span>
                   </>
+                ) : stockChecking ? (
+                  <span>กำลังตรวจสอบสต็อกสินค้า...</span>
+                ) : hasOutOfStockItems ? (
+                  <span>มีสินค้าหมดสต็อกในตะกร้า</span>
                 ) : (
                   <>
                     <span>ชำระเงิน (Checkout)</span>

@@ -1,0 +1,575 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #1e293b;
+  font-family: inherit;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.titleArea {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 850;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.pageSubtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+/* ==========================================
+   Search Card
+   ========================================== */
+.searchCard {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.05), 0 8px 10px -6px rgba(30, 41, 59, 0.05);
+  margin-bottom: 2rem;
+}
+
+.searchTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background-color: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+}
+
+.tabBtn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #64748b;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabBtnActive {
+  background-color: #ffffff;
+  color: #1e3a8a;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.searchForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .searchForm {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+}
+
+.inputWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.inputField {
+  width: 100%;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.925rem;
+  color: #1e293b;
+  transition: all 0.2s ease;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #1e3a8a;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+.submitBtn {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: #ffffff;
+  font-weight: 800;
+  border: none;
+  padding: 0.85rem 1.75rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.15);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.errorPanel {
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #b91c1c;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ==========================================
+   Order List Results (Phone search)
+   ========================================== */
+.resultsTitle {
+  font-size: 1.15rem;
+  font-weight: 750;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.orderItemRow {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.orderItemRow:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
+}
+
+.orderItemLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.orderItemTitle {
+  font-weight: 750;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.orderItemDate {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.orderItemPrice {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.orderItemRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ==========================================
+   Detailed Tracking Result Card
+   ========================================== */
+.resultCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.03);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.resultHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .resultHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.orderMetaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.orderIdText {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.orderDateText {
+  font-size: 0.825rem;
+  color: #64748b;
+}
+
+.headerBadges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ==========================================
+   Steppers & Timelines
+   ========================================== */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  padding-left: 2rem;
+  margin-bottom: 2rem;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 15px;
+  bottom: 15px;
+  width: 2px;
+  background-color: #e2e8f0;
+  z-index: 1;
+}
+
+.timelineStep {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stepDot {
+  position: absolute;
+  left: -2rem;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.stepDotActive {
+  border-color: #10b981;
+  background-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+.stepIcon {
+  color: #ffffff;
+  font-size: 0.5rem;
+}
+
+.stepLabel {
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: #64748b;
+  transition: color 0.3s ease;
+}
+
+.stepLabelActive {
+  color: #0f172a;
+}
+
+.stepDesc {
+  font-size: 0.775rem;
+  color: #94a3b8;
+}
+
+.stepDescActive {
+  color: #475569;
+}
+
+/* ==========================================
+   Shipping Details Block
+   ========================================== */
+.shippingInfoBlock {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.shippingInfoTitle {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.shippingInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .shippingInfoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.shippingInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.shippingLabel {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.shippingValue {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.trackingNumberRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.copyBtn {
+  background: none;
+  border: 1px solid #cbd5e1;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.copyBtn:hover {
+  background-color: #f1f5f9;
+  color: #1e3a8a;
+  border-color: #94a3b8;
+}
+
+.trackExternalBtn {
+  margin-top: 0.75rem;
+  background-color: #1e3a8a;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  text-align: center;
+  align-self: flex-start;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trackExternalBtn:hover {
+  background-color: #1d4ed8;
+}
+
+/* ==========================================
+   Order Items Summary
+   ========================================== */
+.orderItemsBlock {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.blockTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.85rem;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.productRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  border-bottom: 1px dashed #f1f5f9;
+  padding-bottom: 0.5rem;
+}
+
+.productName {
+  font-weight: 600;
+  color: #334155;
+  max-width: 70%;
+}
+
+.productQty {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.totalSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+/* ==========================================
+   General Utilities
+   ========================================== */
+.badge {
+  font-size: 0.725rem;
+  font-weight: 850;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  width: fit-content;
+}
+
+.badgePending { background-color: #f1f5f9; color: #475569; }
+.badgeUploaded { background-color: #fef3c7; color: #d97706; }
+.badgeVerified { background-color: #d1fae5; color: #059669; }
+.badgeRejected { background-color: #fee2e2; color: #dc2626; }
+
+.badgeProcessing { background-color: #e0f2fe; color: #0284c7; }
+.badgeShipped { background-color: #e0e7ff; color: #4f46e5; }
+.badgeDelivered { background-color: #d1fae5; color: #059669; }
+
+.spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid #e2e8f0;
+  border-top-color: #1e3a8a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0.5rem auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loaderZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 0;
+}
+
+.loadingText {
+  font-size: 0.825rem;
+  color: #64748b;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s ease;
+}
+
+.backBtn:hover {
+  color: #1e3a8a;
+}

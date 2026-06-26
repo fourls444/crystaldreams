@@ -1,6 +1,4 @@
-"use client";
-
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
 import styles from "../admin.module.css";
 import type { Order } from "@/types/order";
@@ -12,6 +10,7 @@ interface CustomerAddressDetailsModalProps {
   actionLoading?: string | null;
   onManualApprove?: (orderId: string) => void;
   onRejectOrder?: (orderId: string) => void;
+  onUpdateShippingStatus?: (orderId: string, status: string, carrier?: string, trackingNumber?: string) => Promise<void>;
 }
 
 function CustomerAddressDetailsModal({
@@ -21,7 +20,20 @@ function CustomerAddressDetailsModal({
   actionLoading,
   onManualApprove,
   onRejectOrder,
+  onUpdateShippingStatus,
 }: CustomerAddressDetailsModalProps) {
+  const [localShippingStatus, setLocalShippingStatus] = useState("processing");
+  const [localCarrier, setLocalCarrier] = useState("");
+  const [localTrackingNumber, setLocalTrackingNumber] = useState("");
+
+  useEffect(() => {
+    if (selectedAddressOrder) {
+      setLocalShippingStatus(selectedAddressOrder.shipping_status || "processing");
+      setLocalCarrier(selectedAddressOrder.shipping_carrier || "");
+      setLocalTrackingNumber(selectedAddressOrder.tracking_number || "");
+    }
+  }, [selectedAddressOrder]);
+
   if (!showAddressModal || !selectedAddressOrder) return null;
 
   return (
@@ -38,6 +50,12 @@ function CustomerAddressDetailsModal({
           <div className={styles.slipInfoList} style={{ width: "100%" }}>
             <div className={styles.slipInfoBlock}>
               <h5 className={styles.slipInfoTitle}>ข้อมูลผู้รับของ</h5>
+              <div className={styles.slipInfoRow}>
+                <label>รหัสสั่งซื้อ (ID):</label>
+                <span style={{ fontSize: "0.75rem", fontFamily: "monospace", color: "#475569", wordBreak: "break-all", userSelect: "all" }}>
+                  {selectedAddressOrder.id}
+                </span>
+              </div>
               <div className={styles.slipInfoRow}>
                 <label>ชื่อ-นามสกุล:</label>
                 <span>{selectedAddressOrder.customer_name || "ยังไม่ได้กรอกข้อมูล"}</span>
@@ -56,6 +74,64 @@ function CustomerAddressDetailsModal({
                   {selectedAddressOrder.payment_method === "cod" ? "เก็บเงินปลายทาง (COD)" : "พร้อมเพย์ (PromptPay)"}
                 </span>
               </div>
+              <div className={styles.slipInfoRow} style={{ alignItems: "center" }}>
+                <label>สถานะการจัดส่ง:</label>
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <select
+                    value={localShippingStatus}
+                    onChange={(e) => setLocalShippingStatus(e.target.value)}
+                    disabled={actionLoading !== null}
+                    className={styles.input}
+                    style={{ width: "auto", minWidth: "140px", padding: "0.25rem 0.5rem", fontSize: "0.85rem", height: "auto" }}
+                  >
+                    <option value="processing">กำลังดำเนินการ</option>
+                    <option value="shipped">อยู่ระหว่างจัดส่ง</option>
+                    <option value="delivered">จัดส่งสำเร็จ</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateShippingStatus?.(selectedAddressOrder.id, localShippingStatus, localCarrier, localTrackingNumber)}
+                    disabled={
+                      actionLoading !== null || 
+                      (localShippingStatus === selectedAddressOrder.shipping_status && 
+                       localCarrier === (selectedAddressOrder.shipping_carrier || "") && 
+                       localTrackingNumber === (selectedAddressOrder.tracking_number || ""))
+                    }
+                    className={styles.viewSlipBtn}
+                    style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", height: "auto", margin: 0 }}
+                  >
+                    บันทึก
+                  </button>
+                </div>
+              </div>
+              {(localShippingStatus === "shipped" || localShippingStatus === "delivered") && (
+                <>
+                  <div className={styles.slipInfoRow} style={{ alignItems: "center", marginTop: "0.35rem" }}>
+                    <label>บริษัทขนส่ง:</label>
+                    <input
+                      type="text"
+                      value={localCarrier}
+                      placeholder="เช่น Flash, Kerry, J&T"
+                      onChange={(e) => setLocalCarrier(e.target.value)}
+                      disabled={actionLoading !== null}
+                      className={styles.input}
+                      style={{ width: "auto", minWidth: "140px", padding: "0.25rem 0.5rem", fontSize: "0.85rem", height: "auto" }}
+                    />
+                  </div>
+                  <div className={styles.slipInfoRow} style={{ alignItems: "center", marginTop: "0.35rem" }}>
+                    <label>เลขพัสดุ:</label>
+                    <input
+                      type="text"
+                      value={localTrackingNumber}
+                      placeholder="กรอกเลขพัสดุ"
+                      onChange={(e) => setLocalTrackingNumber(e.target.value)}
+                      disabled={actionLoading !== null}
+                      className={styles.input}
+                      style={{ width: "auto", minWidth: "140px", padding: "0.25rem 0.5rem", fontSize: "0.85rem", height: "auto" }}
+                    />
+                  </div>
+                </>
+              )}
               <div style={{ fontSize: "0.85rem", display: "flex", flexDirection: "column", gap: "0.25rem", borderTop: "1px solid #e2e8f0", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                 <label style={{ color: "#64748b" }}>ที่อยู่จัดส่ง:</label>
                 <span style={{ color: "#0f172a", fontWeight: 500, lineHeight: 1.4, whiteSpace: "pre-wrap" }}>
@@ -100,10 +176,10 @@ function CustomerAddressDetailsModal({
           </div>
         </div>
 
-        {(selectedAddressOrder.status === "cod_pending" || selectedAddressOrder.status === "pending") && (
+        {onManualApprove && onRejectOrder && (
           <div className={styles.modalFooter} style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", flexWrap: "wrap" }}>
-            {selectedAddressOrder.status === "cod_pending" && onManualApprove && onRejectOrder && (
-              <div className={styles.modalActionGroup} style={{ display: "flex", gap: "0.5rem" }}>
+            <div className={styles.modalActionGroup} style={{ display: "flex", gap: "0.5rem" }}>
+              {selectedAddressOrder.status !== "verified" && (
                 <button
                   type="button"
                   onClick={() => {
@@ -115,9 +191,11 @@ function CustomerAddressDetailsModal({
                   style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
                 >
                   <Check size={14} />
-                  <span>ยืนยันว่าได้รับเงิน</span>
+                  <span>{selectedAddressOrder.payment_method === "cod" ? "ยืนยันว่าได้รับเงิน" : "อนุมัติการชำระเงินแมนนวล"}</span>
                 </button>
+              )}
 
+              {selectedAddressOrder.status !== "rejected" && (
                 <button
                   type="button"
                   onClick={() => {
@@ -131,40 +209,8 @@ function CustomerAddressDetailsModal({
                   <X size={14} />
                   <span>ยกเลิกคำสั่งซื้อ</span>
                 </button>
-              </div>
-            )}
-
-            {selectedAddressOrder.status === "pending" && onManualApprove && onRejectOrder && (
-              <div className={styles.modalActionGroup} style={{ display: "flex", gap: "0.5rem" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onManualApprove(selectedAddressOrder.id);
-                    onSetShowAddressModal(false);
-                  }}
-                  disabled={actionLoading !== null}
-                  className={styles.verifyActionBtn}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: 0 }}
-                >
-                  <Check size={14} />
-                  <span>อนุมัติการชำระเงินแมนนวล</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    onRejectOrder(selectedAddressOrder.id);
-                    onSetShowAddressModal(false);
-                  }}
-                  disabled={actionLoading !== null}
-                  className={styles.rejectActionBtn}
-                  style={{ border: "none", marginTop: 0, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
-                >
-                  <X size={14} />
-                  <span>ยกเลิกคำสั่งซื้อ</span>
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

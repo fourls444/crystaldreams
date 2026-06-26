@@ -15,6 +15,8 @@ interface OrdersAndSlipsManagerProps {
   formatThaiDate: (dateStr: string) => string;
   getStatusText: (status: string) => string;
   getStatusBadgeClass: (status: string) => string;
+  getShippingStatusText: (shippingStatus: string) => string;
+  getShippingStatusBadgeClass: (shippingStatus: string) => string;
   onSelectAddressOrder: (order: Order) => void;
   onSelectOrder: (order: Order) => void;
   onDeleteOrder: (orderId: string) => void;
@@ -31,6 +33,8 @@ function OrdersAndSlipsManager({
   formatThaiDate,
   getStatusText,
   getStatusBadgeClass,
+  getShippingStatusText,
+  getShippingStatusBadgeClass,
   onSelectAddressOrder,
   onSelectOrder,
   onDeleteOrder,
@@ -87,7 +91,8 @@ function OrdersAndSlipsManager({
                 <th>ชื่อผู้รับ</th>
                 <th style={{ textAlign: "center" }}>รายละเอียดออเดอร์</th>
                 <th style={{ textAlign: "center" }}>ยอดชำระ</th>
-                <th style={{ textAlign: "center" }}>สถานะ</th>
+                <th style={{ textAlign: "center" }}>สถานะการชำระเงิน</th>
+                <th style={{ textAlign: "center" }}>สถานะการจัดส่ง</th>
                 <th style={{ textAlign: "center" }}>การจัดการ</th>
               </tr>
             </thead>
@@ -121,6 +126,11 @@ function OrdersAndSlipsManager({
                       {getStatusText(order.status)}
                     </span>
                   </td>
+                  <td style={{ textAlign: "center" }}>
+                    <span className={`${styles.statusBadge} ${getShippingStatusBadgeClass(order.shipping_status)}`}>
+                      {getShippingStatusText(order.shipping_status)}
+                    </span>
+                  </td>
                   <td>
                     <div className={styles.actionCell} style={{ justifyContent: "center", alignItems: "center", gap: "0.5rem" }}>
                       {order.payment_method !== "cod" && (
@@ -150,7 +160,7 @@ function OrdersAndSlipsManager({
               ))}
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
                     <div className={styles.emptyState}>
                       <div className={styles.emptyStateIcon}>🔍</div>
                       <div className={styles.emptyStateTitle}>ไม่พบออเดอร์</div>

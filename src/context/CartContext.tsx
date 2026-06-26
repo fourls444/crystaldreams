@@ -13,6 +13,7 @@ export interface CartItem {
 
 interface CartContextType {
   cart: CartItem[];
+  setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
   addToCart: (product: { id: string; name: string; price: number; stock: number; image_url: string | null }, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -115,6 +116,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         cart,
+        setCart,
         addToCart,
         removeFromCart,
         updateQuantity,

@@ -13,6 +13,8 @@ interface DashboardOverviewProps {
   formatThaiDate: (dateStr: string) => string;
   getStatusText: (status: string) => string;
   getStatusBadgeClass: (status: string) => string;
+  getShippingStatusText: (shippingStatus: string) => string;
+  getShippingStatusBadgeClass: (shippingStatus: string) => string;
   onViewAllOrders: () => void;
   onSelectAddressOrder: (order: Order) => void;
 }
@@ -25,6 +27,8 @@ function DashboardOverview({
   formatThaiDate,
   getStatusText,
   getStatusBadgeClass,
+  getShippingStatusText,
+  getShippingStatusBadgeClass,
   onViewAllOrders,
   onSelectAddressOrder,
 }: DashboardOverviewProps) {
@@ -85,7 +89,8 @@ function DashboardOverview({
                 <th>Order ID</th>
                 <th>ชื่อผู้รับ</th>
                 <th style={{ textAlign: "center" }}>ยอดชำระ</th>
-                <th style={{ textAlign: "center" }}>สถานะ</th>
+                <th style={{ textAlign: "center" }}>สถานะการชำระเงิน</th>
+                <th style={{ textAlign: "center" }}>สถานะการจัดส่ง</th>
                 <th style={{ textAlign: "center" }}>รายละเอียด</th>
               </tr>
             </thead>
@@ -112,6 +117,11 @@ function DashboardOverview({
                     </span>
                   </td>
                   <td style={{ textAlign: "center" }}>
+                    <span className={`${styles.statusBadge} ${getShippingStatusBadgeClass(order.shipping_status)}`}>
+                      {getShippingStatusText(order.shipping_status)}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
                     <button
                       onClick={() => onSelectAddressOrder(order)}
                       className={styles.viewSlipBtn}
@@ -123,7 +133,7 @@ function DashboardOverview({
               ))}
               {initialOrders.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", color: "#64748b" }}>
+                  <td colSpan={6} style={{ textAlign: "center", color: "#64748b" }}>
                     ไม่มีออเดอร์อยู่ในระบบ
                   </td>
                 </tr>

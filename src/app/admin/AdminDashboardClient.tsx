@@ -414,6 +414,84 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
     }
   }, []);
 
+  const getShippingStatusText = useCallback((shippingStatus: string) => {
+    switch (shippingStatus) {
+      case "shipped":
+        return "อยู่ระหว่างจัดส่ง";
+      case "delivered":
+        return "จัดส่งสำเร็จ";
+      case "processing":
+      default:
+        return "กำลังดำเนินการ";
+    }
+  }, []);
+
+  const getShippingStatusBadgeClass = useCallback((shippingStatus: string) => {
+    switch (shippingStatus) {
+      case "shipped":
+        return styles.statusShipped;
+      case "delivered":
+        return styles.statusDelivered;
+      case "processing":
+      default:
+        return styles.statusProcessing;
+    }
+  }, []);
+
+  const handleUpdateShippingStatus = useCallback(async (orderId: string, status: string, carrier?: string, trackingNumber?: string) => {
+    setActionLoading(orderId);
+    try {
+      const res = await fetch(`/api/admin/orders?id=${orderId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          shipping_status: status, 
+          shipping_carrier: carrier || "", 
+          tracking_number: trackingNumber || "" 
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "อัปเดตสำเร็จ!",
+          text: data.message || "ปรับปรุงสถานะการจัดส่งเรียบร้อยแล้ว",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        if (selectedAddressOrder && selectedAddressOrder.id === orderId) {
+          setSelectedAddressOrder(prev => prev ? { 
+            ...prev, 
+            shipping_status: status,
+            shipping_carrier: carrier || "",
+            tracking_number: trackingNumber || ""
+          } : null);
+        }
+        router.refresh();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "อัปเดตไม่สำเร็จ",
+          text: data.error || "เกิดข้อผิดพลาดในการเปลี่ยนสถานะ",
+          confirmButtonText: "ตกลง",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่ออัปเดตได้",
+        confirmButtonText: "ตกลง",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  }, [router, selectedAddressOrder]);
+
   return (
     <div className={styles.dashboardLayout}>
       {/* Sidebar Overlay for mobile screen */}
@@ -468,6 +546,8 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
             formatThaiDate={formatThaiDate}
             getStatusText={getStatusText}
             getStatusBadgeClass={getStatusBadgeClass}
+            getShippingStatusText={getShippingStatusText}
+            getShippingStatusBadgeClass={getShippingStatusBadgeClass}
             onViewAllOrders={() => handleTabChange("orders")}
             onSelectAddressOrder={(order) => {
               setSelectedAddressOrder(order);
@@ -488,6 +568,8 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
             formatThaiDate={formatThaiDate}
             getStatusText={getStatusText}
             getStatusBadgeClass={getStatusBadgeClass}
+            getShippingStatusText={getShippingStatusText}
+            getShippingStatusBadgeClass={getShippingStatusBadgeClass}
             onSelectAddressOrder={(order) => {
               setSelectedAddressOrder(order);
               setShowAddressModal(true);
@@ -559,6 +641,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
         actionLoading={actionLoading}
         onManualApprove={handleManualApprove}
         onRejectOrder={handleRejectOrder}
+        onUpdateShippingStatus={handleUpdateShippingStatus}
       />
     </div>
   );

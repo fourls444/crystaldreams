@@ -39,6 +39,9 @@ CREATE TABLE orders (
     customer_address TEXT,
     customer_line TEXT,
     status TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'slip_uploaded' | 'verified' | 'rejected'
+    shipping_status TEXT NOT NULL DEFAULT 'processing', -- 'processing' | 'shipped' | 'delivered'
+    shipping_carrier TEXT,
+    tracking_number TEXT,
     slip_url TEXT,
     slip_verified BOOLEAN DEFAULT FALSE,
     verified_by TEXT, -- 'auto' | 'manual'

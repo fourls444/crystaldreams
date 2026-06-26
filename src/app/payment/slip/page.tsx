@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/utils/supabase";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
+import CartDrawer from "@/components/Cart/CartDrawer";
 import styles from "./slip.module.css";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import OrderSummaryCard from "./OrderSummaryCard";
@@ -45,6 +46,7 @@ function SlipContent() {
     orderId ? "" : "ไม่พบหมายเลขคำสั่งซื้อ กรุณากลับไปดำเนินการใหม่ที่หน้าแรก"
   );
   const [submitting, setSubmitting] = useState(false);
+  const [stockError, setStockError] = useState("");
 
   // Form states
   const [name, setName] = useState("");
@@ -77,6 +79,47 @@ function SlipContent() {
         setName(data.customer_name || "");
         setTel(data.customer_tel || "");
         setLineId(data.customer_line || "");
+
+        // Check stock availability for products in the order
+        let isStockAvailable = true;
+        let outOfStockItemName = "";
+
+        if (data.items && Array.isArray(data.items)) {
+          const productIds = data.items.map((item: any) => item.product_id);
+          const { data: productsData, error: productsErr } = await supabase
+            .from("products")
+            .select("id, name, stock, is_visible")
+            .in("id", productIds);
+
+          if (productsErr || !productsData) {
+            console.error("Failed to check product stocks:", productsErr);
+          } else {
+            const stockMap = new Map(productsData.map((p: any) => [p.id, p]));
+            for (const item of data.items) {
+              const prod = stockMap.get(item.product_id) as any;
+              if (!prod || !prod.is_visible || prod.stock < item.quantity) {
+                isStockAvailable = false;
+                outOfStockItemName = prod ? prod.name : item.name;
+                break;
+              }
+            }
+          }
+        } else if (data.product_id) {
+          const { data: prodData, error: prodErr } = await supabase
+            .from("products")
+            .select("name, stock, is_visible")
+            .eq("id", data.product_id)
+            .single();
+
+          if (prodErr || !prodData || !prodData.is_visible || prodData.stock < data.quantity) {
+            isStockAvailable = false;
+            outOfStockItemName = prodData ? prodData.name : (data.products?.name || "สินค้า");
+          }
+        }
+
+        if (!isStockAvailable) {
+          setStockError(`ขออภัย สินค้า "${outOfStockItemName}" ในคำสั่งซื้อนี้มีสต็อกไม่เพียงพอแล้ว กรุณายกเลิกคำสั่งซื้อแล้วเลือกสินค้าใหม่`);
+        }
       } catch (err) {
         console.error(err);
         setError("เกิดข้อผิดพลาดในการโหลดข้อมูลคำสั่งซื้อ");
@@ -222,6 +265,7 @@ function SlipContent() {
               </div>
 
               {error && <div className={styles.errorPanel}>{error}</div>}
+              {stockError && <div className={styles.errorPanel} style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#b91c1c" }}>⚠️ {stockError}</div>}
 
               <form onSubmit={handleSubmit} className={styles.form}>
                 <ShippingForm
@@ -250,8 +294,9 @@ function SlipContent() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !!stockError}
                   className={styles.submitBtn}
+                  style={stockError ? { background: "#94a3b8", cursor: "not-allowed" } : undefined}
                 >
                   {submitting ? (
                     <div className={styles.btnTextFlex}>
@@ -275,6 +320,7 @@ function SlipContent() {
       </main>
 
       <Footer />
+      <CartDrawer />
     </div>
   );
 }
@@ -350,6 +396,7 @@ function SlipSkeleton() {
         </div>
       </main>
       <Footer />
+      <CartDrawer />
     </div>
   );
 }

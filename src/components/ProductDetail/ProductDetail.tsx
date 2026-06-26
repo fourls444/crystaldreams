@@ -165,7 +165,52 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const handlePayment = async () => {
     if (!product) return;
     setError("");
-    setShowPaymentMethodModal(true);
+    setSubmitting(true);
+    try {
+      const { data, error: fetchErr } = await supabase
+        .from("products")
+        .select("stock, is_visible")
+        .eq("id", product.id)
+        .single();
+
+      if (fetchErr || !data) {
+        throw new Error("ไม่พบข้อมูลสินค้าล่าสุดในระบบ");
+      }
+
+      if (!data.is_visible || data.stock <= 0) {
+        setError("ขออภัย สินค้านี้หมดสต็อกแล้ว");
+        setProductsList((prevList) =>
+          prevList.map((p) =>
+            p.id === product.id ? { ...p, stock: 0 } : p
+          )
+        );
+        return;
+      }
+
+      if (quantity > data.stock) {
+        setError(`ขออภัย สต็อกสินค้าไม่เพียงพอ (คงเหลือในระบบ ${data.stock} ชิ้น)`);
+        setQuantity(data.stock);
+        setProductsList((prevList) =>
+          prevList.map((p) =>
+            p.id === product.id ? { ...p, stock: data.stock } : p
+          )
+        );
+        return;
+      }
+
+      // Sync latest stock
+      setProductsList((prevList) =>
+        prevList.map((p) =>
+          p.id === product.id ? { ...p, stock: data.stock } : p
+        )
+      );
+
+      setShowPaymentMethodModal(true);
+    } catch (err: any) {
+      setError(err.message || "เกิดข้อผิดพลาดในการตรวจสอบสต็อกสินค้า");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handlePaymentMethodSelect = async (selectedMethod: "promptpay" | "cod") => {
@@ -198,6 +243,18 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
       setCreatedOrderId(data.orderId);
       setTotalAmount(data.totalAmount);
+
+      // Save recent order ID for tracking
+      try {
+        const saved = localStorage.getItem("crystaldreams_recent_orders");
+        const list = saved ? JSON.parse(saved) : [];
+        if (!list.includes(data.orderId)) {
+          list.unshift(data.orderId);
+          localStorage.setItem("crystaldreams_recent_orders", JSON.stringify(list.slice(0, 5)));
+        }
+      } catch (e) {
+        console.error("Error saving recent order ID:", e);
+      }
 
       if (selectedMethod === "promptpay") {
         setShowQrModal(true);

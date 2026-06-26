@@ -7,6 +7,7 @@ import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import RatingStars from "@/components/RatingStars";
+import CartDrawer from "@/components/Cart/CartDrawer";
 import styles from "./HomeClient.module.css";
 import type { Review } from "@/types/review";
 
@@ -195,11 +196,22 @@ export default function HomeClient({
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const productsGridRef = useRef<HTMLDivElement>(null);
+  const reviewsGridRef = useRef<HTMLDivElement>(null);
 
   const scrollProducts = (direction: "left" | "right") => {
     if (productsGridRef.current) {
       const scrollAmount = 300;
       productsGridRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const scrollReviews = (direction: "left" | "right") => {
+    if (reviewsGridRef.current) {
+      const scrollAmount = 350;
+      reviewsGridRef.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
       });
@@ -388,15 +400,26 @@ export default function HomeClient({
 
         {/* All Products Grid */}
         <section style={{ marginBottom: "3rem" }}>
-          <h2 className={styles.sectionTitle}>สินค้าทั้งหมด</h2>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>สินค้าทั้งหมด</h2>
+            <div className={styles.scrollControls}>
+              <button
+                onClick={() => scrollProducts("left")}
+                className={styles.scrollBtn}
+                aria-label="เลื่อนซ้าย"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() => scrollProducts("right")}
+                className={styles.scrollBtn}
+                aria-label="เลื่อนขวา"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
           <div className={styles.productsGridContainer}>
-            <button
-              onClick={() => scrollProducts("left")}
-              className={`${styles.scrollBtn} ${styles.scrollBtnLeft}`}
-              aria-label="เลื่อนซ้าย"
-            >
-              <ChevronLeft size={20} />
-            </button>
             <div ref={productsGridRef} className={styles.productsGrid}>
               {initialProducts.map((product) => {
                 const hasDiscount =
@@ -462,28 +485,41 @@ export default function HomeClient({
                 );
               })}
             </div>
-            <button
-              onClick={() => scrollProducts("right")}
-              className={`${styles.scrollBtn} ${styles.scrollBtnRight}`}
-              aria-label="เลื่อนขวา"
-            >
-              <ChevronRight size={20} />
-            </button>
           </div>
         </section>
 
         {/* Shop Reviews Section */}
         {initialReviews.length > 0 && (
           <section style={{ marginBottom: "2rem" }}>
-            <h2 className={styles.sectionTitle}>รีวิวของทางร้าน</h2>
-            <div className={styles.reviewsGrid}>
-              {initialReviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  setLightboxUrl={setLightboxUrl}
-                />
-              ))}
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>รีวิวของทางร้าน</h2>
+              <div className={styles.scrollControls}>
+                <button
+                  onClick={() => scrollReviews("left")}
+                  className={styles.scrollBtn}
+                  aria-label="เลื่อนซ้าย"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  onClick={() => scrollReviews("right")}
+                  className={styles.scrollBtn}
+                  aria-label="เลื่อนขวา"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
+            <div className={styles.productsGridContainer}>
+              <div ref={reviewsGridRef} className={styles.reviewsGrid}>
+                {initialReviews.map((review) => (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    setLightboxUrl={setLightboxUrl}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -516,6 +552,7 @@ export default function HomeClient({
       )}
 
       <Footer initialSettings={initialSettings} />
+      <CartDrawer />
     </div>
   );
 }

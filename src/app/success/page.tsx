@@ -135,14 +135,7 @@ function SuccessContent() {
             </div>
           )}
 
-          {/* Time notice badge */}
-          <div className={styles.noticeBox}>
-            <span className={styles.noticeIcon}>📦</span>
-            <div>
-              <strong className={styles.noticeTitle}>ระยะเวลารอการยืนยัน:</strong>
-              หลังจากตรวจสอบความถูกต้องของสลิปโอนเงินสำเร็จ (ปกติใช้เวลา 5-15 นาที) ระบบจะส่งออเดอร์ให้แผนกจัดส่งทันที และท่านจะได้รับสินค้าภายใน 1-3 วันทำการ
-            </div>
-          </div>
+
 
           {/* Home Link button */}
           <Link href="/" className={styles.homeBtn}>

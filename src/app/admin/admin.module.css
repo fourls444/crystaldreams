@@ -1718,4 +1718,19 @@
   width: 100%;
 }
 
+.statusProcessing {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.statusShipped {
+  background-color: #eff6ff;
+  color: #1e40af;
+}
+
+.statusDelivered {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
 
