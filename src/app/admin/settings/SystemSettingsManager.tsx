@@ -9,7 +9,11 @@ import BannerSettings, { BannerItem } from "./BannerSettings";
 import PromptPaySettings from "./PromptPaySettings";
 import FooterSettings, { FooterColumn } from "./FooterSettings";
 
-export default function SystemSettingsManager() {
+interface SystemSettingsManagerProps {
+  onDirtyChange?: (isDirty: boolean, changesList: string[]) => void;
+}
+
+export default function SystemSettingsManager({ onDirtyChange }: SystemSettingsManagerProps) {
   const [promptpayNumber, setPromptpayNumber] = useState("");
   const [promptpayRef1, setPromptpayRef1] = useState("");
   const [promptpayRef2, setPromptpayRef2] = useState("");
@@ -45,10 +49,9 @@ export default function SystemSettingsManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Fetch current settings from backend on mount
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  // COD toggle state
+  const [codEnabled, setCodEnabled] = useState(true);
+  const [initialCodEnabled, setInitialCodEnabled] = useState(true);
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -68,6 +71,11 @@ export default function SystemSettingsManager() {
 
         setPromptpayRef2(r2);
         setInitialRef2(r2);
+
+        // Load COD enabled setting
+        const cod = data.settings.cod_enabled !== "false";
+        setCodEnabled(cod);
+        setInitialCodEnabled(cod);
 
         // Load footer settings
         const fmt = data.settings.footer_main_title || "เกี่ยวกับเรา";
@@ -121,7 +129,7 @@ export default function SystemSettingsManager() {
         } catch (e) {
           console.error("Failed to parse homepage_banners on fetch:", e);
         }
-        const mappedBanners: BannerItem[] = bns.map((item: any) => {
+        const mappedBanners: BannerItem[] = bns.map((item: { url?: string; name?: string; visible?: boolean } | string) => {
           if (typeof item === "string") {
             return { url: item, name: "", visible: true };
           }
@@ -147,8 +155,13 @@ export default function SystemSettingsManager() {
     }
   };
 
+  // Fetch current settings from backend on mount
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   // Helper to update column field by index
-  const updateColumnField = (index: number, key: keyof FooterColumn, value: any) => {
+  const updateColumnField = (index: number, key: keyof FooterColumn, value: string | boolean) => {
     setFooterColumns((prev) =>
       prev.map((col, i) => (i === index ? { ...col, [key]: value } : col))
     );
@@ -213,6 +226,17 @@ export default function SystemSettingsManager() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ key: "promptpay_ref2", value: promptpayRef2.trim() }),
+          }).then((r) => r.json())
+        );
+      }
+
+      // Save cod_enabled
+      if (codEnabled !== initialCodEnabled) {
+        promises.push(
+          fetch("/api/admin/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: "cod_enabled", value: String(codEnabled) }),
           }).then((r) => r.json())
         );
       }
@@ -282,6 +306,7 @@ export default function SystemSettingsManager() {
       setInitialNumber(cleanNumber);
       setInitialRef1(promptpayRef1.trim());
       setInitialRef2(promptpayRef2.trim());
+      setInitialCodEnabled(codEnabled);
       setInitialMainTitle(footerMainTitle);
       setInitialFooterColumns([...footerColumns]);
       setInitialBanners(banners);
@@ -292,12 +317,12 @@ export default function SystemSettingsManager() {
         confirmButtonColor: "#1e3a8a",
         timer: 1500,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       Swal.fire({
         icon: "error",
         title: "บันทึกไม่สำเร็จ",
-        text: err.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์",
+        text: err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์",
         confirmButtonColor: "#1e3a8a",
       });
     } finally {
@@ -309,9 +334,35 @@ export default function SystemSettingsManager() {
     promptpayNumber.replace(/[^0-9]/g, "") !== initialNumber ||
     promptpayRef1.trim() !== initialRef1 ||
     promptpayRef2.trim() !== initialRef2 ||
+    codEnabled !== initialCodEnabled ||
     JSON.stringify(banners) !== JSON.stringify(initialBanners) ||
     footerMainTitle !== initialMainTitle ||
     JSON.stringify(footerColumns) !== JSON.stringify(initialFooterColumns);
+
+  // Notify parent component about dirty state
+  useEffect(() => {
+    if (onDirtyChange) {
+      const changesList: string[] = [];
+      if (promptpayNumber.replace(/[^0-9]/g, "") !== initialNumber) changesList.push("หมายเลขพร้อมเพย์");
+      if (promptpayRef1.trim() !== initialRef1) changesList.push("ค่าอ้างอิง Ref 1");
+      if (promptpayRef2.trim() !== initialRef2) changesList.push("ค่าอ้างอิง Ref 2");
+      if (codEnabled !== initialCodEnabled) changesList.push("เปิด/ปิด เก็บเงินปลายทาง (COD)");
+      if (JSON.stringify(banners) !== JSON.stringify(initialBanners)) changesList.push("แบนเนอร์หน้าแรก");
+      if (footerMainTitle !== initialMainTitle || JSON.stringify(footerColumns) !== JSON.stringify(initialFooterColumns)) changesList.push("ข้อมูลส่วนท้ายเว็บ (Footer)");
+      
+      onDirtyChange(hasChanges, changesList);
+    }
+  }, [
+    hasChanges,
+    promptpayNumber, initialNumber,
+    promptpayRef1, initialRef1,
+    promptpayRef2, initialRef2,
+    codEnabled, initialCodEnabled,
+    banners, initialBanners,
+    footerMainTitle, initialMainTitle,
+    footerColumns, initialFooterColumns,
+    onDirtyChange
+  ]);
 
   if (loading) {
     return (
@@ -402,6 +453,8 @@ export default function SystemSettingsManager() {
             setPromptpayRef1={setPromptpayRef1}
             promptpayRef2={promptpayRef2}
             setPromptpayRef2={setPromptpayRef2}
+            codEnabled={codEnabled}
+            setCodEnabled={setCodEnabled}
             styles={styles}
           />
 

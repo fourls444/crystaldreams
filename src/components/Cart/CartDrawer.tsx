@@ -40,6 +40,9 @@ export default function CartDrawer() {
   const [stockChecking, setStockChecking] = useState(false);
   const [recentOrders, setRecentOrders] = useState<string[]>([]);
 
+  // COD enabled state (loaded from settings)
+  const [codEnabled, setCodEnabled] = useState(true);
+
   // Load recent orders from localStorage when cart opens
   useEffect(() => {
     if (isCartOpen) {
@@ -51,6 +54,16 @@ export default function CartDrawer() {
       } catch (e) {
         console.error("Error reading recent orders:", e);
       }
+
+      // Fetch COD setting from public settings API
+      fetch("/api/settings")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.settings?.cod_enabled !== undefined) {
+            setCodEnabled(data.settings.cod_enabled !== "false");
+          }
+        })
+        .catch((e) => console.error("Failed to fetch COD setting:", e));
     }
   }, [isCartOpen]);
 
@@ -421,6 +434,7 @@ export default function CartDrawer() {
         onClose={() => setShowPaymentMethodModal(false)}
         onSelect={handlePaymentMethodSelect}
         totalAmount={cartTotal}
+        codEnabled={codEnabled}
       />
     </>
   );

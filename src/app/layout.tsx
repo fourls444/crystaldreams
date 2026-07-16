@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
-import FacebookPixel from "@/components/FacebookPixel";
+// import FacebookPixel from "@/components/FacebookPixel";
 import { Suspense } from "react";
 
 const inter = Inter({
@@ -32,9 +32,9 @@ export default function RootLayout({
       className={`${inter.variable} ${notoSansThai.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Suspense fallback={null}>
+        {/* <Suspense fallback={null}>
           <FacebookPixel />
-        </Suspense>
+        </Suspense> */}
         <CartProvider>{children}</CartProvider>
       </body>
     </html>

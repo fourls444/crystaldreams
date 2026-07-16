@@ -15,7 +15,6 @@ interface DashboardOverviewProps {
   getStatusBadgeClass: (status: string) => string;
   getShippingStatusText: (shippingStatus: string) => string;
   getShippingStatusBadgeClass: (shippingStatus: string) => string;
-  onViewAllOrders: () => void;
   onSelectAddressOrder: (order: Order) => void;
 }
 
@@ -29,7 +28,6 @@ function DashboardOverview({
   getStatusBadgeClass,
   getShippingStatusText,
   getShippingStatusBadgeClass,
-  onViewAllOrders,
   onSelectAddressOrder,
 }: DashboardOverviewProps) {
   return (
@@ -78,9 +76,6 @@ function DashboardOverview({
       <div className={styles.tableCard}>
         <div className={styles.cardHeader}>
           <h3 className={styles.cardTitle}>รายการคำสั่งซื้อล่าสุด ( Recent Orders )</h3>
-          <button onClick={onViewAllOrders} className={styles.viewSlipBtn}>
-            ดูออเดอร์ทั้งหมด →
-          </button>
         </div>
         <div className={styles.tableWrapper}>
           <table className={styles.table}>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, CreditCard, Truck } from "lucide-react";
+import { X, CreditCard, Truck, Ban } from "lucide-react";
 import styles from "./PaymentMethodModal.module.css";
 
 interface PaymentMethodModalProps {
@@ -9,6 +9,7 @@ interface PaymentMethodModalProps {
   onClose: () => void;
   onSelect: (method: "promptpay" | "cod") => void;
   totalAmount: number;
+  codEnabled: boolean;
 }
 
 export default function PaymentMethodModal({
@@ -16,6 +17,7 @@ export default function PaymentMethodModal({
   onClose,
   onSelect,
   totalAmount,
+  codEnabled,
 }: PaymentMethodModalProps) {
   if (!isOpen) return null;
 
@@ -64,16 +66,33 @@ export default function PaymentMethodModal({
 
             {/* COD Option */}
             <button
-              onClick={() => onSelect("cod")}
+              onClick={() => codEnabled && onSelect("cod")}
+              disabled={!codEnabled}
               className={`${styles.optionCard} ${styles.codCard}`}
+              style={
+                !codEnabled
+                  ? {
+                      opacity: 0.5,
+                      cursor: "not-allowed",
+                      filter: "grayscale(0.6)",
+                      position: "relative",
+                    }
+                  : undefined
+              }
             >
               <div className={styles.iconWrapper}>
-                <Truck size={28} className={styles.codIcon} />
+                {codEnabled ? (
+                  <Truck size={28} className={styles.codIcon} />
+                ) : (
+                  <Ban size={28} style={{ color: "#94a3b8" }} />
+                )}
               </div>
               <div className={styles.optionContent}>
                 <h4 className={styles.optionTitle}>เก็บเงินปลายทาง (COD)</h4>
                 <p className={styles.optionDesc}>
-                  ชำระเงินสดหรือแสกนจ่ายกับเจ้าหน้าที่ขนส่งเมื่อได้รับสินค้า
+                  {codEnabled
+                    ? "ชำระเงินสดหรือแสกนจ่ายกับเจ้าหน้าที่ขนส่งเมื่อได้รับสินค้า"
+                    : "ขณะนี้ไม่รับบริการเก็บเงินปลายทาง"}
                 </p>
               </div>
             </button>

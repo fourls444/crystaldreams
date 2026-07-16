@@ -55,6 +55,20 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [loadingQr, setLoadingQr] = useState(showQrParam === "true" && !!orderIdParam);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
 
+  // COD enabled state (loaded from settings)
+  const [codEnabled, setCodEnabled] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.settings?.cod_enabled !== undefined) {
+          setCodEnabled(data.settings.cod_enabled !== "false");
+        }
+      })
+      .catch((e) => console.error("Failed to fetch COD setting:", e));
+  }, []);
+
   const product = productsList.find((p) => p.id === selectedProductId) || productsList[0] || null;
 
   const hasDiscount = product && product.discount_percent !== undefined && product.discount_percent > 0;
@@ -729,6 +743,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         onClose={() => setShowPaymentMethodModal(false)}
         onSelect={handlePaymentMethodSelect}
         totalAmount={product ? discountedPrice * quantity : 0}
+        codEnabled={codEnabled}
       />
 
       <CartDrawer />

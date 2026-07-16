@@ -11,6 +11,8 @@ interface AdminSidebarProps {
   pendingSlipsCount: number;
   isOpen?: boolean;
   onClose?: () => void;
+  onHomeClick?: () => void;
+  onLogoutClick?: () => void;
 }
 
 function AdminSidebar({
@@ -19,11 +21,17 @@ function AdminSidebar({
   pendingSlipsCount,
   isOpen = false,
   onClose,
+  onHomeClick,
+  onLogoutClick,
 }: AdminSidebarProps) {
   const router = useRouter();
 
   const handleLogout = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (onLogoutClick) {
+      onLogoutClick();
+      return;
+    }
     // Call logout via server action/api route
     await fetch("/api/admin/login", {
       method: "POST",
@@ -37,12 +45,20 @@ function AdminSidebar({
     router.refresh();
   };
 
+  const handleHomeClick = () => {
+    if (onHomeClick) {
+      onHomeClick();
+    } else {
+      router.push("/");
+    }
+  };
+
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}>
       <div className={styles.sidebarHeader}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
           <div 
-            onClick={() => router.push("/")} 
+            onClick={handleHomeClick} 
             style={{ cursor: "pointer" }}
             title="กลับไปหน้าหลัก"
           >

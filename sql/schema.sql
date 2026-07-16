@@ -109,6 +109,15 @@ INSERT INTO settings (key, value)
 VALUES ('promptpay_number', '010753600031501')
 ON CONFLICT (key) DO NOTHING;
 
+-- Insert default COD enabled setting (true = เปิดรับเก็บเงินปลายทาง)
+INSERT INTO settings (key, value)
+VALUES ('cod_enabled', 'true')
+ON CONFLICT (key) DO NOTHING;
+
+-- --- DATABASE MIGRATION FOR cod_enabled SETTING ---
+-- Run this SQL in your Supabase SQL Editor if you already have an existing `settings` table:
+-- INSERT INTO settings (key, value) VALUES ('cod_enabled', 'true') ON CONFLICT (key) DO NOTHING;
+
 -- 4. Create Reviews Table
 CREATE TABLE reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

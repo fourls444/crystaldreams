@@ -21,6 +21,23 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
+    // Server-side guard: ตรวจสอบว่า COD เปิดอยู่หรือไม่ ก่อนสร้างออเดอร์
+    if (body.payment_method === "cod") {
+      const { data: codSetting } = await supabaseAdmin
+        .from("settings")
+        .select("value")
+        .eq("key", "cod_enabled")
+        .single();
+
+      if (codSetting?.value === "false") {
+        return NextResponse.json(
+          { error: "ขณะนี้ไม่รับบริการเก็บเงินปลายทาง (COD) กรุณาชำระเงินผ่านพร้อมเพย์" },
+          { status: 400 }
+        );
+      }
+    }
+
+
     // 1. Fetch details and validate all products in the cart
     let total_amount = 0;
     const itemsWithDetails = [];

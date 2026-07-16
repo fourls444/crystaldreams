@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, HelpCircle, AlertTriangle, Eye, RefreshCw } from "lucide-react";
+import { CreditCard, HelpCircle, AlertTriangle, Eye, RefreshCw, Truck } from "lucide-react";
 import Swal from "sweetalert2";
 
 interface PromptPaySettingsProps {
@@ -11,6 +11,8 @@ interface PromptPaySettingsProps {
   setPromptpayRef1: (val: string) => void;
   promptpayRef2: string;
   setPromptpayRef2: (val: string) => void;
+  codEnabled: boolean;
+  setCodEnabled: (val: boolean) => void;
   styles: any;
 }
 
@@ -21,6 +23,8 @@ export default function PromptPaySettings({
   setPromptpayRef1,
   promptpayRef2,
   setPromptpayRef2,
+  codEnabled,
+  setCodEnabled,
   styles,
 }: PromptPaySettingsProps) {
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -358,6 +362,96 @@ export default function PromptPaySettings({
           </button>
         </div>
       )}
+
+      {/* COD Settings Card */}
+      <div
+        style={{
+          background: "#ffffff",
+          borderRadius: "1rem",
+          padding: "2rem",
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1rem" }}>
+          <div style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.5rem", backgroundColor: "#fef3c7", color: "#b45309", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Truck size={20} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>การตั้งค่าเก็บเงินปลายทาง (COD Settings)</h3>
+            <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>เปิดหรือปิดตัวเลือกเก็บเงินปลายทาง หากปิด ลูกค้าจะไม่สามารถเลือก COD ได้</p>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", padding: "1.25rem", backgroundColor: codEnabled ? "#f0fdf4" : "#fef2f2", borderRadius: "0.75rem", border: `1px solid ${codEnabled ? "#bbf7d0" : "#fecaca"}`, transition: "all 0.3s" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a" }}>
+              🚚 เก็บเงินปลายทาง (Cash on Delivery)
+            </span>
+            <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
+              ลูกค้าชำระเงินเมื่อได้รับสินค้า
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+            <span style={{
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              color: codEnabled ? "#166534" : "#991b1b",
+              backgroundColor: codEnabled ? "#dcfce7" : "#fee2e2",
+              padding: "0.2rem 0.65rem",
+              borderRadius: "9999px",
+              transition: "all 0.3s",
+            }}>
+              {codEnabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+            </span>
+            {/* Toggle Switch */}
+            <button
+              type="button"
+              id="cod_toggle_btn"
+              onClick={() => setCodEnabled(!codEnabled)}
+              aria-pressed={codEnabled}
+              style={{
+                position: "relative",
+                display: "inline-flex",
+                alignItems: "center",
+                width: "3rem",
+                height: "1.65rem",
+                borderRadius: "9999px",
+                border: "none",
+                cursor: "pointer",
+                backgroundColor: codEnabled ? "#16a34a" : "#cbd5e1",
+                transition: "background-color 0.3s",
+                padding: 0,
+                flexShrink: 0,
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  display: "block",
+                  width: "1.25rem",
+                  height: "1.25rem",
+                  borderRadius: "50%",
+                  backgroundColor: "#ffffff",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  transition: "transform 0.3s",
+                  transform: codEnabled ? "translateX(1.45rem)" : "translateX(0.2rem)",
+                }}
+              />
+            </button>
+          </div>
+        </div>
+
+        {!codEnabled && (
+          <div style={{ display: "flex", gap: "0.75rem", padding: "1rem 1.25rem", backgroundColor: "#fffbeb", border: "1px solid #fef3c7", borderRadius: "0.5rem", color: "#b45309", fontSize: "0.875rem", lineHeight: "1.5", marginTop: "1rem" }}>
+            <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: "0.1rem" }} />
+            <div>
+              <strong style={{ display: "block", marginBottom: "0.2rem" }}>COD ถูกปิดอยู่</strong>
+              ลูกค้าจะไม่เห็นตัวเลือกเก็บเงินปลายทางในหน้า checkout และระบบจะปฏิเสธ request ที่พยายามสร้างออเดอร์ COD โดยอัตโนมัติ
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

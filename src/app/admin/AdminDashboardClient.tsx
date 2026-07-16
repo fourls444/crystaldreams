@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useDeferredValue, useCallback } from "react";
+import { useState, useMemo, useDeferredValue, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { Menu } from "lucide-react";
@@ -62,14 +62,55 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
   // Loading States for API buttons
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const handleTabChange = useCallback((tab: "dashboard" | "orders" | "products" | "settings" | "reviews") => {
-    if (tab === "products") {
-      setShowProductModal(false);
-      setEditingProduct(null);
+  // Unsaved Settings Changes States
+  const [settingsDirty, setSettingsDirty] = useState(false);
+  const [settingsChangesList, setSettingsChangesList] = useState<string[]>([]);
+
+  // Intercept browser refresh/close when settings are dirty
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.onbeforeunload = settingsDirty && activeTab === "settings" ? () => true : null;
     }
-    router.push(`/admin?view=${tab}`);
-    setIsSidebarOpen(false);
-  }, [router]);
+  }, [settingsDirty, activeTab]);
+
+  const confirmLeaveSettings = useCallback(async (onConfirm: () => void) => {
+    if (activeTab === "settings" && settingsDirty) {
+      const result = await Swal.fire({
+        title: "คุณมีการแก้ไขที่ยังไม่ได้บันทึก",
+        html: `<div style="text-align: left; font-size: 0.95rem; color: #475569; margin-bottom: 0.75rem;">รายการที่แก้ไข:</div>
+               <ul style="text-align: left; margin: 0; padding-left: 1.5rem; font-size: 0.9rem; color: #0f172a; font-weight: 500;">
+                 <li>${settingsChangesList.join("</li><li>")}</li>
+               </ul>
+               <div style="margin-top: 1.25rem; font-size: 0.95rem; color: #ef4444; font-weight: 600;">
+                 ต้องการละทิ้งการแก้ไขและออกจากหน้านี้หรือไม่?
+               </div>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ออกจากหน้าตั้งค่า",
+        cancelButtonText: "อยู่ในหน้านี้ต่อ",
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#64748b",
+      });
+
+      if (result.isConfirmed) {
+        setSettingsDirty(false); // Clear dirty state
+        onConfirm();
+      }
+    } else {
+      onConfirm();
+    }
+  }, [activeTab, settingsDirty, settingsChangesList]);
+
+  const handleTabChange = useCallback((tab: "dashboard" | "orders" | "products" | "settings" | "reviews") => {
+    confirmLeaveSettings(() => {
+      if (tab === "products") {
+        setShowProductModal(false);
+        setEditingProduct(null);
+      }
+      router.push(`/admin?view=${tab}`);
+      setIsSidebarOpen(false);
+    });
+  }, [router, confirmLeaveSettings]);
 
   // Sidebar count of pending slips (status = 'slip_uploaded') - Memoized to prevent recalculation on every render
   const pendingSlipsCount = useMemo(() => {
@@ -493,7 +534,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
   }, [router, selectedAddressOrder]);
 
   return (
-    <div className={styles.dashboardLayout}>
+    <div className={styles.adminContainer}>
       {/* Sidebar Overlay for mobile screen */}
       {isSidebarOpen && (
         <div
@@ -503,11 +544,30 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
       )}
 
       <AdminSidebar
-        activeTab={activeTab}
+        activeTab={activeTab as "dashboard" | "orders" | "products" | "settings" | "reviews"}
         onTabChange={handleTabChange}
         pendingSlipsCount={pendingSlipsCount}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        onHomeClick={() => {
+          confirmLeaveSettings(() => {
+            router.push("/");
+          });
+        }}
+        onLogoutClick={() => {
+          confirmLeaveSettings(async () => {
+            // Call logout via server action/api route
+            await fetch("/api/admin/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ logout: true }),
+            }).catch(() => {});
+            
+            document.cookie = "admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+            router.push("/admin/login");
+            router.refresh();
+          });
+        }}
       />
 
       {/* Mobile Top Navbar */}
@@ -548,7 +608,6 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
             getStatusBadgeClass={getStatusBadgeClass}
             getShippingStatusText={getShippingStatusText}
             getShippingStatusBadgeClass={getShippingStatusBadgeClass}
-            onViewAllOrders={() => handleTabChange("orders")}
             onSelectAddressOrder={(order) => {
               setSelectedAddressOrder(order);
               setShowAddressModal(true);
@@ -606,7 +665,12 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
 
         {/* VIEW 4: SYSTEM SETTINGS VIEW */}
         {activeTab === "settings" && (
-          <SystemSettingsManager />
+          <SystemSettingsManager 
+            onDirtyChange={(isDirty, changesList) => {
+              setSettingsDirty(isDirty);
+              setSettingsChangesList(changesList);
+            }} 
+          />
         )}
 
         {/* VIEW 5: REVIEWS MANAGEMENT VIEW */}
