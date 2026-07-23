@@ -54,7 +54,6 @@ export default function SystemSettingsManager({ onDirtyChange }: SystemSettingsM
   const [initialCodEnabled, setInitialCodEnabled] = useState(true);
 
   const fetchSettings = async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/admin/settings");
       const data = await res.json();
@@ -157,7 +156,10 @@ export default function SystemSettingsManager({ onDirtyChange }: SystemSettingsM
 
   // Fetch current settings from backend on mount
   useEffect(() => {
-    fetchSettings();
+    const init = async () => {
+      await fetchSettings();
+    };
+    init();
   }, []);
 
   // Helper to update column field by index

@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/utils/supabase";
 import Swal from "sweetalert2";
 import styles from "./ProductDetail.module.css";
-import { AlertTriangle, Share2, Copy, X, ZoomIn } from "lucide-react";
-import type { Review } from "@/types/review";
+import { AlertTriangle, Share2, Copy } from "lucide-react";
 import ProductImageGallery from "./ProductImageGallery";
 import ProductFeatures from "./ProductFeatures";
 import PaymentQrModal from "./PaymentQrModal";
@@ -220,8 +219,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
       );
 
       setShowPaymentMethodModal(true);
-    } catch (err: any) {
-      setError(err.message || "เกิดข้อผิดพลาดในการตรวจสอบสต็อกสินค้า");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการตรวจสอบสต็อกสินค้า";
+      setError(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -668,11 +668,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
       </div>
 
       {/* Other Products Section */}
-      {productsList.length > 1 && (
+      {productsList.filter(p => p.is_visible !== false).length > 1 && (
         <div className={styles.otherProductsSection}>
           <h3 className={styles.otherProductsTitle}>สินค้าเพิ่มเติม</h3>
           <div className={styles.otherProductsGrid}>
-            {productsList.map((p) => {
+            {productsList.filter(p => p.is_visible !== false).map((p) => {
               const isSelected = p.id === product?.id;
               const hasOtherDiscount = p.discount_percent !== undefined && p.discount_percent > 0;
               const otherOriginalPrice = Number(p.price);
@@ -696,6 +696,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   }}
                 >
                   <div className={styles.otherProductImageWrapper}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.image_url || defaultImage}
                       alt={p.name}
