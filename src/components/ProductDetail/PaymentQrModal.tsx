@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { Download } from "lucide-react";
 import styles from "./ProductDetail.module.css";
@@ -24,7 +24,6 @@ export default function PaymentQrModal({
   onProceed,
   onCancel,
 }: PaymentQrModalProps) {
-  const [paymentMessage, setPaymentMessage] = useState("กำลังรอการชำระเงินจาก Omise...");
   const redirectedRef = useRef(false);
 
   useEffect(() => {
@@ -41,15 +40,10 @@ export default function PaymentQrModal({
 
         if (data.paid && !redirectedRef.current) {
           redirectedRef.current = true;
-          setPaymentMessage("ชำระเงินสำเร็จ กำลังไปหน้ากรอกข้อมูลจัดส่ง...");
           onProceed();
-        } else if (data.paymentStatus === "failed" || data.paymentStatus === "expired") {
-          setPaymentMessage("รายการนี้ไม่สำเร็จหรือหมดอายุ กรุณายกเลิกแล้วสร้าง QR ใหม่");
-        } else {
-          setPaymentMessage("กำลังรอการชำระเงินจาก Omise...");
         }
       } catch {
-        setPaymentMessage("กำลังรอการยืนยัน ระบบจะตรวจสอบให้อัตโนมัติอีกครั้ง");
+        // Keep polling silently; a later poll or webhook can still confirm payment.
       }
     };
 
@@ -101,11 +95,9 @@ export default function PaymentQrModal({
                 />
               </div>
 
-              <p style={{ margin: "0.75rem 0 0", textAlign: "center", color: "#334155", fontSize: "0.9rem", lineHeight: 1.5 }}>
-                หลังจากชำระเงินสำเร็จ กรุณากรอกข้อมูลจัดส่งในขั้นตอนถัดไป
-              </p>
-              <p style={{ margin: "0.35rem 0 0", textAlign: "center", color: "#1e3a8a", fontSize: "0.82rem", fontWeight: 600 }}>
-                {paymentMessage}
+              <p className={styles.qrShippingNotice}>
+                <span>หลังจากชำระเงินสำเร็จ</span>
+                <span>กรุณากรอกข้อมูลจัดส่งในขั้นตอนถัดไป</span>
               </p>
 
               <a

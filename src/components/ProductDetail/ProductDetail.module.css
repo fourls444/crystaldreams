@@ -718,6 +718,19 @@
   text-align: center;
 }
 
+.qrShippingNotice {
+  margin: 1rem 0 0.25rem;
+  padding: 0 2.5rem;
+  color: #334155;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.qrShippingNotice span {
+  display: block;
+}
+
 .qrError {
   height: 14rem;
   display: flex;
@@ -1344,5 +1357,4 @@
 .customerLightboxClose:hover {
   opacity: 0.8;
 }
-
 
