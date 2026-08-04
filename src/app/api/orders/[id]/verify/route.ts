@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyOrderSlip } from "@/utils/verify";
 import { isAdminAuthenticated } from "@/utils/auth";
+import { getSupabaseAdmin } from "@/utils/supabase";
 
 export async function POST(
   req: Request,
@@ -18,6 +19,19 @@ export async function POST(
       return NextResponse.json(
         { error: "กรุณาระบุหมายเลขคำสั่งซื้อ" },
         { status: 400 }
+      );
+    }
+
+
+    const { data: order } = await getSupabaseAdmin()
+      .from("orders")
+      .select("omise_charge_id")
+      .eq("id", orderId)
+      .single();
+    if (order?.omise_charge_id) {
+      return NextResponse.json(
+        { error: "ออเดอร์ Omise ไม่ใช้การตรวจสลิป" },
+        { status: 409 },
       );
     }
 

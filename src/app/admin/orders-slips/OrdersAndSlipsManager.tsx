@@ -44,8 +44,8 @@ function OrdersAndSlipsManager({
     <div>
       <header className={styles.panelHeader}>
         <div>
-          <h2 className={styles.panelTitle}>จัดการรายการสั่งซื้อ & สลิปโอนเงิน</h2>
-          <p className={styles.panelSubtitle}>ดูรายการสั่งซื้อ รูปสลิป ตรวจสอบอัตโนมัติ หรือกดยืนยัน/ปฏิเสธ</p>
+          <h2 className={styles.panelTitle}>จัดการรายการสั่งซื้อ & การชำระเงิน</h2>
+          <p className={styles.panelSubtitle}>ดูสถานะ Omise PromptPay, Charge ID, COD และข้อมูลจัดส่ง</p>
         </div>
       </header>
 
@@ -62,7 +62,7 @@ function OrdersAndSlipsManager({
             onClick={() => onSetOrderFilter("promptpay")}
             className={`${styles.filterBtn} ${orderFilter === "promptpay" ? styles.filterBtnActive : ""}`}
           >
-            โอนเงินผ่านพร้อมเพย์ ( {initialOrders.filter((o) => o.payment_method !== "cod").length} )
+            Omise PromptPay ( {initialOrders.filter((o) => o.payment_method !== "cod").length} )
           </button>
           <button
             onClick={() => onSetOrderFilter("cod")}
@@ -134,15 +134,19 @@ function OrdersAndSlipsManager({
                   <td>
                     <div className={styles.actionCell} style={{ justifyContent: "center", alignItems: "center", gap: "0.5rem" }}>
                       {order.payment_method !== "cod" && (
-                        order.slip_url ? (
+                        order.omise_charge_id ? (
+                          <span style={{ fontSize: "0.75rem", color: "#475569", fontFamily: "monospace" }} title={order.omise_charge_id}>
+                            Omise: {order.omise_charge_id.slice(0, 16)}…
+                          </span>
+                        ) : order.slip_url ? (
                           <button
                             onClick={() => onSelectOrder(order)}
                             className={styles.viewSlipBtn}
                           >
-                            ดูสลิปหลักฐาน
+                            ดูสลิปออเดอร์เก่า
                           </button>
                         ) : (
-                          <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>ไม่มีสลิป</span>
+                          <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>ยังไม่มี Charge</span>
                         )
                       )}
                       <button

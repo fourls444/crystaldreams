@@ -46,6 +46,13 @@ CREATE TABLE orders (
     slip_verified BOOLEAN DEFAULT FALSE,
     verified_by TEXT, -- 'auto' | 'manual'
     payment_method TEXT NOT NULL DEFAULT 'promptpay',
+    payment_status TEXT NOT NULL DEFAULT 'pending',
+    omise_charge_id TEXT UNIQUE,
+    omise_charge_status TEXT,
+    omise_failure_code TEXT,
+    paid_at TIMESTAMPTZ,
+    stock_deducted_at TIMESTAMPTZ,
+    shipping_completed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

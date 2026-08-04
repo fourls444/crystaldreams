@@ -100,7 +100,7 @@ function AdminSidebar({
         >
           <span className={styles.menuItemLabel}>
             <FileText size={18} />
-            <span>ออเดอร์ & สลิป</span>
+            <span>ออเดอร์ & ชำระเงิน</span>
           </span>
           {pendingSlipsCount > 0 && (
             <span className={styles.sidebarBadge}>{pendingSlipsCount}</span>

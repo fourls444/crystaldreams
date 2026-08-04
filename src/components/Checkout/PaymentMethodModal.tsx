@@ -59,7 +59,7 @@ export default function PaymentMethodModal({
               <div className={styles.optionContent}>
                 <h4 className={styles.optionTitle}>โอนผ่านพร้อมเพย์ (PromptPay)</h4>
                 <p className={styles.optionDesc}>
-                  สแกนคิวอาร์โค้ดชำระเงินด้วยแอปธนาคาร และอัปโหลดสลิป
+                  สแกน QR ผ่านแอปธนาคาร ระบบ Omise จะยืนยันการชำระเงินอัตโนมัติ
                 </p>
               </div>
             </button>

@@ -63,7 +63,7 @@ function DashboardOverview({
 
         <div className={`${styles.statCard} ${styles.statCardAmber}`}>
           <div className={styles.statInfo}>
-            <span className={styles.statLabel}>สลิปที่รอตรวจ</span>
+            <span className={styles.statLabel}>ออเดอร์ที่ต้องดูแล</span>
             <span className={styles.statValue}>{pendingSlipsCount}</span>
           </div>
           <div className={styles.statIcon}>

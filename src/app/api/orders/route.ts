@@ -21,8 +21,13 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
+    const paymentMethod = body.payment_method === "cod" ? "cod" : "promptpay";
+    if (body.payment_method && body.payment_method !== "cod" && body.payment_method !== "promptpay") {
+      return NextResponse.json({ error: "รูปแบบการชำระเงินไม่ถูกต้อง" }, { status: 400 });
+    }
+
     // Server-side guard: ตรวจสอบว่า COD เปิดอยู่หรือไม่ ก่อนสร้างออเดอร์
-    if (body.payment_method === "cod") {
+    if (paymentMethod === "cod") {
       const { data: codSetting } = await supabaseAdmin
         .from("settings")
         .select("value")
@@ -92,7 +97,8 @@ export async function POST(req: Request) {
         quantity: firstItem.quantity,
         total_amount,
         status: "pending",
-        payment_method: body.payment_method || "promptpay",
+        payment_method: paymentMethod,
+        payment_status: paymentMethod === "cod" ? "cod_pending" : "pending",
         items: itemsWithDetails,
       })
       .select("id")
@@ -134,7 +140,7 @@ export async function DELETE(request: Request) {
     // Fetch the order status first to ensure it's "pending"
     const { data: order, error: fetchError } = await supabaseAdmin
       .from("orders")
-      .select("status")
+      .select("status, omise_charge_id")
       .eq("id", id)
       .single();
 
@@ -146,6 +152,15 @@ export async function DELETE(request: Request) {
       return NextResponse.json(
         { error: "ไม่สามารถยกเลิกคำสั่งซื้อนี้ได้เนื่องจากอยู่ระหว่างการดำเนินการ" },
         { status: 400 }
+      );
+    }
+
+    // An Omise charge can complete after the modal closes. Keep the order so a
+    // late webhook still has a valid target and the payment is never orphaned.
+    if (order.omise_charge_id) {
+      return NextResponse.json(
+        { error: "ปิดหน้าชำระเงินได้ แต่ออเดอร์ที่ผูกกับ Omise จะถูกเก็บไว้จนกว่ารายการจะหมดอายุ" },
+        { status: 409 },
       );
     }
 
@@ -166,4 +181,3 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "เกิดข้อผิดพลาดภายในระบบ" }, { status: 500 });
   }
 }
-

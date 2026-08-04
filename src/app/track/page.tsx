@@ -149,6 +149,7 @@ function TrackingContent() {
       case "verified": return "ชำระเงินสำเร็จ";
       case "slip_uploaded": return "อัปโหลดสลิปแล้ว (รอแอดมินยืนยัน)";
       case "cod_pending": return "เก็บเงินปลายทาง (ได้รับคำสั่งซื้อแล้ว)";
+      case "paid_stock_issue": return "ชำระผ่าน Omise แล้ว (ร้านกำลังตรวจสต็อก)";
       case "rejected": return "ปฏิเสธ/ยกเลิกคำสั่งซื้อ";
       case "pending":
       default: return "รอการชำระเงิน";
@@ -160,6 +161,7 @@ function TrackingContent() {
       case "verified": return styles.badgeVerified;
       case "slip_uploaded": return styles.badgeUploaded;
       case "cod_pending": return styles.badgeUploaded;
+      case "paid_stock_issue": return styles.badgeUploaded;
       case "rejected": return styles.badgeRejected;
       case "pending":
       default: return styles.badgePending;
@@ -201,7 +203,7 @@ function TrackingContent() {
 
   // Determine timeline steps active states
   const getTimelineSteps = (order: Order) => {
-    const isVerified = order.status === "verified";
+    const isVerified = order.status === "verified" || order.status === "paid_stock_issue";
     const isCod = order.payment_method === "cod";
     const isUploaded = order.status === "slip_uploaded";
     const shipping = order.shipping_status;
@@ -216,14 +218,14 @@ function TrackingContent() {
       },
       {
         key: "payment",
-        label: isCod ? "ชำระเงินปลายทาง (ไม่ต้องโอนล่วงหน้า)" : "ตรวจสอบยอดชำระเงิน",
+        label: isCod ? "ชำระเงินปลายทาง (ไม่ต้องโอนล่วงหน้า)" : "Omise PromptPay",
         desc: isVerified 
           ? "ชำระเงินเรียบร้อยแล้ว" 
           : isCod 
             ? "ชำระเงินปลายทางเมื่อได้รับสินค้า" 
-            : isUploaded 
-              ? "ได้รับสลิปแล้ว กำลังรอแอดมินยืนยันความถูกต้อง" 
-              : "รอยืนยันยอดเงินโอน",
+            : isUploaded
+              ? "ออเดอร์เก่าอยู่ระหว่างตรวจสอบสลิป"
+              : "รอ Omise ยืนยันยอดชำระเงิน",
         active: isVerified || isCod,
         icon: <ClipboardCheck size={12} className={styles.stepIcon} />
       },

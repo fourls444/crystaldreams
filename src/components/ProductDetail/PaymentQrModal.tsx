@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Download, ArrowRight } from "lucide-react";
+import { Download } from "lucide-react";
 import styles from "./ProductDetail.module.css";
 
 interface PaymentQrModalProps {
@@ -23,6 +24,40 @@ export default function PaymentQrModal({
   onProceed,
   onCancel,
 }: PaymentQrModalProps) {
+  const [paymentMessage, setPaymentMessage] = useState("กำลังรอการชำระเงินจาก Omise...");
+  const redirectedRef = useRef(false);
+
+  useEffect(() => {
+    if (!showQrModal || loadingQr || !qrCodeDataUrl || !createdOrderId) return;
+    redirectedRef.current = false;
+
+    const checkPayment = async () => {
+      try {
+        const response = await fetch(`/api/orders/${createdOrderId}/payment-status`, {
+          cache: "no-store",
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "ตรวจสอบสถานะไม่ได้");
+
+        if (data.paid && !redirectedRef.current) {
+          redirectedRef.current = true;
+          setPaymentMessage("ชำระเงินสำเร็จ กำลังไปหน้ากรอกข้อมูลจัดส่ง...");
+          onProceed();
+        } else if (data.paymentStatus === "failed" || data.paymentStatus === "expired") {
+          setPaymentMessage("รายการนี้ไม่สำเร็จหรือหมดอายุ กรุณายกเลิกแล้วสร้าง QR ใหม่");
+        } else {
+          setPaymentMessage("กำลังรอการชำระเงินจาก Omise...");
+        }
+      } catch {
+        setPaymentMessage("กำลังรอการยืนยัน ระบบจะตรวจสอบให้อัตโนมัติอีกครั้ง");
+      }
+    };
+
+    void checkPayment();
+    const timer = window.setInterval(checkPayment, 3000);
+    return () => window.clearInterval(timer);
+  }, [createdOrderId, loadingQr, onProceed, qrCodeDataUrl, showQrModal]);
+
   if (!showQrModal) return null;
 
   return (
@@ -66,6 +101,13 @@ export default function PaymentQrModal({
                 />
               </div>
 
+              <p style={{ margin: "0.75rem 0 0", textAlign: "center", color: "#334155", fontSize: "0.9rem", lineHeight: 1.5 }}>
+                หลังจากชำระเงินสำเร็จ กรุณากรอกข้อมูลจัดส่งในขั้นตอนถัดไป
+              </p>
+              <p style={{ margin: "0.35rem 0 0", textAlign: "center", color: "#1e3a8a", fontSize: "0.82rem", fontWeight: 600 }}>
+                {paymentMessage}
+              </p>
+
               <a
                 href={qrCodeDataUrl}
                 download={`crystaldreams-qr-${createdOrderId.slice(0, 8)}.png`}
@@ -84,20 +126,6 @@ export default function PaymentQrModal({
 
         {/* Action buttons */}
         <div className={styles.modalActions}>
-          <button
-            onClick={onProceed}
-            className={styles.payBtn}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.35rem",
-            }}
-          >
-            <span>ไปกรอกข้อมูลและแนบสลิป</span>
-            <ArrowRight size={16} />
-          </button>
-
           <button onClick={onCancel} className={styles.cancelBtn}>
             ยกเลิกชำระเงิน
           </button>

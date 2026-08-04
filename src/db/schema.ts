@@ -35,6 +35,13 @@ export const orders = pgTable("orders", {
   slip_verified: boolean("slip_verified").default(false),
   verified_by: text("verified_by"),
   payment_method: text("payment_method").notNull().default("promptpay"),
+  payment_status: text("payment_status").notNull().default("pending"),
+  omise_charge_id: text("omise_charge_id").unique(),
+  omise_charge_status: text("omise_charge_status"),
+  omise_failure_code: text("omise_failure_code"),
+  paid_at: timestamp("paid_at", { withTimezone: true }),
+  stock_deducted_at: timestamp("stock_deducted_at", { withTimezone: true }),
+  shipping_completed: boolean("shipping_completed").notNull().default(false),
   items: jsonb("items"),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -59,4 +66,3 @@ export const reviews = pgTable("reviews", {
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
-

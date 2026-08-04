@@ -71,7 +71,7 @@ function CustomerAddressDetailsModal({
               <div className={styles.slipInfoRow}>
                 <label>วิธีการชำระเงิน:</label>
                 <span style={{ color: selectedAddressOrder.payment_method === "cod" ? "#ea580c" : "#1e3a8a", fontWeight: "bold" }}>
-                  {selectedAddressOrder.payment_method === "cod" ? "เก็บเงินปลายทาง (COD)" : "พร้อมเพย์ (PromptPay)"}
+                  {selectedAddressOrder.payment_method === "cod" ? "เก็บเงินปลายทาง (COD)" : "Omise PromptPay"}
                 </span>
               </div>
               <div className={styles.slipInfoRow} style={{ alignItems: "center" }}>
@@ -176,7 +176,9 @@ function CustomerAddressDetailsModal({
           </div>
         </div>
 
-        {onManualApprove && onRejectOrder && (
+        {onManualApprove && onRejectOrder &&
+          (selectedAddressOrder.payment_method === "cod" ||
+            (!!selectedAddressOrder.slip_url && !selectedAddressOrder.omise_charge_id)) && (
           <div className={styles.modalFooter} style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", flexWrap: "wrap" }}>
             <div className={styles.modalActionGroup} style={{ display: "flex", gap: "0.5rem" }}>
               {selectedAddressOrder.status !== "verified" && (

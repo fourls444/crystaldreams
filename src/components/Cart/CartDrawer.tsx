@@ -173,16 +173,13 @@ export default function CartDrawer() {
       setIsCartOpen(false);
 
       if (selectedMethod === "promptpay") {
-        // 2. Fetch PromptPay QR Code base64 data
-        const qrRes = await fetch("/api/payment/qr", {
+        // Omise reads the trusted total from the order; the browser sends only the UUID.
+        const qrRes = await fetch("/api/payment/omise/promptpay", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            amount: data.totalAmount,
-            orderId: data.orderId,
-          }),
+          body: JSON.stringify({ orderId: data.orderId }),
         });
 
         const qrData = await qrRes.json();
@@ -191,11 +188,16 @@ export default function CartDrawer() {
           throw new Error(qrData.error || "ไม่สามารถสร้างคิวอาร์โค้ดชำระเงินได้");
         }
 
-        setQrCodeDataUrl(qrData.qrDataUrl);
+        if (qrData.paid) {
+          clearCart();
+          router.push(`/payment/shipping?orderId=${data.orderId}`);
+        } else {
+          setQrCodeDataUrl(qrData.qrDataUrl);
+        }
       } else {
         // Cash on Delivery: Redirect directly to the shipping form page
         clearCart();
-        router.push(`/payment/slip?orderId=${data.orderId}`);
+        router.push(`/payment/shipping?orderId=${data.orderId}`);
       }
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการดำเนินงาน";
@@ -207,12 +209,12 @@ export default function CartDrawer() {
     }
   };
 
-  const proceedToUploadSlip = () => {
+  const proceedToShipping = () => {
     setShowQrModal(false);
     if (createdOrderId) {
-      // Clear cart once checkout is verified and we proceed to fill in slip
+      // Omise has confirmed payment; shipping details are collected next.
       clearCart();
-      router.push(`/payment/slip?orderId=${createdOrderId}`);
+      router.push(`/payment/shipping?orderId=${createdOrderId}`);
     }
   };
 
@@ -424,7 +426,7 @@ export default function CartDrawer() {
         qrCodeDataUrl={qrCodeDataUrl}
         totalAmount={totalAmount}
         createdOrderId={createdOrderId}
-        onProceed={proceedToUploadSlip}
+        onProceed={proceedToShipping}
         onCancel={handleCancelOrder}
       />
 

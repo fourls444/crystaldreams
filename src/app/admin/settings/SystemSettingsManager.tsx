@@ -103,7 +103,7 @@ export default function SystemSettingsManager({ onDirtyChange }: SystemSettingsM
               ? "Crystal Dreams ก่อตั้งด้วยความตั้งใจที่อยากให้คนไทยสามารถพักผ่อนได้อย่างเต็มที่ โดยปราศจากความกังวลทุกค่ำคืน"
               : i === 4
               ? "นโยบายความเป็นส่วนตัว\nข้อกำหนดการใช้งาน\nนโยบายการรับประกัน"
-              : "ชำระเงินผ่านระบบพร้อมเพย์และบัตรเครดิตปลอดภัย 100%";
+              : "ชำระเงินผ่าน Omise PromptPay และเก็บเงินปลายทาง";
           const defaultVisible = i <= 3;
 
           const keyVisible = `footer_col${i}_visible`;
@@ -173,27 +173,6 @@ export default function SystemSettingsManager({ onDirtyChange }: SystemSettingsM
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanNumber = promptpayNumber.replace(/[^0-9]/g, "");
-
-    // Validate structure
-    if (!cleanNumber) {
-      Swal.fire({
-        icon: "error",
-        title: "ข้อผิดพลาด",
-        text: "กรุณากรอกหมายเลขพร้อมเพย์",
-        confirmButtonColor: "#1e3a8a",
-      });
-      return;
-    }
-
-    if (![10, 13, 15].includes(cleanNumber.length)) {
-      Swal.fire({
-        icon: "error",
-        title: "รูปแบบหมายเลขไม่ถูกต้อง",
-        text: "ต้องเป็นเบอร์โทรศัพท์ 10 หลัก, เลขบัตรประชาชน/ผู้เสียภาษี 13 หลัก หรือ Biller ID (K-SHOP) 15 หลักเท่านั้น",
-        confirmButtonColor: "#1e3a8a",
-      });
-      return;
-    }
 
     setSaving(true);
     try {

@@ -138,21 +138,23 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           setTotalAmount(orderData.total_amount);
           setQuantity(orderData.quantity);
 
-          // Fetch QR code
-          const qrRes = await fetch("/api/payment/qr", {
+          // Restore the Omise charge/QR already attached to this order.
+          const qrRes = await fetch("/api/payment/omise/promptpay", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              amount: orderData.total_amount,
-              orderId: orderIdParam,
-            }),
+            body: JSON.stringify({ orderId: orderIdParam }),
           });
 
           const qrData = await qrRes.json();
           if (qrRes.ok) {
-            setQrCodeDataUrl(qrData.qrDataUrl);
+            if (qrData.paid) {
+              clearCart();
+              router.replace(`/payment/shipping?orderId=${orderIdParam}`);
+            } else {
+              setQrCodeDataUrl(qrData.qrDataUrl);
+            }
           } else {
             console.error("Error generating QR:", qrData.error);
           }
@@ -277,16 +279,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         url.searchParams.set("showQr", "true");
         window.history.pushState(null, "", url.pathname + url.search);
 
-        // 2. Fetch PromptPay QR Code base64 data
-        const qrRes = await fetch("/api/payment/qr", {
+        // Omise reads the trusted total from the order; the browser sends only the UUID.
+        const qrRes = await fetch("/api/payment/omise/promptpay", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            amount: data.totalAmount,
-            orderId: data.orderId,
-          }),
+          body: JSON.stringify({ orderId: data.orderId }),
         });
 
         const qrData = await qrRes.json();
@@ -295,11 +294,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           throw new Error(qrData.error || "ไม่สามารถสร้างคิวอาร์โค้ดชำระเงินได้");
         }
 
-        setQrCodeDataUrl(qrData.qrDataUrl);
+        if (qrData.paid) {
+          proceedToShipping();
+        } else {
+          setQrCodeDataUrl(qrData.qrDataUrl);
+        }
       } else {
         // Cash on Delivery: Redirect directly to the shipping form page
         clearCart();
-        router.push(`/payment/slip?orderId=${data.orderId}`);
+        router.push(`/payment/shipping?orderId=${data.orderId}`);
       }
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการดำเนินงาน";
@@ -311,11 +314,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     }
   };
 
-  const proceedToUploadSlip = () => {
+  const proceedToShipping = () => {
     setShowQrModal(false);
     if (createdOrderId) {
       clearCart();
-      router.push(`/payment/slip?orderId=${createdOrderId}`);
+      router.push(`/payment/shipping?orderId=${createdOrderId}`);
     }
   };
 
@@ -734,7 +737,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         qrCodeDataUrl={qrCodeDataUrl}
         totalAmount={totalAmount}
         createdOrderId={createdOrderId}
-        onProceed={proceedToUploadSlip}
+        onProceed={proceedToShipping}
         onCancel={handleCancelOrder}
       />
       

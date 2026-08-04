@@ -112,20 +112,20 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
     });
   }, [router, confirmLeaveSettings]);
 
-  // Sidebar count of pending slips (status = 'slip_uploaded') - Memoized to prevent recalculation on every render
+  // Action badge now covers COD orders and paid orders that need stock attention.
   const pendingSlipsCount = useMemo(() => {
-    return initialOrders.filter((o) => o.status === "slip_uploaded" || o.status === "cod_pending").length;
+    return initialOrders.filter((o) => o.status === "cod_pending" || o.status === "paid_stock_issue").length;
   }, [initialOrders]);
 
   // Dashboard Stats Calculations - Memoized to prevent recalculation on every render
   const totalSales = useMemo(() => {
     return initialOrders
-      .filter((o) => o.status === "verified")
+      .filter((o) => o.payment_status === "paid" || o.status === "verified")
       .reduce((sum, o) => sum + Number(o.total_amount), 0);
   }, [initialOrders]);
 
   const verifiedOrdersCount = useMemo(() => {
-    return initialOrders.filter((o) => o.status === "verified").length;
+    return initialOrders.filter((o) => o.payment_status === "paid" || o.status === "verified").length;
   }, [initialOrders]);
 
   // Order Verification Actions
@@ -432,6 +432,8 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
         return "อัปโหลดสลิปแล้ว (รอตรวจ)";
       case "cod_pending":
         return "เก็บเงินปลายทาง (รอจัดส่ง)";
+      case "paid_stock_issue":
+        return "Omise ชำระแล้ว (ตรวจสต็อก)";
       case "rejected":
         return "ปฏิเสธ/ยกเลิก";
       default:
@@ -449,6 +451,8 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
         return styles.statusUploaded;   // amber — มีสลิป รอตรวจ
       case "cod_pending":
         return styles.statusCodPending; // orange — COD รอจัดส่ง
+      case "paid_stock_issue":
+        return styles.statusUploaded;
       case "pending":
       default:
         return styles.statusPending;    // gray — ยังไม่ชำระ
@@ -693,7 +697,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
         onAutoVerify={handleAutoVerify}
         onManualApprove={handleManualApprove}
         onRejectOrder={handleRejectOrder}
-        ordersList={filteredOrders.filter((o) => o.slip_url || o.payment_method === "cod")}
+        ordersList={filteredOrders.filter((o) => (!!o.slip_url && !o.omise_charge_id) || o.payment_method === "cod")}
         onSelectOrder={setSelectedOrder}
       />
 

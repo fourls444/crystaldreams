@@ -30,6 +30,13 @@ export async function POST(
       return NextResponse.json({ error: "ไม่พบคำสั่งซื้อ" }, { status: 404 });
     }
 
+    if (order.omise_charge_id) {
+      return NextResponse.json(
+        { error: "ออเดอร์ Omise ต้องยืนยันจาก Charge จริงเท่านั้น ไม่สามารถอนุมัติแมนนวลได้" },
+        { status: 409 },
+      );
+    }
+
     if (order.status === "verified") {
       return NextResponse.json({
         success: true,
