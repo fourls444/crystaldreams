@@ -276,20 +276,6 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
         </div>
 
         <div className={styles.inputGroup}>
-          <label htmlFor="stock">จำนวนสินค้าคงเหลือในสต็อก (ชิ้น)</label>
-          <input
-            id="stock"
-            type="number"
-            required
-            min="0"
-            value={stock}
-            onChange={(e) => setStock(e.target.value === "" ? "" : Number(e.target.value))}
-            className={styles.input}
-            placeholder="ใส่จำนวนสินค้าคงเหลือในสต็อก เช่น 10"
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
           <label htmlFor="discountAmount">ส่วนลด (บาท)</label>
           <input
             id="discountAmount"
@@ -310,6 +296,20 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
               )}
             </div>
           )}
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="stock">จำนวนสินค้าคงเหลือในสต็อก (ชิ้น)</label>
+          <input
+            id="stock"
+            type="number"
+            required
+            min="0"
+            value={stock}
+            onChange={(e) => setStock(e.target.value === "" ? "" : Number(e.target.value))}
+            className={styles.input}
+            placeholder="ใส่จำนวนสินค้าคงเหลือในสต็อก เช่น 10"
+          />
         </div>
       </div>
 

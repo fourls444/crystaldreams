@@ -3,7 +3,7 @@ import { Inter, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 // import FacebookPixel from "@/components/FacebookPixel";
-import { Suspense } from "react";
+import LayoutWrapper from "@/components/LayoutWrapper";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,12 +32,12 @@ export default function RootLayout({
       className={`${inter.variable} ${notoSansThai.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#e7e6e4] text-slate-800">
-        <div className="w-full max-w-[1200px] mx-auto bg-white min-h-screen flex flex-col shadow-[0_0_15px_rgba(0,0,0,0.05)]">
+        <LayoutWrapper>
           {/* <Suspense fallback={null}>
             <FacebookPixel />
           </Suspense> */}
           <CartProvider>{children}</CartProvider>
-        </div>
+        </LayoutWrapper>
       </body>
     </html>
   );
