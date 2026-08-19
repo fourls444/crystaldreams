@@ -9,10 +9,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงระบบ" }, { status: 401 });
     }
 
-    const { id, name, price, stock, image_url, description, detail, image_urls, is_visible, discount_percent } = await request.json();
+    const { id, name, price, stock, image_url, description, detail, image_urls, is_visible, discount_amount } = await request.json();
 
     if (!name || price === undefined || stock === undefined) {
       return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
+    }
+
+    // Validate discount_amount does not exceed price
+    const numDiscountAmount = discount_amount !== undefined ? Number(discount_amount) : 0;
+    if (numDiscountAmount < 0 || numDiscountAmount > Number(price)) {
+      return NextResponse.json({ error: "ส่วนลดต้องไม่ต่ำกว่า 0 และไม่เกินราคาสินค้า" }, { status: 400 });
     }
 
     const supabaseAdmin = getSupabaseAdmin();
@@ -30,7 +36,7 @@ export async function POST(request: Request) {
           detail,
           image_urls,
           is_visible: is_visible !== false,
-          discount_percent: discount_percent !== undefined ? Number(discount_percent) : 0,
+          discount_amount: numDiscountAmount,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
@@ -55,7 +61,7 @@ export async function POST(request: Request) {
           detail,
           image_urls,
           is_visible: is_visible !== false,
-          discount_percent: discount_percent !== undefined ? Number(discount_percent) : 0,
+          discount_amount: numDiscountAmount,
         })
         .select();
 

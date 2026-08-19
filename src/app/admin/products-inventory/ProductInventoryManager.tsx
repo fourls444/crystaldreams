@@ -16,7 +16,7 @@ interface Product {
   detail?: string | null;
   image_urls?: string[] | null;
   is_visible?: boolean;
-  discount_percent?: number;
+  discount_amount?: number;
 }
 
 interface ProductInventoryManagerProps {
@@ -155,9 +155,12 @@ function ProductInventoryManager({
               const hasStock = p.stock > 0;
               const isDragged = draggedIndex === index;
               const isDragOver = dragOverIndex === index;
-              const discountedPrice = p.discount_percent && p.discount_percent > 0
-                ? Math.round(Number(p.price) * (1 - p.discount_percent / 100))
+              const discountAmount = Number(p.discount_amount) || 0;
+              const hasDiscount = discountAmount > 0;
+              const discountedPrice = hasDiscount
+                ? Math.round(Number(p.price) - discountAmount)
                 : Number(p.price);
+              const discountPercent = hasDiscount ? (discountAmount / Number(p.price) * 100).toFixed(1) : "0";
               return (
                 <div 
                   key={p.id} 
@@ -187,7 +190,7 @@ function ProductInventoryManager({
                       </span>
                     </div>
                     <div className={styles.productListItemPriceRow} style={{ flexWrap: "wrap", gap: "0.25rem 0.5rem" }}>
-                      {p.discount_percent && p.discount_percent > 0 ? (
+                      {hasDiscount ? (
                         <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
                           <span className={styles.productListItemPrice} style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.85rem", fontWeight: "normal" }}>
                             {Number(p.price).toLocaleString()} ฿
@@ -196,7 +199,7 @@ function ProductInventoryManager({
                             {discountedPrice.toLocaleString()} ฿
                           </span>
                           <span style={{ fontSize: "0.65rem", backgroundColor: "#fee2e2", color: "#ef4444", padding: "0.1rem 0.35rem", borderRadius: "0.25rem", fontWeight: "bold" }}>
-                            ลด {p.discount_percent}%
+                            ลด {discountAmount.toLocaleString()}฿ ({discountPercent}%)
                           </span>
                         </div>
                       ) : (

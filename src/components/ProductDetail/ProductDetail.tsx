@@ -23,7 +23,7 @@ interface Product {
   detail?: string | null;
   image_urls?: string[] | null;
   is_visible?: boolean;
-  discount_percent?: number;
+  discount_amount?: number;
 }
 
 interface ProductDetailProps {
@@ -70,11 +70,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   const product = productsList.find((p) => p.id === selectedProductId) || productsList[0] || null;
 
-  const hasDiscount = product && product.discount_percent !== undefined && product.discount_percent > 0;
+  const discountAmount = product ? (Number(product.discount_amount) || 0) : 0;
+  const hasDiscount = discountAmount > 0;
   const originalPrice = product ? Number(product.price) : 1890;
   const discountedPrice = hasDiscount
-    ? Math.round(originalPrice * (1 - (product.discount_percent || 0) / 100))
+    ? Math.round(originalPrice - discountAmount)
     : originalPrice;
+  const discountPercent = hasDiscount
+    ? Math.round((discountAmount / originalPrice) * 1000) / 10
+    : 0;
 
   useEffect(() => {
     async function fetchProducts() {
@@ -542,7 +546,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     {discountedPrice.toLocaleString("en-US")} THB
                   </span>
                   <span style={{ fontSize: "0.85rem", backgroundColor: "#fee2e2", color: "#ef4444", padding: "0.2rem 0.5rem", borderRadius: "0.25rem", fontWeight: "600" }}>
-                    SAVE {product?.discount_percent}%
+                    SAVE {discountPercent}%
                   </span>
                   <span className={`${styles.stockBadge} ${isSoldOut ? styles.stockSoldOut : styles.stockInStock}`}>
                     {isSoldOut ? "สินค้าหมด" : `${product?.stock} ชิ้น`}
@@ -677,10 +681,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           <div className={styles.otherProductsGrid}>
             {productsList.filter(p => p.is_visible !== false).map((p) => {
               const isSelected = p.id === product?.id;
-              const hasOtherDiscount = p.discount_percent !== undefined && p.discount_percent > 0;
+              const otherDiscountAmount = Number(p.discount_amount) || 0;
+              const hasOtherDiscount = otherDiscountAmount > 0;
               const otherOriginalPrice = Number(p.price);
               const otherDiscountedPrice = hasOtherDiscount
-                ? Math.round(otherOriginalPrice * (1 - (p.discount_percent || 0) / 100))
+                ? Math.round(otherOriginalPrice - otherDiscountAmount)
                 : otherOriginalPrice;
               return (
                 <div

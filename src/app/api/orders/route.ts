@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     for (const item of cartItems) {
       const { data: product, error: productError } = await supabaseAdmin
         .from("products")
-        .select("id, name, price, stock, is_visible, image_url, discount_percent")
+        .select("id, name, price, stock, is_visible, image_url, discount_amount")
         .eq("id", item.product_id)
         .single();
 
@@ -70,8 +70,9 @@ export async function POST(req: Request) {
       }
 
       let activePrice = Number(product.price);
-      if (product.discount_percent && product.discount_percent > 0) {
-        activePrice = Math.round(activePrice * (1 - product.discount_percent / 100));
+      const discountAmount = Number(product.discount_amount) || 0;
+      if (discountAmount > 0 && discountAmount <= activePrice) {
+        activePrice = Math.round(activePrice - discountAmount);
       }
 
       const itemTotal = activePrice * item.quantity;

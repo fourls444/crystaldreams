@@ -21,7 +21,7 @@ interface Product {
   detail?: string | null;
   image_urls?: string[] | null;
   is_visible?: boolean;
-  discount_percent?: number;
+  discount_amount?: number;
 }
 
 interface HomeClientProps {
@@ -316,7 +316,7 @@ export default function HomeClient({
   const displayIndex = isSingle ? 0 : currentIndex;
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 flex flex-col justify-between font-sans">
+    <div className="flex flex-col justify-between font-sans flex-grow">
       <Header />
 
       {/* Banner Carousel (Outside of <main> to be full-width) */}
@@ -422,13 +422,15 @@ export default function HomeClient({
           <div className={styles.productsGridContainer}>
             <div ref={productsGridRef} className={styles.productsGrid}>
               {initialProducts.map((product) => {
-                const hasDiscount =
-                  product.discount_percent !== undefined &&
-                  product.discount_percent > 0;
+                const discountAmount = Number(product.discount_amount) || 0;
+                const hasDiscount = discountAmount > 0;
                 const originalPrice = Number(product.price);
                 const discountedPrice = hasDiscount
-                  ? Math.round(originalPrice * (1 - (product.discount_percent || 0) / 100))
+                  ? Math.round(originalPrice - discountAmount)
                   : originalPrice;
+                const discountPercent = hasDiscount
+                  ? Math.round((discountAmount / originalPrice) * 1000) / 10
+                  : 0;
 
                 return (
                   <Link
@@ -439,7 +441,7 @@ export default function HomeClient({
                     <div className={styles.productImageWrapper}>
                       {hasDiscount && (
                         <span className={styles.productDiscountBadge}>
-                          ลด {product.discount_percent}%
+                          ลด {discountAmount.toLocaleString()}฿
                         </span>
                       )}
                       <img
@@ -469,6 +471,9 @@ export default function HomeClient({
                                 minimumFractionDigits: 2,
                               })}{" "}
                               THB
+                            </span>
+                            <span style={{ fontSize: "0.7rem", color: "#16a34a", fontWeight: 600 }}>
+                              ประหยัด {discountPercent}%
                             </span>
                           </>
                         ) : (

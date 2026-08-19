@@ -10,7 +10,7 @@ CREATE TABLE products (
     image_urls TEXT[],
     is_visible BOOLEAN NOT NULL DEFAULT TRUE, -- Added column
     sort_order INTEGER NOT NULL DEFAULT 0, -- Added column for drag-and-drop sorting
-    discount_percent INTEGER NOT NULL DEFAULT 0, -- Added column for manual product discounts
+    discount_amount NUMERIC NOT NULL DEFAULT 0, -- Fixed discount amount in baht
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -86,7 +86,7 @@ CREATE POLICY "Allow admins to manage orders" ON orders
 -- Run this SQL in your Supabase SQL Editor:
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS is_visible BOOLEAN NOT NULL DEFAULT TRUE;
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
--- ALTER TABLE products ADD COLUMN IF NOT EXISTS discount_percent INTEGER NOT NULL DEFAULT 0;
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS discount_amount NUMERIC NOT NULL DEFAULT 0;
 -- DROP POLICY IF EXISTS "Allow public read on products" ON products;
 -- CREATE POLICY "Allow public read on products" ON products FOR SELECT USING (is_visible = true);
 

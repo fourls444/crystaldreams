@@ -12,7 +12,7 @@
 }
 
 body {
-  background: var(--background);
+  background: #eaeaea;
   color: var(--foreground);
   font-family: var(--font-inter), var(--font-noto-sans-thai), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }

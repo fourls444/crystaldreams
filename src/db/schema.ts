@@ -12,7 +12,7 @@ export const products = pgTable("products", {
   image_urls: text("image_urls").array(),
   is_visible: boolean("is_visible").notNull().default(true),
   sort_order: integer("sort_order").notNull().default(0),
-  discount_percent: integer("discount_percent").notNull().default(0),
+  discount_amount: numeric("discount_amount").notNull().default("0"),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

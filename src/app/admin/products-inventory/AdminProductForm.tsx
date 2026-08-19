@@ -15,7 +15,7 @@ interface Product {
   detail?: string | null;
   image_urls?: string[] | null;
   is_visible?: boolean;
-  discount_percent?: number;
+  discount_amount?: number;
 }
 
 interface Props {
@@ -27,7 +27,7 @@ interface Props {
 export default function AdminProductForm({ initialProduct, onSaveSuccess, onCancel }: Props) {
   const [name, setName] = useState(initialProduct?.name || "");
   const [price, setPrice] = useState<number | "">(initialProduct?.price !== undefined ? initialProduct.price : "");
-  const [discountPercent, setDiscountPercent] = useState<number | "">(initialProduct?.discount_percent !== undefined ? initialProduct.discount_percent : 0);
+  const [discountAmount, setDiscountAmount] = useState<number | "">(initialProduct?.discount_amount !== undefined ? initialProduct.discount_amount : 0);
   const [stock, setStock] = useState<number | "">(initialProduct?.stock !== undefined ? initialProduct.stock : "");
   const [description, setDescription] = useState(initialProduct?.description || "");
   const [detail, setDetail] = useState(initialProduct?.detail || "");
@@ -190,7 +190,7 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
           detail,
           image_urls: imageUrls,
           is_visible: isVisible,
-          discount_percent: discountPercent === "" ? 0 : Number(discountPercent),
+          discount_amount: discountAmount === "" ? 0 : Number(discountAmount),
         }),
       });
 
@@ -290,17 +290,26 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
         </div>
 
         <div className={styles.inputGroup}>
-          <label htmlFor="discountPercent">ส่วนลด (%)</label>
+          <label htmlFor="discountAmount">ส่วนลด (บาท)</label>
           <input
-            id="discountPercent"
+            id="discountAmount"
             type="number"
             min="0"
-            max="100"
-            value={discountPercent}
-            onChange={(e) => setDiscountPercent(e.target.value === "" ? "" : Number(e.target.value))}
+            max={price === "" ? undefined : Number(price)}
+            value={discountAmount}
+            onChange={(e) => setDiscountAmount(e.target.value === "" ? "" : Number(e.target.value))}
             className={styles.input}
-            placeholder="ใส่เปอร์เซ็นต์ส่วนลด เช่น 10"
+            placeholder="ใส่จำนวนเงินที่ลด เช่น 200"
           />
+          {price !== "" && discountAmount !== "" && Number(discountAmount) > 0 && (
+            <div style={{ marginTop: "0.35rem", fontSize: "0.8rem", color: Number(discountAmount) > Number(price) ? "#ef4444" : "#16a34a", fontWeight: 600 }}>
+              {Number(discountAmount) > Number(price) ? (
+                "⚠️ ส่วนลดเกินราคาสินค้า"
+              ) : (
+                <>ราคาหลังลด: <strong>{(Number(price) - Number(discountAmount)).toLocaleString()}</strong> บาท (ประหยัด {(Number(discountAmount) / Number(price) * 100).toFixed(1)}%)</>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

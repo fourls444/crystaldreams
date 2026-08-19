@@ -31,11 +31,13 @@ export default function RootLayout({
       lang="th"
       className={`${inter.variable} ${notoSansThai.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {/* <Suspense fallback={null}>
-          <FacebookPixel />
-        </Suspense> */}
-        <CartProvider>{children}</CartProvider>
+      <body className="min-h-full flex flex-col bg-[#e7e6e4] text-slate-800">
+        <div className="w-full max-w-[1200px] mx-auto bg-white min-h-screen flex flex-col shadow-[0_0_15px_rgba(0,0,0,0.05)]">
+          {/* <Suspense fallback={null}>
+            <FacebookPixel />
+          </Suspense> */}
+          <CartProvider>{children}</CartProvider>
+        </div>
       </body>
     </html>
   );
