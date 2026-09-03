@@ -433,7 +433,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
       case "cod_pending":
         return "เก็บเงินปลายทาง (รอจัดส่ง)";
       case "paid_stock_issue":
-        return "Omise ชำระแล้ว (ตรวจสต็อก)";
+        return "Beam ชำระแล้ว (ตรวจสต็อก)";
       case "rejected":
         return "ปฏิเสธ/ยกเลิก";
       default:
@@ -697,7 +697,7 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
         onAutoVerify={handleAutoVerify}
         onManualApprove={handleManualApprove}
         onRejectOrder={handleRejectOrder}
-        ordersList={filteredOrders.filter((o) => (!!o.slip_url && !o.omise_charge_id) || o.payment_method === "cod")}
+        ordersList={filteredOrders.filter((o) => (!!o.slip_url && !o.beam_charge_id) || o.payment_method === "cod")}
         onSelectOrder={setSelectedOrder}
       />
 

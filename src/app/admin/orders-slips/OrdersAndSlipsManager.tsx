@@ -45,7 +45,7 @@ function OrdersAndSlipsManager({
       <header className={styles.panelHeader}>
         <div>
           <h2 className={styles.panelTitle}>จัดการรายการสั่งซื้อ & การชำระเงิน</h2>
-          <p className={styles.panelSubtitle}>ดูสถานะ Omise PromptPay, Charge ID, COD และข้อมูลจัดส่ง</p>
+          <p className={styles.panelSubtitle}>ดูสถานะ Beam PromptPay, Charge ID, COD และข้อมูลจัดส่ง</p>
         </div>
       </header>
 
@@ -62,7 +62,7 @@ function OrdersAndSlipsManager({
             onClick={() => onSetOrderFilter("promptpay")}
             className={`${styles.filterBtn} ${orderFilter === "promptpay" ? styles.filterBtnActive : ""}`}
           >
-            Omise PromptPay ( {initialOrders.filter((o) => o.payment_method !== "cod").length} )
+            Beam PromptPay ( {initialOrders.filter((o) => o.payment_method !== "cod").length} )
           </button>
           <button
             onClick={() => onSetOrderFilter("cod")}
@@ -134,9 +134,9 @@ function OrdersAndSlipsManager({
                   <td>
                     <div className={styles.actionCell} style={{ justifyContent: "center", alignItems: "center", gap: "0.5rem" }}>
                       {order.payment_method !== "cod" && (
-                        order.omise_charge_id ? (
-                          <span style={{ fontSize: "0.75rem", color: "#475569", fontFamily: "monospace" }} title={order.omise_charge_id}>
-                            Omise: {order.omise_charge_id.slice(0, 16)}…
+                        order.beam_charge_id ? (
+                          <span style={{ fontSize: "0.75rem", color: "#475569", fontFamily: "monospace" }} title={order.beam_charge_id}>
+                            Beam: {order.beam_charge_id.slice(0, 16)}…
                           </span>
                         ) : order.slip_url ? (
                           <button

@@ -441,7 +441,7 @@ export default function HomeClient({
                     <div className={styles.productImageWrapper}>
                       {hasDiscount && (
                         <span className={styles.productDiscountBadge}>
-                          ลด {discountAmount.toLocaleString()}฿
+                          ลด {discountPercent}%
                         </span>
                       )}
                       <img

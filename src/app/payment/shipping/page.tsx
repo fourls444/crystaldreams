@@ -55,7 +55,7 @@ function ShippingContent() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "ไม่พบข้อมูลคำสั่งซื้อ");
         if (!data.canEnterShipping) {
-          throw new Error("กรุณาชำระเงินผ่าน Omise ให้สำเร็จก่อนกรอกข้อมูลจัดส่ง");
+          throw new Error("กรุณาชำระเงินผ่าน Beam ให้สำเร็จก่อนกรอกข้อมูลจัดส่ง");
         }
         if (data.shippingCompleted) {
           router.replace(`/success?orderId=${orderId}`);
@@ -139,7 +139,7 @@ function ShippingContent() {
                 <p className={styles.formSubtitle}>
                   {order.payment_method === "cod"
                     ? "กรอกข้อมูลผู้รับเพื่อยืนยันออเดอร์เก็บเงินปลายทาง"
-                    : "Omise ยืนยันการชำระเงินแล้ว กรุณากรอกข้อมูลผู้รับสำหรับจัดส่ง"}
+                    : "Beam ยืนยันการชำระเงินแล้ว กรุณากรอกข้อมูลผู้รับสำหรับจัดส่ง"}
                 </p>
               </div>
               {error && <div className={styles.errorPanel}>{error}</div>}

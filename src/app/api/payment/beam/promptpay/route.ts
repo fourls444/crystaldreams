@@ -3,11 +3,11 @@ import { getSupabaseAdmin } from "@/utils/supabase";
 import {
   createPromptPayCharge,
   getPromptPayQrUrl,
-  mapOmisePaymentStatus,
-  OmiseApiError,
-  retrieveOmiseCharge,
-} from "@/utils/omise";
-import { syncOmiseChargeToOrder } from "@/utils/omise-order";
+  mapBeamPaymentStatus,
+  BeamApiError,
+  retrieveBeamCharge,
+} from "@/utils/beam";
+import { syncBeamChargeToOrder } from "@/utils/beam-order";
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const supabaseAdmin = getSupabaseAdmin();
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id, total_amount, status, payment_method, payment_status, omise_charge_id")
+      .select("id, total_amount, status, payment_method, payment_status, beam_charge_id")
       .eq("id", orderId)
       .single();
 
@@ -30,13 +30,13 @@ export async function POST(req: Request) {
     }
 
     // Reuse a still-pending charge when the customer reopens the QR modal.
-    // Failed or expired charges are replaced with a fresh Omise charge.
-    if (order.omise_charge_id) {
-      const existingCharge = await retrieveOmiseCharge(order.omise_charge_id);
-      const existingStatus = mapOmisePaymentStatus(existingCharge);
+    // Failed or expired charges are replaced with a fresh Beam charge.
+    if (order.beam_charge_id) {
+      const existingCharge = await retrieveBeamCharge(order.beam_charge_id);
+      const existingStatus = mapBeamPaymentStatus(existingCharge);
       const existingQrUrl = getPromptPayQrUrl(existingCharge);
       if (existingStatus === "paid") {
-        await syncOmiseChargeToOrder(existingCharge);
+        await syncBeamChargeToOrder(existingCharge);
         return NextResponse.json({ success: true, paymentStatus: "paid", paid: true });
       }
       if (existingStatus === "pending" && existingQrUrl) {
@@ -59,33 +59,33 @@ export async function POST(req: Request) {
       amountSatang,
       orderId: order.id,
       description: `CrystalDream order ${order.id}`,
-      returnUri: appUrl ? `${appUrl}/payment/shipping?orderId=${order.id}` : undefined,
+      redirectUrl: appUrl ? `${appUrl}/payment/shipping?orderId=${order.id}` : undefined,
     });
     const qrDataUrl = getPromptPayQrUrl(charge);
-    if (!qrDataUrl) throw new Error("Omise ไม่ได้ส่ง QR PromptPay กลับมา");
+    if (!qrDataUrl) throw new Error("Beam ไม่ได้ส่ง QR PromptPay กลับมา");
 
     const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
-        omise_charge_id: charge.id,
-        omise_charge_status: charge.status,
-        payment_status: mapOmisePaymentStatus(charge),
-        omise_failure_code: null,
+        beam_charge_id: charge.id,
+        beam_charge_status: charge.status,
+        payment_status: mapBeamPaymentStatus(charge),
+        beam_failure_code: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id)
       .neq("payment_status", "paid");
-    if (updateError) throw new Error(`บันทึก Omise Charge ไม่สำเร็จ: ${updateError.message}`);
+    if (updateError) throw new Error(`บันทึก Beam Charge ไม่สำเร็จ: ${updateError.message}`);
 
     return NextResponse.json({
       success: true,
       qrDataUrl,
       chargeId: charge.id,
-      paymentStatus: mapOmisePaymentStatus(charge),
+      paymentStatus: mapBeamPaymentStatus(charge),
     });
   } catch (error: unknown) {
-    console.error("Omise PromptPay charge error:", error);
-    const status = error instanceof OmiseApiError ? error.status : 500;
+    console.error("Beam PromptPay charge error:", error);
+    const status = error instanceof BeamApiError ? error.status : 500;
     const message = error instanceof Error ? error.message : "ไม่สามารถสร้าง PromptPay QR ได้";
     return NextResponse.json({ error: message }, { status });
   }

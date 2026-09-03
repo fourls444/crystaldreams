@@ -103,7 +103,7 @@ export default function SystemSettingsManager({ onDirtyChange }: SystemSettingsM
               ? "Crystal Dreams ก่อตั้งด้วยความตั้งใจที่อยากให้คนไทยสามารถพักผ่อนได้อย่างเต็มที่ โดยปราศจากความกังวลทุกค่ำคืน"
               : i === 4
               ? "นโยบายความเป็นส่วนตัว\nข้อกำหนดการใช้งาน\nนโยบายการรับประกัน"
-              : "ชำระเงินผ่าน Omise PromptPay และเก็บเงินปลายทาง";
+              : "ชำระเงินผ่าน Beam PromptPay และเก็บเงินปลายทาง";
           const defaultVisible = i <= 3;
 
           const keyVisible = `footer_col${i}_visible`;

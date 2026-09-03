@@ -142,8 +142,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           setTotalAmount(orderData.total_amount);
           setQuantity(orderData.quantity);
 
-          // Restore the Omise charge/QR already attached to this order.
-          const qrRes = await fetch("/api/payment/omise/promptpay", {
+          // Restore the Beam charge/QR already attached to this order.
+          const qrRes = await fetch("/api/payment/beam/promptpay", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -283,8 +283,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         url.searchParams.set("showQr", "true");
         window.history.pushState(null, "", url.pathname + url.search);
 
-        // Omise reads the trusted total from the order; the browser sends only the UUID.
-        const qrRes = await fetch("/api/payment/omise/promptpay", {
+        // Beam reads the trusted total from the order; the browser sends only the UUID.
+        const qrRes = await fetch("/api/payment/beam/promptpay", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

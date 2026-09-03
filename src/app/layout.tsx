@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 // import FacebookPixel from "@/components/FacebookPixel";
 import LayoutWrapper from "@/components/LayoutWrapper";
+import NextTopLoader from 'nextjs-toploader';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,6 +33,7 @@ export default function RootLayout({
       className={`${inter.variable} ${notoSansThai.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#e7e6e4] text-slate-800">
+        <NextTopLoader color="#2563eb" showSpinner={false} />
         <LayoutWrapper>
           {/* <Suspense fallback={null}>
             <FacebookPixel />

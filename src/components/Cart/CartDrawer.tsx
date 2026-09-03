@@ -173,8 +173,8 @@ export default function CartDrawer() {
       setIsCartOpen(false);
 
       if (selectedMethod === "promptpay") {
-        // Omise reads the trusted total from the order; the browser sends only the UUID.
-        const qrRes = await fetch("/api/payment/omise/promptpay", {
+        // Beam reads the trusted total from the order; the browser sends only the UUID.
+        const qrRes = await fetch("/api/payment/beam/promptpay", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -212,7 +212,7 @@ export default function CartDrawer() {
   const proceedToShipping = () => {
     setShowQrModal(false);
     if (createdOrderId) {
-      // Omise has confirmed payment; shipping details are collected next.
+      // Beam has confirmed payment; shipping details are collected next.
       clearCart();
       router.push(`/payment/shipping?orderId=${createdOrderId}`);
     }

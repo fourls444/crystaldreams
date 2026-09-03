@@ -149,7 +149,7 @@ function TrackingContent() {
       case "verified": return "ชำระเงินสำเร็จ";
       case "slip_uploaded": return "อัปโหลดสลิปแล้ว (รอแอดมินยืนยัน)";
       case "cod_pending": return "เก็บเงินปลายทาง (ได้รับคำสั่งซื้อแล้ว)";
-      case "paid_stock_issue": return "ชำระผ่าน Omise แล้ว (ร้านกำลังตรวจสต็อก)";
+      case "paid_stock_issue": return "ชำระผ่าน Beam แล้ว (ร้านกำลังตรวจสต็อก)";
       case "rejected": return "ปฏิเสธ/ยกเลิกคำสั่งซื้อ";
       case "pending":
       default: return "รอการชำระเงิน";
@@ -218,14 +218,14 @@ function TrackingContent() {
       },
       {
         key: "payment",
-        label: isCod ? "ชำระเงินปลายทาง (ไม่ต้องโอนล่วงหน้า)" : "Omise PromptPay",
+        label: isCod ? "ชำระเงินปลายทาง (ไม่ต้องโอนล่วงหน้า)" : "Beam PromptPay",
         desc: isVerified 
           ? "ชำระเงินเรียบร้อยแล้ว" 
           : isCod 
             ? "ชำระเงินปลายทางเมื่อได้รับสินค้า" 
             : isUploaded
               ? "ออเดอร์เก่าอยู่ระหว่างตรวจสอบสลิป"
-              : "รอ Omise ยืนยันยอดชำระเงิน",
+              : "รอ Beam ยืนยันยอดชำระเงิน",
         active: isVerified || isCod,
         icon: <ClipboardCheck size={12} className={styles.stepIcon} />
       },

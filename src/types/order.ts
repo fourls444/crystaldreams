@@ -30,9 +30,9 @@ export interface Order {
   verified_by: string | null;
   payment_method?: string | null;
   payment_status?: string | null;
-  omise_charge_id?: string | null;
-  omise_charge_status?: string | null;
-  omise_failure_code?: string | null;
+  beam_charge_id?: string | null;
+  beam_charge_status?: string | null;
+  beam_failure_code?: string | null;
   paid_at?: string | null;
   shipping_completed?: boolean;
   created_at: string;

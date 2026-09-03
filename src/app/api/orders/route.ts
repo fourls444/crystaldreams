@@ -141,7 +141,7 @@ export async function DELETE(request: Request) {
     // Fetch the order status first to ensure it's "pending"
     const { data: order, error: fetchError } = await supabaseAdmin
       .from("orders")
-      .select("status, omise_charge_id")
+      .select("status, beam_charge_id")
       .eq("id", id)
       .single();
 
@@ -156,11 +156,11 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // An Omise charge can complete after the modal closes. Keep the order so a
+    // A Beam charge can complete after the modal closes. Keep the order so a
     // late webhook still has a valid target and the payment is never orphaned.
-    if (order.omise_charge_id) {
+    if (order.beam_charge_id) {
       return NextResponse.json(
-        { error: "ปิดหน้าชำระเงินได้ แต่ออเดอร์ที่ผูกกับ Omise จะถูกเก็บไว้จนกว่ารายการจะหมดอายุ" },
+        { error: "ปิดหน้าชำระเงินได้ แต่ออเดอร์ที่ผูกกับ Beam จะถูกเก็บไว้จนกว่ารายการจะหมดอายุ" },
         { status: 409 },
       );
     }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
+import { Loader2 } from "lucide-react";
 import styles from "../admin.module.css";
 
 interface Product {
@@ -435,7 +436,13 @@ export default function AdminProductForm({ initialProduct, onSaveSuccess, onCanc
             ยกเลิก
           </button>
         )}
-        <button type="submit" disabled={submitting || uploading} className={styles.saveBtn} style={{ marginTop: 0 }}>
+        <button 
+          type="submit" 
+          disabled={submitting || uploading} 
+          className={styles.saveBtn} 
+          style={{ marginTop: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+        >
+          {submitting && <Loader2 className="animate-spin" size={20} />}
           {submitting ? "กำลังบันทึก..." : "บันทึกรายละเอียดสินค้า"}
         </button>
       </div>

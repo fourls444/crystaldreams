@@ -27,12 +27,12 @@ export default function PromptPaySettings({
             <CreditCard size={20} />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: "1.1rem" }}>Omise PromptPay</h3>
-            <p style={{ margin: 0, color: "#64748b", fontSize: "0.82rem" }}>QR และการยืนยันยอดถูกจัดการผ่าน Omise อัตโนมัติ</p>
+            <h3 style={{ margin: 0, fontSize: "1.1rem" }}>Beam PromptPay</h3>
+            <p style={{ margin: 0, color: "#64748b", fontSize: "0.82rem" }}>QR และการยืนยันยอดถูกจัดการผ่าน Beam อัตโนมัติ</p>
           </div>
         </div>
         <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "0.75rem", padding: "1rem", color: "#1e3a8a", lineHeight: 1.6, fontSize: "0.86rem" }}>
-          ตั้งค่า <code>OMISE_SECRET_KEY</code> และ <code>NEXT_PUBLIC_APP_URL</code> ที่ environment ของเซิร์ฟเวอร์ และตั้ง webhook ใน Omise Dashboard มาที่ <code>/api/webhooks/omise</code> ไม่ต้องกำหนดหมายเลขพร้อมเพย์หรือ Ref ในหน้านี้แล้ว
+          ตั้งค่า <code>BEAM_API_KEY</code> และ <code>NEXT_PUBLIC_APP_URL</code> ที่ environment ของเซิร์ฟเวอร์ และตั้ง webhook ใน Beam Lighthouse Dashboard มาที่ <code>/api/webhooks/beam</code> ไม่ต้องกำหนดหมายเลขพร้อมเพย์หรือ Ref ในหน้านี้แล้ว
         </div>
       </section>
 
@@ -41,7 +41,7 @@ export default function PromptPaySettings({
           <Truck size={20} color="#b45309" />
           <div>
             <h3 style={{ margin: 0, fontSize: "1.1rem" }}>เก็บเงินปลายทาง (COD)</h3>
-            <p style={{ margin: 0, color: "#64748b", fontSize: "0.82rem" }}>คง flow เดิมและไม่ผ่าน Omise</p>
+            <p style={{ margin: 0, color: "#64748b", fontSize: "0.82rem" }}>คง flow เดิมและไม่ผ่าน Beam</p>
           </div>
         </div>
         <button
