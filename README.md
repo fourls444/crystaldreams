@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Crystal Dreams
 
-## Getting Started
+Crystal Dreams is a full-stack e-commerce application for a retail client. It supports product browsing, cart and checkout flows, payment confirmation, order tracking, inventory updates, customer reviews, and administrative operations.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Product catalogue with visibility, stock, images, and product details
+- Cart and order creation with trusted server-side totals
+- PromptPay slip payment and Beam payment flow integration
+- Delivery information and public order tracking
+- Inventory and order management for administrators
+- Product reviews with admin controls
+- Supabase-backed data access, storage, and authentication utilities
+
+## Tech stack
+
+- Next.js 16 with React 19 and TypeScript
+- Supabase for database, storage, and authentication support
+- PostgreSQL with Drizzle ORM
+- Tailwind CSS and CSS Modules
+- Beam payment API and PromptPay payment flow
+
+## Project structure
+
+```text
+src/app/          Pages and API routes, including checkout, tracking, and admin flows
+src/components/   Product, cart, checkout, header, footer, and admin UI
+src/utils/        Authentication, Supabase, payment, notification, and verification helpers
+src/db/           Drizzle database schema
+sql/              SQL schema and row-level security policies
+docs/             Payment setup and development notes
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Install dependencies and start the development server:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) after the server starts.
 
-To learn more about Next.js, take a look at the following resources:
+## Environment variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create `.env.local` and provide the values required by the deployment. The exact variables used by the current code are documented in the existing setup notes under `docs/`, including Supabase and Beam configuration. Never commit secrets or service-role keys.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Verification
 
-## Deploy on Vercel
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Payment and notification integrations require external service credentials. Use the project setup documents in `docs/` for the current sandbox and webhook configuration.
