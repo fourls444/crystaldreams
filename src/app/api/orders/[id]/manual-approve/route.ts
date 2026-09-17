@@ -30,9 +30,9 @@ export async function POST(
       return NextResponse.json({ error: "ไม่พบคำสั่งซื้อ" }, { status: 404 });
     }
 
-    if (order.omise_charge_id) {
+    if (order.beam_charge_id) {
       return NextResponse.json(
-        { error: "ออเดอร์ Omise ต้องยืนยันจาก Charge จริงเท่านั้น ไม่สามารถอนุมัติแมนนวลได้" },
+        { error: "ออเดอร์ Beam ต้องยืนยันจาก Charge จริงเท่านั้น ไม่สามารถอนุมัติแมนนวลได้" },
         { status: 409 },
       );
     }

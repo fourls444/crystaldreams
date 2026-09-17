@@ -557,6 +557,146 @@
   border-color: #ef4444;
 }
 
+.codSettingsSection {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.codSettingsContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 0.42fr);
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.codSettingsInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.codSettingsTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.codSettingsTitleRow h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.1rem;
+}
+
+.codSettingsTitleRow p,
+.codSettingsDescription {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.codSettingsTitleRow p {
+  margin: 0;
+}
+
+.codSettingsDescription {
+  margin: 1.25rem 0 0;
+  max-width: 48ch;
+  line-height: 1.6;
+}
+
+.codControlPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+}
+
+.codControlHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.codStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.codStatusBadgeEnabled {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.codStatusBadgeDisabled {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.codToggleButton {
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.codToggleButtonEnabled {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.codToggleButtonEnabled:hover {
+  background: #ffedd5;
+  border-color: #fdba74;
+}
+
+.codToggleButtonDisabled {
+  background: #1e3a8a;
+  border-color: #1e3a8a;
+  color: #ffffff;
+}
+
+.codToggleButtonDisabled:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.codHelper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.codHelperEnabled {
+  color: #166534;
+}
+
+.codHelperDisabled {
+  color: #b45309;
+}
+
 /* ==========================================
    Content Panel
    ========================================== */
@@ -1399,6 +1539,15 @@
 }
 
 @media (max-width: 639px) {
+  .codSettingsSection {
+    padding: 1.25rem;
+  }
+
+  .codSettingsContent {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
   .panelHeader {
     flex-direction: column;
     align-items: flex-start;
@@ -1732,5 +1881,4 @@
   background-color: #ecfdf5;
   color: #047857;
 }
-
 

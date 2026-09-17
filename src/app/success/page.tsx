@@ -3,7 +3,6 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/utils/supabase";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import styles from "./success.module.css";
@@ -20,6 +19,10 @@ interface SuccessOrder {
   } | null;
 }
 
+type FacebookPixelWindow = Window & {
+  fbq?: (...args: unknown[]) => void;
+};
+
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
@@ -31,17 +34,10 @@ function SuccessContent() {
 
     async function fetchOrder() {
       try {
-        const { data, error: fetchErr } = await supabase
-          .from("orders")
-          .select("*, products(name)")
-          .eq("id", orderId)
-          .single();
-
-        if (fetchErr) {
-          console.error("Error fetching order:", fetchErr);
-        } else if (data) {
-          setOrder(data);
-        }
+        const response = await fetch(`/api/orders/${orderId}/payment-status`, { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "ไม่พบข้อมูลคำสั่งซื้อ");
+        setOrder(data.order as SuccessOrder);
       } catch (err) {
         console.error("Unexpected error fetching order:", err);
       } finally {
@@ -54,8 +50,9 @@ function SuccessContent() {
 
   useEffect(() => {
     if (order) {
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Purchase", {
+      const fbq = (window as FacebookPixelWindow).fbq;
+      if (fbq) {
+        fbq("track", "Purchase", {
           value: order.total_amount,
           currency: "THB",
           content_name: order.products?.name || "หมอนสุขภาพ Crystal Dreams",

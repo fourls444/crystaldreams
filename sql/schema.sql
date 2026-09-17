@@ -38,7 +38,7 @@ CREATE TABLE orders (
     customer_tel TEXT,
     customer_address TEXT,
     customer_line TEXT,
-    status TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'slip_uploaded' | 'verified' | 'rejected'
+    status TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'slip_uploaded' | 'verified' | 'paid_stock_issue' | 'cod_pending' | 'rejected'
     shipping_status TEXT NOT NULL DEFAULT 'processing', -- 'processing' | 'shipped' | 'delivered'
     shipping_carrier TEXT,
     tracking_number TEXT,
@@ -47,12 +47,13 @@ CREATE TABLE orders (
     verified_by TEXT, -- 'auto' | 'manual'
     payment_method TEXT NOT NULL DEFAULT 'promptpay',
     payment_status TEXT NOT NULL DEFAULT 'pending',
-    omise_charge_id TEXT UNIQUE,
-    omise_charge_status TEXT,
-    omise_failure_code TEXT,
+    beam_charge_id TEXT UNIQUE,
+    beam_charge_status TEXT,
+    beam_failure_code TEXT,
     paid_at TIMESTAMPTZ,
     stock_deducted_at TIMESTAMPTZ,
     shipping_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    items JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -68,19 +69,18 @@ CREATE POLICY "Allow public read on products" ON products
 CREATE POLICY "Allow admins to manage products" ON products
     FOR ALL
     TO authenticated
-    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' )
+    WITH CHECK ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
 
--- Create Policies for orders (Anyone can create and read by ID, Admin can manage all)
+-- Create Policies for orders (Anyone can create, Admin can read/manage all)
 CREATE POLICY "Allow public create orders" ON orders
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Allow public select orders by id" ON orders
-    FOR SELECT USING (true); -- In production we can restrict or keep it open since IDs are UUIDs.
+    FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 CREATE POLICY "Allow admins to manage orders" ON orders
     FOR ALL
     TO authenticated
-    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' )
+    WITH CHECK ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
 
 -- --- DATABASE MIGRATION FOR EXISTING TABLES ---
 -- Run this SQL in your Supabase SQL Editor:
@@ -109,7 +109,8 @@ DROP POLICY IF EXISTS "Allow admins to manage settings" ON settings;
 CREATE POLICY "Allow admins to manage settings" ON settings
     FOR ALL
     TO authenticated
-    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' )
+    WITH CHECK ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
 
 -- Insert default promptpay number if not exists
 INSERT INTO settings (key, value)
@@ -124,6 +125,9 @@ ON CONFLICT (key) DO NOTHING;
 -- --- DATABASE MIGRATION FOR cod_enabled SETTING ---
 -- Run this SQL in your Supabase SQL Editor if you already have an existing `settings` table:
 -- INSERT INTO settings (key, value) VALUES ('cod_enabled', 'true') ON CONFLICT (key) DO NOTHING;
+
+-- For an existing database, run sql/migrate-beam-promptpay.sql as well so the
+-- Beam charge finalization and atomic shipping RPCs are installed.
 
 -- 4. Create Reviews Table
 CREATE TABLE reviews (
@@ -148,4 +152,5 @@ CREATE POLICY "Allow public select reviews" ON reviews
 CREATE POLICY "Allow admins to manage reviews" ON reviews
     FOR ALL
     TO authenticated
-    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );
+    USING ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' )
+    WITH CHECK ( (select auth.jwt() -> 'app_metadata' ->> 'isAdmin') = 'true' OR (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' );

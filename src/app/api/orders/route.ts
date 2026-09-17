@@ -19,6 +19,19 @@ export async function POST(req: Request) {
       );
     }
 
+    if (cartItems.some((item) => (
+      !item ||
+      typeof item.product_id !== "string" ||
+      !item.product_id ||
+      !Number.isSafeInteger(item.quantity) ||
+      item.quantity <= 0
+    ))) {
+      return NextResponse.json(
+        { error: "จำนวนสินค้าต้องเป็นจำนวนเต็มที่มากกว่า 0" },
+        { status: 400 }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
 
     const paymentMethod = body.payment_method === "cod" ? "cod" : "promptpay";

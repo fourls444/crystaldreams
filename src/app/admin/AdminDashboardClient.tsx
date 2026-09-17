@@ -107,10 +107,14 @@ export default function AdminDashboardClient({ initialProducts, initialOrders, i
         setShowProductModal(false);
         setEditingProduct(null);
       }
-      router.push(`/admin?view=${tab}`);
+
+      // Tab changes are client-only state changes. Using router.push here
+      // re-ran the dynamic /admin page and refetched every product, order,
+      // and review before the visible panel could change.
+      window.history.pushState(null, "", `/admin?view=${tab}`);
       setIsSidebarOpen(false);
     });
-  }, [router, confirmLeaveSettings]);
+  }, [confirmLeaveSettings]);
 
   // Action badge now covers COD orders and paid orders that need stock attention.
   const pendingSlipsCount = useMemo(() => {

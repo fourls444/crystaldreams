@@ -42,10 +42,19 @@ export async function POST(
     if (saveError) {
       const detail = saveError.message || "";
       if (detail.includes("payment_not_completed")) {
-        return NextResponse.json({ error: "ยังไม่ได้รับการยืนยันชำระเงินจาก Omise" }, { status: 409 });
+        return NextResponse.json({ error: "ยังไม่ได้รับการยืนยันชำระเงินจาก Beam" }, { status: 409 });
       }
       if (detail.includes("shipping_already_completed")) {
         return NextResponse.json({ error: "ออเดอร์นี้บันทึกข้อมูลจัดส่งแล้ว" }, { status: 409 });
+      }
+      if (detail.includes("order_not_found")) {
+        return NextResponse.json({ error: "ไม่พบคำสั่งซื้อ" }, { status: 404 });
+      }
+      if (detail.includes("order_already_processed")) {
+        return NextResponse.json({ error: "ออเดอร์นี้ถูกดำเนินการไปแล้ว" }, { status: 409 });
+      }
+      if (detail.includes("invalid_payment_method")) {
+        return NextResponse.json({ error: "ช่องทางการชำระเงินของออเดอร์ไม่ถูกต้อง" }, { status: 400 });
       }
       if (detail.includes("insufficient_stock")) {
         return NextResponse.json({ error: "สินค้าในออเดอร์มีสต็อกไม่เพียงพอ" }, { status: 409 });
@@ -68,7 +77,7 @@ export async function POST(
         customerLine: line || undefined,
         amount: Number(order.total_amount),
         status: order.payment_method === "cod" ? "cod_pending" : "verified",
-        senderName: order.payment_method === "cod" ? undefined : "Omise",
+        senderName: order.payment_method === "cod" ? undefined : "Beam PromptPay",
       });
     }
 

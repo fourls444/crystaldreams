@@ -36,28 +36,42 @@ export default function PromptPaySettings({
         </div>
       </section>
 
-      <section style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "1rem", padding: "2rem" }}>
-        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", marginBottom: "1rem" }}>
-          <Truck size={20} color="#b45309" />
-          <div>
-            <h3 style={{ margin: 0, fontSize: "1.1rem" }}>เก็บเงินปลายทาง (COD)</h3>
-            <p style={{ margin: 0, color: "#64748b", fontSize: "0.82rem" }}>คง flow เดิมและไม่ผ่าน Beam</p>
+      <section className={styles.codSettingsSection}>
+        <div className={styles.codSettingsContent}>
+          <div className={styles.codSettingsInfo}>
+            <div className={styles.codSettingsTitleRow}>
+              <Truck size={20} color="#b45309" />
+              <div>
+                <h3>เก็บเงินปลายทาง (COD)</h3>
+                <p>คง flow เดิมและไม่ผ่าน Beam</p>
+              </div>
+            </div>
+            <p className={styles.codSettingsDescription}>
+              ควบคุมว่าลูกค้าจะเห็น COD เป็นตัวเลือกในขั้นตอนชำระเงินหรือไม่
+            </p>
+          </div>
+
+          <div className={styles.codControlPanel}>
+            <div className={styles.codControlHeader}>
+              <span>สถานะการรับ COD</span>
+              <span className={`${styles.codStatusBadge} ${codEnabled ? styles.codStatusBadgeEnabled : styles.codStatusBadgeDisabled}`}>
+                {codEnabled ? "เปิดอยู่" : "ปิดอยู่"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCodEnabled(!codEnabled)}
+              aria-pressed={codEnabled}
+              className={`${styles.codToggleButton} ${codEnabled ? styles.codToggleButtonEnabled : styles.codToggleButtonDisabled}`}
+            >
+              {codEnabled ? "ปิดใช้งาน COD" : "เปิดใช้งาน COD"}
+            </button>
+            <p className={`${styles.codHelper} ${codEnabled ? styles.codHelperEnabled : styles.codHelperDisabled}`}>
+              {!codEnabled && <AlertTriangle size={16} aria-hidden="true" />}
+              {codEnabled ? "ลูกค้าสามารถเลือก COD ได้ในขั้นตอนชำระเงิน" : "ลูกค้าจะไม่เห็นตัวเลือก COD"}
+            </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setCodEnabled(!codEnabled)}
-          aria-pressed={codEnabled}
-          className={codEnabled ? styles.saveBtn : styles.cancelFormBtn}
-          style={{ minWidth: 170 }}
-        >
-          {codEnabled ? "เปิดใช้งาน COD" : "ปิดใช้งาน COD"}
-        </button>
-        {!codEnabled && (
-          <p style={{ display: "flex", gap: "0.5rem", alignItems: "center", color: "#b45309", fontSize: "0.82rem", marginBottom: 0 }}>
-            <AlertTriangle size={16} /> ลูกค้าจะไม่เห็นตัวเลือก COD
-          </p>
-        )}
       </section>
     </div>
   );

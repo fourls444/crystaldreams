@@ -25,12 +25,12 @@ export async function POST(
 
     const { data: order } = await getSupabaseAdmin()
       .from("orders")
-      .select("omise_charge_id")
+      .select("beam_charge_id")
       .eq("id", orderId)
       .single();
-    if (order?.omise_charge_id) {
+    if (order?.beam_charge_id) {
       return NextResponse.json(
-        { error: "ออเดอร์ Omise ไม่ใช้การตรวจสลิป" },
+        { error: "ออเดอร์ Beam ไม่ใช้การตรวจสลิป" },
         { status: 409 },
       );
     }

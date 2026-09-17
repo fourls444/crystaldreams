@@ -123,14 +123,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
       const fetchOrderDetails = async () => {
         try {
           setLoadingQr(true);
-          const { data: orderData, error: fetchErr } = await supabase
-            .from("orders")
-            .select("quantity, total_amount")
-            .eq("id", orderIdParam)
-            .single();
+          const orderResponse = await fetch(`/api/orders/${orderIdParam}/payment-status`, { cache: "no-store" });
+          const orderPayload = await orderResponse.json();
 
-          if (fetchErr || !orderData) {
-            console.error("Error fetching order for QR restoration:", fetchErr);
+          if (!orderResponse.ok || !orderPayload.order) {
+            console.error("Error fetching order for QR restoration:", orderPayload.error);
             setShowQrModal(false);
             const url = new URL(window.location.href);
             url.searchParams.delete("orderId");
@@ -139,8 +136,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             return;
           }
 
-          setTotalAmount(orderData.total_amount);
-          setQuantity(orderData.quantity);
+          setTotalAmount(orderPayload.order.total_amount);
+          setQuantity(orderPayload.order.quantity);
 
           // Restore the Beam charge/QR already attached to this order.
           const qrRes = await fetch("/api/payment/beam/promptpay", {

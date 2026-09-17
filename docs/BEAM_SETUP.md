@@ -45,10 +45,10 @@ BEAM_API_BASE_URL=https://api-playground.beamcheckout.com
 รัน SQL ใน Supabase SQL Editor:
 
 ```sql
--- ดู sql/migrate-beam.sql สำหรับ full migration script
+-- ดู sql/migrate-beam-promptpay.sql สำหรับ full migration script
 ```
 
-ไฟล์ migration อยู่ที่ `sql/migrate-beam.sql`
+ไฟล์ migration อยู่ที่ `sql/migrate-beam-promptpay.sql` และต้องรันก่อนทดสอบ checkout จริง
 
 ## 6. API Endpoints
 

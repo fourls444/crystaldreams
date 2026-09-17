@@ -30,9 +30,9 @@ export async function POST(
       return NextResponse.json({ error: "ไม่พบคำสั่งซื้อ" }, { status: 404 });
     }
 
-    if (order.omise_charge_id || order.payment_status === "paid") {
+    if (order.beam_charge_id || order.payment_status === "paid") {
       return NextResponse.json(
-        { error: "ออเดอร์ที่ชำระผ่าน Omise ต้องดำเนินการคืนเงิน/ยกเลิกผ่านกระบวนการ Omise" },
+        { error: "ออเดอร์ที่ชำระผ่าน Beam หรือชำระสำเร็จแล้ว ต้องดำเนินการยกเลิก/คืนเงินผ่านกระบวนการของ Beam" },
         { status: 409 },
       );
     }

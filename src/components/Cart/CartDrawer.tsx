@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
-import Swal from "sweetalert2";
 import { useCart } from "@/context/CartContext";
 import { supabase } from "@/utils/supabase";
 import styles from "./CartDrawer.module.css";
@@ -125,6 +124,7 @@ export default function CartDrawer() {
   };
 
   const handlePaymentMethodSelect = async (selectedMethod: "promptpay" | "cod") => {
+    let pendingPromptPayOrderId = "";
     setShowPaymentMethodModal(false);
     setSubmitting(true);
     if (selectedMethod === "promptpay") {
@@ -155,6 +155,7 @@ export default function CartDrawer() {
       }
 
       setCreatedOrderId(data.orderId);
+      pendingPromptPayOrderId = data.orderId;
       setTotalAmount(data.totalAmount);
       
       // Save recent order ID for tracking
@@ -200,6 +201,11 @@ export default function CartDrawer() {
         router.push(`/payment/shipping?orderId=${data.orderId}`);
       }
     } catch (err: unknown) {
+      if (selectedMethod === "promptpay" && pendingPromptPayOrderId) {
+        // Remove an order only when QR creation failed before Beam attached a
+        // charge. The API keeps it when the charge state is uncertain.
+        await fetch(`/api/orders?id=${pendingPromptPayOrderId}`, { method: "DELETE" }).catch(() => {});
+      }
       const errMsg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการดำเนินงาน";
       alert(errMsg);
       setShowQrModal(false);
